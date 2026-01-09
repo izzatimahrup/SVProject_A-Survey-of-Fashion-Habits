@@ -1,12 +1,10 @@
 # =========================================================
-# STREAMLIT APP: Fashion Demographic & Behavioural Analysis
-# ONE PAGE ONLY (NO TABS)
+# STREAMLIT APP: Interactive Fashion Analysis (Plotly)
 # =========================================================
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
 
 # ---------------------------------------------------------
 # Page Configuration
@@ -17,372 +15,131 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
+# DATA LOADING
+# ---------------------------------------------------------
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
+    return pd.read_csv(url)
+
+df = load_data()
+
+# Custom Sort Orders
+age_order = ["<25 Years Old", "26-34 Years Old", "35-45 Years Old", "46-55 Years Old", ">55 Years Old"]
+education_order = ["Lower Secondary Education", "Secondary Education", "Post-Secondary Education", "Bachelor’S Degree", "Master’S Degree", "Doctoral Degree"]
+expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
+
+# ---------------------------------------------------------
 # Page Title & Description
 # ---------------------------------------------------------
 st.title("📊 Fashion Demographic & Behavioural Analysis")
-st.markdown(
-    "This dashboard presents an exploratory visual analysis of consumer demographics, "
-    "fashion awareness, spending behaviour, and shopping influences on social media."
-)
-
-# ---------------------------------------------------------
-# DATA LOADING
-# ---------------------------------------------------------
-df = pd.read_csv(
-    "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
-)
-
-sns.set(style="whitegrid")
+st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
 
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
 st.header("Section A: Demographic Data Visualisation")
 
-# ---------------------------------------------------------
-# 1️⃣ Gender Distribution — Donut Chart
-# ---------------------------------------------------------
-st.subheader("Gender Distribution")
+col1, col2 = st.columns(2)
 
-gender_counts = df["Gender"].value_counts()
+with col1:
+    # 1️⃣ Gender Distribution — Donut Chart
+    gender_counts = df["Gender"].value_counts().reset_index()
+    fig1 = px.pie(gender_counts, values='count', names='Gender', hole=0.4,
+                 title="Gender Distribution of Respondents")
+    st.plotly_chart(fig1, use_container_width=True)
 
-fig, ax = plt.subplots(figsize=(7,7))
-ax.pie(
-    gender_counts,
-    labels=gender_counts.index,
-    autopct="%1.1f%%",
-    startangle=90,
-    wedgeprops={"width": 0.4}
-)
-ax.set_title("Gender Distribution of Respondents")
-st.pyplot(fig)
+    # 2️⃣ Age Group — Ordered Vertical Bar Chart
+    age_counts = df["Age"].value_counts().reindex(age_order).reset_index()
+    fig2 = px.bar(age_counts, x='Age', y='count', text_auto=True,
+                 title="Age Group Distribution",
+                 category_orders={"Age": age_order})
+    st.plotly_chart(fig2, use_container_width=True)
 
-# ---------------------------------------------------------
-# 2️⃣ Age Group — Ordered Vertical Bar Chart
-# ---------------------------------------------------------
-st.subheader("Age Group Distribution")
+with col2:
+    # 5️⃣ Employment Status — Pie Chart
+    employment_counts = df["Employment Status"].value_counts().reset_index()
+    fig5 = px.pie(employment_counts, values='count', names='Employment Status',
+                 title="Employment Status Distribution")
+    st.plotly_chart(fig5, use_container_width=True)
 
-age_order = [
-    "<25 Years Old",
-    "26-34 Years Old",
-    "35-45 Years Old",
-    "46-55 Years Old",
-    ">55 Years Old"
-]
+    # 3️⃣ Region — Bar Chart
+    region_counts = df["Region"].value_counts().reset_index()
+    fig3 = px.bar(region_counts, x='Region', y='count', text_auto=True,
+                 title="Regional Distribution")
+    st.plotly_chart(fig3, use_container_width=True)
 
-age_counts = df["Age"].value_counts().reindex(age_order)
-
-fig, ax = plt.subplots(figsize=(9,5))
-sns.barplot(x=age_counts.index, y=age_counts.values, ax=ax)
-
-ax.set_title("Age Group Distribution of Respondents")
-ax.set_xlabel("Age Group")
-ax.set_ylabel("Number of Responses")
-ax.set_xticklabels(ax.get_xticklabels(), rotation=20)
-
-for p in ax.patches:
-    ax.annotate(
-        int(p.get_height()),
-        (p.get_x() + p.get_width()/2, p.get_height()),
-        ha="center", va="bottom"
-    )
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 3️⃣ Region — Bar Chart
-# ---------------------------------------------------------
-st.subheader("Regional Distribution")
-
-region_counts = df["Region"].value_counts()
-
-fig, ax = plt.subplots(figsize=(7,5))
-sns.barplot(x=region_counts.index, y=region_counts.values, ax=ax)
-
-ax.set_title("Regional Distribution of Respondents")
-ax.set_xlabel("Region")
-ax.set_ylabel("Number of Responses")
-
-for p in ax.patches:
-    ax.annotate(
-        int(p.get_height()),
-        (p.get_x() + p.get_width()/2, p.get_height()),
-        ha="center", va="bottom"
-    )
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
 # 4️⃣ Education Level — Horizontal Ordered Bar Chart
-# ---------------------------------------------------------
-st.subheader("Education Level Distribution")
+edu_counts = df["Education Level"].value_counts().reindex(education_order).reset_index()
+fig4 = px.bar(edu_counts, x='count', y='Education Level', orientation='h', text_auto=True,
+             title="Education Level of Respondents",
+             category_orders={"Education Level": education_order})
+st.plotly_chart(fig4, use_container_width=True)
 
-education_order = [
-    "Lower Secondary Education",
-    "Secondary Education",
-    "Post-Secondary Education",
-    "Bachelor’S Degree",
-    "Master’S Degree",
-    "Doctoral Degree"
-]
+col3, col4 = st.columns(2)
 
-edu_counts = df["Education Level"].value_counts().reindex(education_order)
+with col3:
+    # 6️⃣ Average Monthly Expenses — Ordered Percentage Bar Chart
+    expense_counts = df["Average Monthly Expenses (RM)"].value_counts().reindex(expense_order).reset_index()
+    expense_counts['percentage'] = (expense_counts['count'] / expense_counts['count'].sum()) * 100
+    fig6 = px.bar(expense_counts, x='Average Monthly Expenses (RM)', y='percentage', 
+                 text=expense_counts['percentage'].apply(lambda x: f'{x:.1f}%'),
+                 title="Distribution of Monthly Fashion Expenses (%)",
+                 category_orders={"Average Monthly Expenses (RM)": expense_order})
+    st.plotly_chart(fig6, use_container_width=True)
 
-fig, ax = plt.subplots(figsize=(9,5))
-sns.barplot(y=edu_counts.index, x=edu_counts.values, ax=ax)
+with col4:
+    # 7️⃣ Awareness of Fashion Trends — Likert Bar Chart
+    awareness_counts = df["Awareness of Fashion Trends"].value_counts().sort_index().reset_index()
+    awareness_counts['percentage'] = (awareness_counts['count'] / awareness_counts['count'].sum()) * 100
+    fig7 = px.bar(awareness_counts, x='Awareness of Fashion Trends', y='percentage',
+                 text=awareness_counts['percentage'].apply(lambda x: f'{x:.1f}%'),
+                 title="Awareness of Current Fashion Trends (%)")
+    st.plotly_chart(fig7, use_container_width=True)
 
-ax.set_title("Education Level of Respondents")
-ax.set_xlabel("Number of Responses")
-ax.set_ylabel("Education Level")
-
-for p in ax.patches:
-    ax.annotate(
-        int(p.get_width()),
-        (p.get_width(), p.get_y() + p.get_height()/2),
-        va="center"
-    )
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 5️⃣ Employment Status — Pie Chart
-# ---------------------------------------------------------
-st.subheader("Employment Status Distribution")
-
-employment_counts = df["Employment Status"].value_counts()
-
-fig, ax = plt.subplots(figsize=(7,7))
-ax.pie(
-    employment_counts,
-    labels=employment_counts.index,
-    autopct="%1.1f%%",
-    startangle=90
-)
-ax.set_title("Employment Status of Respondents")
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 6️⃣ Average Monthly Expenses — Ordered Percentage Bar Chart
-# ---------------------------------------------------------
-st.subheader("Average Monthly Fashion Expenses")
-
-expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
-
-expense_counts = df["Average Monthly Expenses (RM)"].value_counts().reindex(expense_order)
-expense_pct = expense_counts / expense_counts.sum() * 100
-
-fig, ax = plt.subplots(figsize=(9,5))
-sns.barplot(x=expense_pct.index, y=expense_pct.values, ax=ax)
-
-ax.set_title("Distribution of Monthly Fashion Expenses")
-ax.set_xlabel("Expense Range (RM)")
-ax.set_ylabel("Percentage of Respondents")
-
-for i, v in enumerate(expense_pct.values):
-    ax.text(i, v + 0.5, f"{v:.1f}%", ha="center")
-
-ax.set_ylim(0, expense_pct.max() + 10)
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 7️⃣ Awareness of Fashion Trends — Likert Bar Chart
-# ---------------------------------------------------------
-st.subheader("Awareness of Fashion Trends")
-
-awareness_counts = df["Awareness of Fashion Trends"].value_counts().sort_index()
-awareness_pct = awareness_counts / awareness_counts.sum() * 100
-
-fig, ax = plt.subplots(figsize=(9,5))
-sns.barplot(x=awareness_pct.index, y=awareness_pct.values, ax=ax)
-
-ax.set_title("Awareness of Current Fashion Trends")
-ax.set_xlabel("Awareness Level (1 = Not Aware, 5 = Extremely Aware)")
-ax.set_ylabel("Percentage of Respondents")
-
-for i, v in enumerate(awareness_pct.values):
-    ax.text(i, v + 0.5, f"{v:.1f}%", ha="center")
-
-ax.set_ylim(0, awareness_pct.max() + 10)
-st.pyplot(fig)
-
-# ---------------------------------------------------------
 # 8️⃣ Influence on Shopping Recommendations — Ranked Bar
-# ---------------------------------------------------------
-st.subheader("Influence on Shopping Recommendations")
-
-influence_counts = df["Influence on Shopping"].value_counts()
-
-fig, ax = plt.subplots(figsize=(9,5))
-sns.barplot(x=influence_counts.values, y=influence_counts.index, ax=ax)
-
-ax.set_title("Factors Influencing Shopping Decisions on Social Media")
-ax.set_xlabel("Number of Responses")
-ax.set_ylabel("Influence Source")
-
-for p in ax.patches:
-    ax.annotate(
-        int(p.get_width()),
-        (p.get_width(), p.get_y() + p.get_height()/2),
-        va="center"
-    )
-
-st.pyplot(fig)
+influence_counts = df["Influence on Shopping"].value_counts().reset_index()
+fig8 = px.bar(influence_counts, x='count', y='Influence on Shopping', orientation='h', text_auto=True,
+             title="Factors Influencing Shopping Decisions")
+fig8.update_layout(yaxis={'categoryorder':'total ascending'})
+st.plotly_chart(fig8, use_container_width=True)
 
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
 # =========================================================
+st.divider()
 st.header("Section B: Comparative & Behavioural Analysis")
 
-# ---------------------------------------------------------
-# 9️⃣ Gender × Awareness of Fashion Trends
-# ---------------------------------------------------------
-st.subheader("Gender vs Awareness of Fashion Trends")
+# 9️⃣ Gender × Awareness of Fashion Trends (Stacked)
+awareness_gender = df.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+fig9 = px.bar(awareness_gender, x="Gender", y="Count", color="Awareness of Fashion Trends", 
+             title="Awareness of Fashion Trends by Gender (Stacked)",
+             barmode="stack")
+st.plotly_chart(fig9, use_container_width=True)
 
-awareness_gender = (
-    df.groupby(["Gender", "Awareness of Fashion Trends"])
-      .size()
-      .reset_index(name="Count")
-)
+# 🔟 Employment Status × Average Monthly Expenses (Grouped)
+emp_expense = df.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+fig10 = px.bar(emp_expense, x="Employment Status", y="Count", color="Average Monthly Expenses (RM)",
+              title="Monthly Fashion Expenses by Employment Status",
+              barmode="group", category_orders={"Average Monthly Expenses (RM)": expense_order})
+st.plotly_chart(fig10, use_container_width=True)
 
-awareness_gender_pivot = awareness_gender.pivot(
-    index="Gender",
-    columns="Awareness of Fashion Trends",
-    values="Count"
-).fillna(0)
+# 1️⃣1️⃣ Gender × Influence (Grouped Horizontal)
+gender_influence = df.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+fig11 = px.bar(gender_influence, x="Count", y="Influence on Shopping", color="Gender",
+              orientation='h', barmode='group', title="Influence on Shopping by Gender")
+st.plotly_chart(fig11, use_container_width=True)
 
-fig, ax = plt.subplots(figsize=(9,6))
-awareness_gender_pivot.plot(kind="bar", stacked=True, ax=ax)
-
-ax.set_title("Awareness of Fashion Trends by Gender")
-ax.set_xlabel("Gender")
-ax.set_ylabel("Number of Responses")
-ax.legend(title="Awareness Level", bbox_to_anchor=(1.05, 1))
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 🔟 Employment Status × Average Monthly Expenses
-# ---------------------------------------------------------
-st.subheader("Employment Status vs Average Monthly Expenses")
-
-emp_expense = (
-    df.groupby(["Employment Status", "Average Monthly Expenses (RM)"])
-      .size()
-      .reset_index(name="Count")
-)
-
-emp_expense["Average Monthly Expenses (RM)"] = pd.Categorical(
-    emp_expense["Average Monthly Expenses (RM)"],
-    categories=expense_order,
-    ordered=True
-)
-
-fig, ax = plt.subplots(figsize=(10,6))
-sns.barplot(
-    data=emp_expense,
-    x="Employment Status",
-    y="Count",
-    hue="Average Monthly Expenses (RM)",
-    ax=ax
-)
-
-ax.set_title("Average Monthly Fashion Expenses by Employment Status")
-ax.set_xlabel("Employment Status")
-ax.set_ylabel("Number of Responses")
-ax.legend(title="Monthly Expense Range (RM)")
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 1️⃣1️⃣ Gender × Influence on Shopping Recommendations
-# ---------------------------------------------------------
-st.subheader("Gender vs Influence on Shopping Recommendations")
-
-gender_influence = (
-    df.groupby(["Gender", "Influence on Shopping"])
-      .size()
-      .reset_index(name="Count")
-)
-
-fig, ax = plt.subplots(figsize=(10,6))
-sns.barplot(
-    data=gender_influence,
-    x="Count",
-    y="Influence on Shopping",
-    hue="Gender",
-    ax=ax
-)
-
-ax.set_title("Influence on Shopping Recommendations by Gender")
-ax.set_xlabel("Number of Responses")
-ax.set_ylabel("Influence Source")
-ax.legend(title="Gender")
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
 # 1️⃣2️⃣ Gender × Average Monthly Expenses
-# ---------------------------------------------------------
-st.subheader("Gender vs Average Monthly Fashion Expenses")
+gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+fig12 = px.bar(gender_expense, x="Gender", y="Count", color="Average Monthly Expenses (RM)",
+              title="Average Monthly Fashion Expenses by Gender", barmode='group',
+              category_orders={"Average Monthly Expenses (RM)": expense_order})
+st.plotly_chart(fig12, use_container_width=True)
 
-gender_expense = (
-    df.groupby(["Gender", "Average Monthly Expenses (RM)"])
-      .size()
-      .reset_index(name="Count")
-)
-
-gender_expense["Average Monthly Expenses (RM)"] = pd.Categorical(
-    gender_expense["Average Monthly Expenses (RM)"],
-    categories=expense_order,
-    ordered=True
-)
-
-fig, ax = plt.subplots(figsize=(10,6))
-sns.barplot(
-    data=gender_expense,
-    x="Gender",
-    y="Count",
-    hue="Average Monthly Expenses (RM)",
-    ax=ax
-)
-
-ax.set_title("Average Monthly Fashion Expenses by Gender")
-ax.set_xlabel("Gender")
-ax.set_ylabel("Number of Responses")
-ax.legend(title="Monthly Expense Range (RM)")
-
-st.pyplot(fig)
-
-# ---------------------------------------------------------
-# 1️⃣3️⃣ Average Monthly Expenses × Influence on Shopping
-# ---------------------------------------------------------
-st.subheader("Average Monthly Expenses vs Influence on Shopping Recommendations")
-
-expense_influence = (
-    df.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"])
-      .size()
-      .reset_index(name="Count")
-)
-
-expense_influence["Average Monthly Expenses (RM)"] = pd.Categorical(
-    expense_influence["Average Monthly Expenses (RM)"],
-    categories=expense_order,
-    ordered=True
-)
-
-fig, ax = plt.subplots(figsize=(11,7))
-sns.barplot(
-    data=expense_influence,
-    x="Count",
-    y="Influence on Shopping",
-    hue="Average Monthly Expenses (RM)",
-    ax=ax
-)
-
-ax.set_title("Influence on Shopping Recommendations by Monthly Expense Level")
-ax.set_xlabel("Number of Responses")
-ax.set_ylabel("Influence Source")
-ax.legend(title="Monthly Expense Range (RM)")
-
-st.pyplot(fig)
-
+# 1️⃣3️⃣ Average Monthly Expenses × Influence
+expense_influence = df.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+fig13 = px.bar(expense_influence, x="Count", y="Influence on Shopping", color="Average Monthly Expenses (RM)",
+              orientation='h', barmode='group', title="Influence by Monthly Expense Level",
+              category_orders={"Average Monthly Expenses (RM)": expense_order})
+st.plotly_chart(fig13, use_container_width=True)
