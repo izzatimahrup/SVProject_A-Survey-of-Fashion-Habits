@@ -11,7 +11,8 @@ st.markdown("This dashboard visualizes demographic data and consumer shopping in
 
 # --- DATA LOADING ---
 # Ensure 'df' is loaded here. 
-# For example: df = pd.read_csv("your_data.csv")
+
+df = pd.read_csv("https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv")
 # For this script to work, df must be defined.
 
 # Create Tabs for Organization
