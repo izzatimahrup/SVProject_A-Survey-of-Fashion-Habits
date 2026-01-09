@@ -319,3 +319,70 @@ ax.set_ylabel("Influence Source")
 ax.legend(title="Gender")
 
 st.pyplot(fig)
+
+# ---------------------------------------------------------
+# 1️⃣2️⃣ Gender × Average Monthly Expenses
+# ---------------------------------------------------------
+st.subheader("Gender vs Average Monthly Fashion Expenses")
+
+gender_expense = (
+    df.groupby(["Gender", "Average Monthly Expenses (RM)"])
+      .size()
+      .reset_index(name="Count")
+)
+
+gender_expense["Average Monthly Expenses (RM)"] = pd.Categorical(
+    gender_expense["Average Monthly Expenses (RM)"],
+    categories=expense_order,
+    ordered=True
+)
+
+fig, ax = plt.subplots(figsize=(10,6))
+sns.barplot(
+    data=gender_expense,
+    x="Gender",
+    y="Count",
+    hue="Average Monthly Expenses (RM)",
+    ax=ax
+)
+
+ax.set_title("Average Monthly Fashion Expenses by Gender")
+ax.set_xlabel("Gender")
+ax.set_ylabel("Number of Responses")
+ax.legend(title="Monthly Expense Range (RM)")
+
+st.pyplot(fig)
+
+# ---------------------------------------------------------
+# 1️⃣3️⃣ Average Monthly Expenses × Influence on Shopping
+# ---------------------------------------------------------
+st.subheader("Average Monthly Expenses vs Influence on Shopping Recommendations")
+
+expense_influence = (
+    df.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"])
+      .size()
+      .reset_index(name="Count")
+)
+
+expense_influence["Average Monthly Expenses (RM)"] = pd.Categorical(
+    expense_influence["Average Monthly Expenses (RM)"],
+    categories=expense_order,
+    ordered=True
+)
+
+fig, ax = plt.subplots(figsize=(11,7))
+sns.barplot(
+    data=expense_influence,
+    x="Count",
+    y="Influence on Shopping",
+    hue="Average Monthly Expenses (RM)",
+    ax=ax
+)
+
+ax.set_title("Influence on Shopping Recommendations by Monthly Expense Level")
+ax.set_xlabel("Number of Responses")
+ax.set_ylabel("Influence Source")
+ax.legend(title="Monthly Expense Range (RM)")
+
+st.pyplot(fig)
+
