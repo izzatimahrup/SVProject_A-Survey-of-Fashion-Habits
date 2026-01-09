@@ -35,6 +35,13 @@ expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 st.title("📊 Fashion Demographic & Behavioural Analysis")
 st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
 
+st.subheader("Objective")
+
+st.markdown(
+    "To examine how demographic factors relate to consumers’ fashion awareness, "
+    "spending behaviour, and shopping influences on social media."
+)
+
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
