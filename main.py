@@ -51,7 +51,7 @@ pg = st.navigation(
     {
         "Main Menu": [
             home,
-            demographic,
+            demographic_izzati,
             consumerbehaviour,
             consumerinterest,
             consumermotivation
