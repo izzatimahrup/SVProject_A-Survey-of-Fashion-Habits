@@ -19,15 +19,6 @@ home = st.Page(
     icon="🏠",
     default=True
 )
-import streamlit as st
-
-st.markdown(
-    "<small><b>izzati</b> / demographic</small>",
-    unsafe_allow_html=True
-)
-
-st.title("Demographic Information")
-st.divider()
 
 demographic = st.Page(
     "demographic.py",
