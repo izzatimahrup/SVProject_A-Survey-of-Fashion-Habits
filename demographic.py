@@ -42,10 +42,10 @@ st.markdown(
     "spending behaviour, and shopping influences on social media."
 )
 # =========================================================
-# SUMMARY BOX: KEY DEMOGRAPHIC INDICATORS
+# SUMMARY BOX: RESPONDENT PROFILE OVERVIEW
 # =========================================================
 
-st.subheader("Key Demographic Summary")
+st.subheader("Respondent Profile Overview")
 
 col1, col2, col3 = st.columns(3)
 
@@ -57,33 +57,35 @@ total_respondents = len(df)
 col1.metric(
     label="Total Respondents",
     value=f"{total_respondents}",
-    help="Total number of valid survey responses collected"
+    help="Total number of valid survey responses"
 )
 
 # -------------------------
-# Majority Gender
+# Gender Distribution
 # -------------------------
 gender_counts = df["Gender"].value_counts()
-top_gender = gender_counts.idxmax()
-top_gender_pct = (gender_counts.max() / total_respondents) * 100
+gender_summary = " | ".join(
+    [f"{g}: {(c/total_respondents)*100:.1f}%" for g, c in gender_counts.items()]
+)
 
 col2.metric(
-    label="Majority Gender",
-    value=top_gender,
-    help=f"{top_gender_pct:.1f}% of respondents"
+    label="Gender Distribution",
+    value=gender_summary,
+    help="Percentage distribution by gender"
 )
 
 # -------------------------
-# Majority Region
+# Region Distribution
 # -------------------------
 region_counts = df["Region"].value_counts()
-top_region = region_counts.idxmax()
-top_region_pct = (region_counts.max() / total_respondents) * 100
+region_summary = " | ".join(
+    [f"{r}: {(c/total_respondents)*100:.1f}%" for r, c in region_counts.items()]
+)
 
 col3.metric(
-    label="Majority Region",
-    value=top_region,
-    help=f"{top_region_pct:.1f}% of respondents"
+    label="Region Distribution",
+    value=region_summary,
+    help="Percentage distribution by region"
 )
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
