@@ -5,6 +5,11 @@ st.write("Content will be added here.")
 
 import pandas as pd
 import plotly.express as px
+def load_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
+    return pd.read_csv(url)
+
+df = load_data()
 
 def plot_platform_usage_plotly(df):
     """
