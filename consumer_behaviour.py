@@ -65,41 +65,42 @@ if most_used_counts:
 else:
     st.error("No data available to create the comparison chart.")
 
-# 1. Column Selection Logic
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# 1. Identify all ordinally encoded social media columns
 ordinal_social_media_cols = [
     col for col in df.columns
     if (col.startswith('Active_') or col.startswith('Freq_')) and col.endswith('_Ordinal')
 ]
 
-# DEBUG: Check if columns were actually found
-if not ordinal_social_media_cols:
-    st.error("❌ No columns found! Check your CSV headers.")
-    st.write("Your CSV has these columns:", list(df.columns))
-else:
-    # 2. Data Cleaning (Force numbers)
-    # This ensures correlations can be calculated even if data looks like strings
+if ordinal_social_media_cols:
+    # 2. Create DataFrame and force numeric types
     social_media_ordinal_df = df[ordinal_social_media_cols].apply(pd.to_numeric, errors='coerce')
 
-    # 3. Calculate Correlation
+    # 3. Calculate the correlation matrix
     correlation_matrix = social_media_ordinal_df.corr()
 
-        # 4. Generate Plotly Heatmap
+    # 4. Only generate the plot if the matrix actually has data
+    if not (correlation_matrix.empty or correlation_matrix.isnull().all().all()):
+        
         fig = px.imshow(
             correlation_matrix,
             text_auto=".2f",
             aspect="auto",
             color_continuous_scale='RdBu_r',
-            title='Correlation Heatmap of Social Media Engagement'
+            title='Correlation Heatmap of Ordinal Social Media Engagement Metrics'
         )
 
         fig.update_layout(
-            width=800, 
-            height=800,
+            width=900, 
+            height=700,
+            title_x=0.5,
             xaxis_tickangle=-45
         )
 
-        # 5. THE OUTPUT COMMAND
-        # If this line runs, the chart MUST appear
+        # 5. The only thing that will appear in Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
 st.write("--- Process Finished ---")
