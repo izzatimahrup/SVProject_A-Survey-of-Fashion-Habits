@@ -208,10 +208,10 @@ else:
         fig.update_layout(showlegend=False)
         fig = center_title(fig)
 
-    if i % 2 == 0:
-        col1.plotly_chart(fig, use_container_width=True)
-    else:
-        col2.plotly_chart(fig, use_container_width=True)
+   if i % 2 == 0:
+            col1.plotly_chart(fig, use_container_width=True)
+        else:
+            col2.plotly_chart(fig, use_container_width=True)
 
 
 st.divider()
