@@ -17,7 +17,7 @@ st.write("Content will be added here.")
 # ======================================================
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF%20(1).csv"
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
     try:
         return pd.read_csv(url)
     except Exception as e:
