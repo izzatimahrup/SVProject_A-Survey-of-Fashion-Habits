@@ -119,3 +119,27 @@ with tab4:
         sns.regplot(data=df, x=x_axis, y=y_axis, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax)
         ax.set_title(f"Correlation between {x_axis} and {y_axis}")
         st.pyplot(fig)
+
+# Add this as a new tab in your Streamlit app
+with tab5: # Create a 5th tab for Summary
+    st.header("Summary of Key Motivations and Trends")
+    
+    # Calculate stats dynamically
+    motivation_means = df[motivation_questions].mean().sort_values(ascending=False)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.success(f"**Most Agreed-Upon:** {motivation_means.index[0]} ({motivation_means.iloc[0]:.2f})")
+    with col2:
+        st.warning(f"**Least Agreed-Upon:** {motivation_means.index[-1]} ({motivation_means.iloc[-1]:.2f})")
+
+    st.divider()
+
+    # Display Trend Observations
+    st.subheader("General Trends Observed")
+    st.markdown("""
+    - **Top Drivers:** Highest agreement is for **product style** and **promotional updates**.
+    - **Entertainment:** Plays a significant role in brand following.
+    - **Neutral Areas:** Personal expression and discounts show moderate, often neutral, sentiment.
+    - **Low Impact:** Online community and brand loyalty are the weakest drivers in this dataset.
+    """)
