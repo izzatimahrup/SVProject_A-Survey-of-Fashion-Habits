@@ -182,14 +182,15 @@ ordinal_frequency_cols = [
     if col.startswith('Freq_') and col.endswith('_Ordinal')
 ]
 
-# Display charts in 2 columns like reference
+# 1. Create the two column objects
 col1, col2 = st.columns(2)
 
 if not ordinal_frequency_cols:
     st.info("No ordinal social media frequency columns found to visualize.")
 else:
+    # 2. Use enumerate to get the index 'i'
     for i, col in enumerate(ordinal_frequency_cols):
-        platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
+        platform_name = col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
 
         counts = df[col].value_counts().sort_index().reset_index()
         counts.columns = [col, 'count']
@@ -202,17 +203,18 @@ else:
             text='count',
             title=f"Frequency of '{platform_name}' on Social Media",
             labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
+            color_discrete_sequence=['#0068c9'] # Matches the blue in your screenshot
         )
 
         fig.update_traces(textposition='outside')
-        fig.update_layout(showlegend=False)
-        fig = center_title(fig)
-
-   if i % 2 == 0:
-       col1.plotly_chart(fig, use_container_width=True)
-   else:
-       col2.plotly_chart(fig, use_container_width=True)
-
-
-st.divider()
-st.markdown("✔ **Social Media Activity Visualizations Complete**")
+        fig.update_layout(
+            showlegend=False,
+            title_x=0.5, # Centers the title
+            margin=dict(t=50, b=50, l=10, r=10)
+        )
+        
+        # 3. Logic to alternate between col1 and col2
+        if i % 2 == 0:
+            col1.plotly_chart(fig, use_container_width=True)
+        else:
+            col2.plotly_chart(fig, use_container_width=True)
