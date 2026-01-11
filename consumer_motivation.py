@@ -23,8 +23,9 @@ def center_title(fig):
 # PAGE TITLE & DESCRIPTION
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
+
+st.subheader("Objective")
 st.markdown(
-    st.subheader("Objective")
     "To analyze the driving factors behind why consumers follow fashion brands on social media."
 )
 
