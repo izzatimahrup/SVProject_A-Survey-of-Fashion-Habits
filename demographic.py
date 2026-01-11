@@ -25,8 +25,22 @@ def load_data():
 df = load_data()
 
 # Custom Sort Orders
-age_order = ["<25 Years Old", "26-34 Years Old", "35-45 Years Old", "46-55 Years Old", ">55 Years Old"]
-education_order = ["Lower Secondary Education", "Secondary Education", "Post-Secondary Education", "Bachelor’S Degree", "Master’S Degree", "Doctoral Degree"]
+age_order = [
+    "<25 Years Old",
+    "26-34 Years Old",
+    "35-45 Years Old",
+    "46-55 Years Old",
+    ">55 Years Old"
+]
+
+education_order = [
+    "Lower Secondary Education",
+    "Secondary Education",
+    "Post-Secondary Education",
+    "Bachelor's Degree",
+    "Master's Degree",
+    "Doctoral Degree"
+]
 expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 
 # ---------------------------------------------------------
