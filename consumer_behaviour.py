@@ -59,12 +59,15 @@ if most_used_counts:
         color_discrete_sequence=px.colors.qualitative.Safe
     )
 
-   fig.update_traces(textposition='inside', textinfo='percent+label')
-
-# This centers the title perfectly
+    fig.update_traces(textposition='inside', textinfo='percent+label')
     fig.update_layout(
-    title_x=0.5,               # 0.5 is the middle of the chart
-    title_xanchor='center'
+        title={
+            'text': 'Comparison of Most Used Social Media Platforms',
+            'y': 0.95,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+            )
 
     # STREAMLIT DISPLAY
     st.plotly_chart(fig, use_container_width=True)
