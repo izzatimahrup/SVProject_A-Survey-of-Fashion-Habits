@@ -164,10 +164,11 @@ for i, col in enumerate(ordinal_activity_cols):
         col2.plotly_chart(fig, use_container_width=True)
 
 # ======================================================
-# BAR CHARTS: DISTRIBUTION OF FREQUENCY LEVELS
+# SECTION D
 # ======================================================
+st.divider()
+st.header("Section D: Distribution of Frequency Levels")
 
-# Define the frequency level mapping for labels
 frequency_labels = {
     0: 'Never',
     1: 'Rarely',
@@ -176,49 +177,39 @@ frequency_labels = {
     4: 'Very often'
 }
 
-# Identify all the ordinally encoded social media frequency columns
 ordinal_frequency_cols = [
     col for col in df.columns 
     if col.startswith('Freq_') and col.endswith('_Ordinal')
 ]
 
-if not ordinal_frequency_cols:
-    st.info("No ordinal social media frequency columns found to visualize.")
-else:
-    for col in ordinal_frequency_cols:
-        # Clean the name for the title
-        activity_name = col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
+# Display charts in 2 columns like reference
+col1, col2 = st.columns(2)
 
-        # Prepare the data: Count occurrences and sort by index (0, 1, 2, 3, 4)
+  for i, col in enumerate(ordinal_frequency_cols):
+        platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
+
         counts = df[col].value_counts().sort_index().reset_index()
         counts.columns = [col, 'count']
-        
-        # Apply custom labels to the numeric levels
         counts['label'] = counts[col].map(frequency_labels)
 
-        # Create the Plotly Bar Chart
         fig = px.bar(
             counts,
             x='label',
             y='count',
             text='count',
-            title=f"Frequency of '{activity_name}' on Social Media",
+            title=f"Frequency of '{platform_name}' on Social Media",
             labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
-            color='count',
-            color_continuous_scale='Viridis'
         )
 
-        # Formatting to match the first block
-        fig.update_traces(textposition='outside')
-        fig.update_layout(
-            title_x=0.5,           # Centers the title
-            xaxis_tickangle=-45,   # Rotates labels for readability
-            showlegend=False,
-            margin=dict(t=50, b=50, l=50, r=50)
-        )
+      fig.update_traces(textposition='outside')
+      fig.update_layout(showlegend=False)
+      fig = center_title(fig)
 
-        # Display the chart in Streamlit
-        st.plotly_chart(fig, use_container_width=True)
+    if i % 2 == 0:
+        col1.plotly_chart(fig, use_container_width=True)
+    else:
+        col2.plotly_chart(fig, use_container_width=True)
+
 
 st.divider()
 st.markdown("✔ **Social Media Activity Visualizations Complete**")
