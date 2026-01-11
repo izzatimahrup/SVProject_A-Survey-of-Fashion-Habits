@@ -1,25 +1,23 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
-# Set page config
-st.set_page_config(page_title="Social Media Platform Analysis", layout="centered")
+st.title("Consumer Behaviour")
+st.write("Content will be added here.")
 
-# Load data
-@st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
     return pd.read_csv(url)
 
 df = load_data()
 
-# Title with better styling
-st.markdown("<h1 style='text-align: center; color: #2E86AB; margin-bottom: 30px;'>Social Media Platform Engagement</h1>", unsafe_allow_html=True)
+# --- YOUR LOGIC STARTS HERE ---
 
-# --- CORE LOGIC ---
+# Define activity levels that count as 'most used'
+# 0: Very Active, 1: Active
 most_used_levels = [0, 1]
 
+# Columns for the specific platforms requested, now including Threads
 platforms_to_compare = [
     'Active_Pinterest_Ordinal',
     'Active_Tiktok_Ordinal',
@@ -27,184 +25,144 @@ platforms_to_compare = [
     'Active_Threads_Ordinal'
 ]
 
+# Dictionary to store counts of 'most used' for each platform
 most_used_counts = {}
 
 for col in platforms_to_compare:
+    # Ensure df exists in your Streamlit app's scope
     if col in df.columns:
+        # Count respondents who are 'Very Active' or 'Active'
         count = df[df[col].isin(most_used_levels)].shape[0]
         platform_name = col.replace('Active_', '').replace('_Ordinal', '')
         most_used_counts[platform_name] = count
+    else:
+        st.warning(f"Column '{col}' not found. Skipping.")
 
-# Only proceed if we have data
 if most_used_counts:
-    # Create DataFrame
+    # Convert to pandas DataFrame for Plotly (Plotly prefers DataFrames over Series)
     usage_df = pd.DataFrame({
         'Platform': list(most_used_counts.keys()),
         'Count': list(most_used_counts.values())
-    }).sort_values('Count', ascending=False)
-    
-    total = usage_df['Count'].sum()
-    
-    # Add percentage column
-    usage_df['Percentage'] = (usage_df['Count'] / total * 100).round(1)
-    
-    # --- ENHANCED VISUALIZATION ---
-    
-    # Custom color palette
-    colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4']  # Modern, vibrant colors
-    
-    # Create the donut chart with better styling
+    })
+
+    # Create the Plotly donut chart (exact logic as your matplotlib wedgeprops)
     fig = px.pie(
         usage_df, 
         values='Count', 
         names='Platform', 
-        title='Most Used Social Media Platforms',
-        hole=0.5,
-        color_discrete_sequence=colors
+        title='Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)',
+        hole=0.4, # This creates the 'width' effect from your original code
+        color_discrete_sequence=px.colors.qualitative.Safe
     )
-    
-    # Enhanced traces
-    fig.update_traces(
-        textposition='inside',
-        textinfo='percent+label',
-        hovertemplate="<b>%{label}</b><br>" +
-                     "Active Users: %{value:,}<br>" +
-                     "Percentage: %{percent:.1%}<br>" +
-                     "<extra></extra>",
-        textfont=dict(
-            size=14,
-            family="Arial, sans-serif",
-            color="white"
-        ),
-        marker=dict(
-            line=dict(
-                color='white',
-                width=3
-            )
-        ),
-        pull=[0.03 if i == usage_df['Count'].idxmax() else 0 for i in range(len(usage_df))]  # Slight pull for top platform
-    )
-    
-    # Perfectly centered title with better styling
-    fig.update_layout(
-        title={
-            'text': '<b>Most Used Social Media Platforms</b><br><span style="font-size:14px; color:#666">Active Users Distribution</span>',
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top',
-            'font': {
-                'size': 24,
-                'family': "Arial, sans-serif",
-                'color': '#2E86AB'
-            },
-            'y': 0.95
-        },
-        showlegend=False,
-        height=500,
-        margin=dict(t=100, b=50, l=50, r=50),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        uniformtext_minsize=12,
-        uniformtext_mode='hide',
-        annotations=[
-            dict(
-                text=f'<b>Total<br>{total:,}<br>Users</b>',
-                x=0.5,
-                y=0.5,
-                font=dict(size=16, color='#666'),
-                showarrow=False
-            )
-        ]
-    )
-    
-    # Display the chart
+
+    # Clean up layout to match your tight_layout and title style
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(title_x=0.5)
+
+    # STREAMLIT DISPLAY
     st.plotly_chart(fig, use_container_width=True)
-    
-    # --- ADDITIONAL MINI VISUALIZATION ---
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Create a mini bar chart for quick comparison
-    fig_bar = go.Figure()
-    
-    for i, (_, row) in enumerate(usage_df.iterrows()):
-        fig_bar.add_trace(go.Bar(
-            x=[row['Platform']],
-            y=[row['Count']],
-            name=row['Platform'],
-            marker_color=colors[i],
-            text=[f"{row['Count']:,}"],
-            textposition='auto',
-            hovertemplate=f"<b>{row['Platform']}</b><br>" +
-                         f"Active Users: {row['Count']:,}<br>" +
-                         f"Percentage: {row['Percentage']}%<extra></extra>"
-        ))
-    
-    fig_bar.update_layout(
-        title={
-            'text': '<b>Platform Comparison</b>',
-            'x': 0.5,
-            'xanchor': 'center',
-            'font': {'size': 18, 'color': '#2E86AB'}
-        },
-        showlegend=False,
-        height=300,
-        margin=dict(t=60, b=30, l=30, r=30),
-        plot_bgcolor='rgba(240,240,240,0.1)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        yaxis=dict(
-            title='Number of Active Users',
-            gridcolor='rgba(200,200,200,0.2)'
-        ),
-        xaxis=dict(
-            title='',
-            tickfont=dict(size=12)
-        )
-    )
-    
-    # Display the bar chart
-    st.plotly_chart(fig_bar, use_container_width=True)
-    
-    # --- QUICK STATS ---
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 📊 Quick Statistics")
-    
-    # Create metrics in columns
-    cols = st.columns(4)
-    for i, (_, row) in enumerate(usage_df.iterrows()):
-        with cols[i]:
-            st.metric(
-                label=row['Platform'],
-                value=f"{row['Count']:,}",
-                delta=f"{row['Percentage']}%"
-            )
-    
-    # Platform comparison insight
-    st.markdown("<br>", unsafe_allow_html=True)
-    max_platform = usage_df.iloc[0]['Platform']
-    max_percent = usage_df.iloc[0]['Percentage']
-    
-    st.info(f"💡 **Insight:** {max_platform} leads with **{max_percent}%** of active users among the platforms analyzed.")
-    
-    # --- DATA TABLE ---
-    with st.expander("📋 View Detailed Data", expanded=False):
-        # Format the dataframe for display
-        display_df = usage_df.copy()
-        display_df['Count'] = display_df['Count'].apply(lambda x: f"{x:,}")
-        display_df['Percentage'] = display_df['Percentage'].apply(lambda x: f"{x}%")
-        st.dataframe(
-            display_df,
-            column_config={
-                "Platform": "Platform",
-                "Count": "Active Users",
-                "Percentage": "Share"
-            },
-            hide_index=True,
-            use_container_width=True
-        )
-    
+
 else:
-    st.error("❌ Unable to generate visualization. Please check if the required columns exist in your dataset.")
+    st.error("No data available to create the comparison chart.")
     
-# Footer
-st.markdown("---")
-st.markdown("<p style='text-align: center; color: #888; font-size: 12px;'>Data Source: Fashion Habits Survey | Visualization created with Streamlit & Plotly</p>", unsafe_allow_html=True)
+# 1. Identify all ordinally encoded social media columns
+ordinal_social_media_cols = [
+    col for col in df.columns
+    if (col.startswith('Active_') or col.startswith('Freq_')) and col.endswith('_Ordinal')
+]
+
+if ordinal_social_media_cols:
+    # 2. Create DataFrame and force numeric types
+    social_media_ordinal_df = df[ordinal_social_media_cols].apply(pd.to_numeric, errors='coerce')
+
+    # 3. Calculate the correlation matrix
+    correlation_matrix = social_media_ordinal_df.corr()
+
+    # 4. Only generate the plot if the matrix actually has data
+    if not (correlation_matrix.empty or correlation_matrix.isnull().all().all()):
+        
+        fig = px.imshow(
+            correlation_matrix,
+            text_auto=".2f",
+            aspect="auto",
+            color_continuous_scale='RdBu_r',
+            title='Correlation Heatmap of Ordinal Social Media Engagement Metrics'
+        )
+
+        fig.update_layout(
+            width=900, 
+            height=700,
+            title_x=0.5,
+            xaxis_tickangle=-45
+        )
+
+        # 5. The only thing that will appear in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# 1. Configuration & Mapping
+activity_labels = {
+    0: 'Very Active',
+    1: 'Active',
+    2: 'Sometimes Active',
+    3: 'Inactive'
+}
+
+# 2. Check if df is available (loaded from your main.py or session state)
+if 'df' in locals() or 'df' in st.session_state:
+    # Use session state if available, otherwise use local df
+    current_df = st.session_state.get('df', df)
+
+    # Identify columns exactly like your original logic
+    ordinal_activity_cols = [
+        col for col in current_df.columns 
+        if col.startswith('Active_') and col.endswith('_Ordinal')
+    ]
+
+    if not ordinal_activity_cols:
+        st.info("No ordinal social media activity columns found to visualize.")
+    else:
+        for col in ordinal_activity_cols:
+            platform_name = col.replace('Active_', '').replace('_Ordinal', '')
+
+            # Prepare data for Plotly: Count occurrences
+            counts = current_df[col].value_counts().sort_index().reset_index()
+            counts.columns = [col, 'count']
+            
+            # Map numeric values to your specific labels
+            counts['label'] = counts[col].map(activity_labels)
+
+            # 3. Create Plotly Bar Chart
+            fig = px.bar(
+                counts,
+                x='label',
+                y='count',
+                text='count',  # This puts the value on top of bars
+                title=f'Distribution of Activity Levels on {platform_name}',
+                labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
+                color='count',
+                color_continuous_scale='Viridis'
+            )
+
+            # 4. Styling and Centering Title
+            fig.update_traces(textposition='outside')
+            fig.update_layout(
+                title={
+                    'text': f'Distribution of Activity Levels on {platform_name}',
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                xaxis_tickangle=-45,
+                showlegend=False,
+                margin=dict(t=50, b=50, l=50, r=50)
+            )
+
+            # Render in Streamlit
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.write("--- Social Media Activity Visualizations Complete ---")
+else:
+    st.error("Dataframe 'df' not found. Please ensure data is loaded correctly.")
