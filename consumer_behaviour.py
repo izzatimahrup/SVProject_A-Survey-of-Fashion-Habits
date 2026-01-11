@@ -83,12 +83,6 @@ else:
     # 3. Calculate Correlation
     correlation_matrix = social_media_ordinal_df.corr()
 
-    # DEBUG: Check if the matrix is empty (happens if data is all NaNs)
-    if correlation_matrix.empty or correlation_matrix.isnull().all().all():
-        st.warning("⚠️ Could not calculate correlation. Ensure the columns contain numbers.")
-    else:
-        st.success(f"✅ Found {len(ordinal_social_media_cols)} columns. Generating heatmap...")
-
         # 4. Generate Plotly Heatmap
         fig = px.imshow(
             correlation_matrix,
