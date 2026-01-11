@@ -19,18 +19,11 @@ df = load_data()
 # =========================================================
 
 # Using a combination of emojis and subheaders for a "title" feel
-st.markdown("# 👗 **Fashion Habits on Social Media**")
-st.markdown("### *Decoding the Digital Runway: A Consumer Behavior Study*")
+st.markdown("# 🛍️ **Dashboard of Fashion Habits on Social Media**")
 
 st.divider()
 
-# A nice "Intro" box using st.info for a soft background color
-st.info(
-    """
-    **Welcome!** This interactive dashboard explores the findings from our study:  
-    > *“Consumer Behaviour Towards Fashion Brands on Social Media.”* Explore how demographics, social platforms, and personal motivations drive the way we shop and interact with fashion online today.
-    """
-)
+
 
 # ---------------------------------------------------------
 # SURVEY OVERVIEW (The "Quick Stats" Row)
@@ -58,7 +51,7 @@ with col2:
         This method allowed us to capture a snapshot of the most active social media users 
         who are shaping the future of online fashion engagement.
         
-        🔗 **[Click here to view the original Survey] (https://forms.gle/y8DT7eQfJXB7f7qY9)**
+        🔗 **[Click here to view the original Survey] https://forms.gle/y8DT7eQfJXB7f7qY9 **
         """
     )
 
@@ -67,7 +60,7 @@ st.write("") # Just some spacing
 # ---------------------------------------------------------
 # DASHBOARD NAVIGATION GUIDE
 # ---------------------------------------------------------
-st.markdown("## 🧭 **What’s Inside?**")
+st.markdown("##📑 Section**")
 st.write("The dashboard is split into four distinct analytical lenses:")
 
 # Creating a 4-column grid for the sections
@@ -95,10 +88,3 @@ with s4:
 
 st.divider()
 
-# ---------------------------------------------------------
-# FOOTER
-# ---------------------------------------------------------
-st.markdown(
-    "<div style='text-align: center; color: gray;'>Built with ❤️ using Streamlit | Fashion Habit Study 2024</div>", 
-    unsafe_allow_html=True
-)
