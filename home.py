@@ -39,7 +39,7 @@ with col1:
         **Valid Respondents**
     """)
     st.write("---")
-    st.markdown("📍 **Location:** Across Malaysia")
+    st.markdown("📍 **Location:** Across Malaysia (East & West Malaysia)")
     st.markdown("👥 **Focus:** Young Adults & Adults")
 
 with col2:
@@ -60,7 +60,7 @@ st.write("") # Just some spacing
 # ---------------------------------------------------------
 # DASHBOARD NAVIGATION GUIDE
 # ---------------------------------------------------------
-st.markdown("##📑 Section**")
+st.markdown("#📑 Section**")
 st.write("The dashboard is split into four distinct analytical lenses:")
 
 # Creating a 4-column grid for the sections
