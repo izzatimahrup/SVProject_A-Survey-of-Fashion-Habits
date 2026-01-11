@@ -185,7 +185,7 @@ ordinal_frequency_cols = [
 # Display charts in 2 columns like reference
 col1, col2 = st.columns(2)
 
-  for i, col in enumerate(ordinal_frequency_cols):
+       for col in (ordinal_frequency_cols):
         platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
 
         counts = df[col].value_counts().sort_index().reset_index()
