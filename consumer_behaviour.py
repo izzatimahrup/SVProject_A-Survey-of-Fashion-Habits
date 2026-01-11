@@ -10,64 +10,57 @@ def load_data():
     return pd.read_csv(url)
 
 df = load_data()
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-# Set page title
-st.title("Social Media Usage Visualization")
+# --- YOUR LOGIC STARTS HERE ---
 
-# Assuming 'df' is loaded from a CSV or passed from a session state
-# If you are using a file uploader in your main app:
-if 'df' in st.session_state:
-    df = st.session_state['df']
+# Define activity levels that count as 'most used'
+# 0: Very Active, 1: Active
+most_used_levels = [0, 1]
+
+# Columns for the specific platforms requested, now including Threads
+platforms_to_compare = [
+    'Active_Pinterest_Ordinal',
+    'Active_Tiktok_Ordinal',
+    'Active_Instagram_Ordinal',
+    'Active_Threads_Ordinal'
+]
+
+# Dictionary to store counts of 'most used' for each platform
+most_used_counts = {}
+
+for col in platforms_to_compare:
+    # Ensure df exists in your Streamlit app's scope
+    if col in df.columns:
+        # Count respondents who are 'Very Active' or 'Active'
+        count = df[df[col].isin(most_used_levels)].shape[0]
+        platform_name = col.replace('Active_', '').replace('_Ordinal', '')
+        most_used_counts[platform_name] = count
+    else:
+        st.warning(f"Column '{col}' not found. Skipping.")
+
+if most_used_counts:
+    # Convert to pandas DataFrame for Plotly (Plotly prefers DataFrames over Series)
+    usage_df = pd.DataFrame({
+        'Platform': list(most_used_counts.keys()),
+        'Count': list(most_used_counts.values())
+    })
+
+    # Create the Plotly donut chart (exact logic as your matplotlib wedgeprops)
+    fig = px.pie(
+        usage_df, 
+        values='Count', 
+        names='Platform', 
+        title='Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)',
+        hole=0.4, # This creates the 'width' effect from your original code
+        color_discrete_sequence=px.colors.qualitative.Safe
+    )
+
+    # Clean up layout to match your tight_layout and title style
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(title_x=0.5)
+
+    # STREAMLIT DISPLAY
+    st.plotly_chart(fig, use_container_width=True)
+
 else:
-    # Fallback for testing: allow local upload if df isn't in state
-    uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-    else:
-        df = None
-
-if df is not None:
-    sns.set_style("whitegrid")
-
-    # 1. Define activity levels
-    most_used_levels = [0, 1]
-
-    # 2. Define platforms
-    platforms_to_compare = [
-        'Active_Pinterest_Ordinal',
-        'Active_Tiktok_Ordinal',
-        'Active_Instagram_Ordinal',
-        'Active_Threads_Ordinal'
-    ]
-
-    # 3. Calculate counts
-    most_used_counts = {}
-
-    for col in platforms_to_compare:
-        if col in df.columns:
-            count = df[df[col].isin(most_used_levels)].shape[0]
-            platform_name = col.replace('Active_', '').replace('_Ordinal', '')
-            most_used_counts[platform_name] = count
-
-    # 4. Visualization
-    if most_used_counts:
-        usage_series = pd.Series(most_used_counts)
-
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.pie(
-            usage_series, 
-            labels=usage_series.index, 
-            autopct='%1.1f%%', 
-            startangle=90, 
-            wedgeprops={'width': 0.4}
-        )
-        ax.set_title('Most Used Social Media Platforms')
-        
-        # Display in Streamlit
-        st.pyplot(fig)
-    else:
-        st.error("No data found for the selected platforms.")
+    st.error("No data available to create the comparison chart.")
