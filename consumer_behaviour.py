@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Consumer Behaviour Dashboard",
     layout="wide"
 )
-
+st.success("**to assess the level of activity and engagement of consumers on social media platforms in relation to fashion**)
 # ======================================================
 # HELPER: CENTER ALL PLOTLY TITLES
 # ======================================================
