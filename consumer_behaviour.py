@@ -32,9 +32,7 @@ and consumer behaviour based on survey data.
     
 st.subheader("Objective")
 
-st.markdown
-    "to assess the level of activity and engagement of consumers on social media platforms in relation to fashion."
-)
+st.markdown("To assess the level of activity and engagement of consumers on social media platforms in relation to fashion.")
 
 # ======================================================
 # LOAD DATA
