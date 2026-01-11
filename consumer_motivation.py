@@ -8,10 +8,15 @@ st.set_page_config(page_title="Fashion Brand Motivation Dashboard", layout="wide
 
 st.title("📊 Fashion Brand Motivation Analysis")
 
-# --- DATA LOADING ---
-# Assuming 'df' is your dataframe. 
-# For this example, I'll assume it's already loaded or you can upload it:
-# df = pd.read_csv("your_data.csv")
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+    return pd.read_csv(url)
+
+df = load_data()
+
+if df.empty:
+    st.stop()
 
 # Defining the motivation questions list
 motivation_questions = [
