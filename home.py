@@ -39,7 +39,7 @@ with col1:
         **Valid Respondents**
     """)
     st.write("---")
-    st.markdown("📍 **Location:** Across Malaysia (East & West Malaysia)")
+    st.markdown("📍 **Location:** Across Malaysia")
     st.markdown("👥 **Focus:** Young Adults & Adults")
 
 with col2:
