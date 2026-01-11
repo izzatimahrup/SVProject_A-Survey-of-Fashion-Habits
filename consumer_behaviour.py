@@ -64,3 +64,43 @@ if most_used_counts:
 
 else:
     st.error("No data available to create the comparison chart.")
+
+# Identify all ordinally encoded social media columns
+ordinal_social_media_cols = [
+    col for col in df.columns
+    if (col.startswith('Active_') or col.startswith('Freq_')) and col.endswith('_Ordinal')
+]
+
+if not ordinal_social_media_cols:
+    st.warning("No ordinal social media activity or frequency columns found for correlation heatmap.")
+else:
+    st.subheader("Correlation Heatmap for Social Media Engagement")
+
+    # Create a DataFrame with only the ordinal social media columns
+    social_media_ordinal_df = df[ordinal_social_media_cols]
+
+    # Calculate the correlation matrix
+    correlation_matrix = social_media_ordinal_df.corr()
+
+    # --- Generate Plotly Heatmap ---
+    fig = px.imshow(
+        correlation_matrix,
+        text_auto=".2f",                # Equivalent to annot=True and fmt=".2f"
+        aspect="auto",
+        color_continuous_scale='RdBu_r', # Equivalent to 'coolwarm'
+        labels=dict(color="Correlation"),
+        title='Correlation Heatmap of Ordinal Social Media Engagement Metrics'
+    )
+
+    # Styling to match your matplotlib settings
+    fig.update_layout(
+        width=900, 
+        height=700,
+        title_x=0.5,
+        xaxis_tickangle=-45
+    )
+
+    # --- Display in Streamlit ---
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("--- Correlation Heatmap Visualization Complete ---")
