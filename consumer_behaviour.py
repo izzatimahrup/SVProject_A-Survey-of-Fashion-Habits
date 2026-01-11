@@ -31,7 +31,7 @@ st.markdown(
     
 st.subheader("Objective")
 
-st.markdown(
+st.markdown
     "to assess the level of activity and engagement of consumers on social media platforms in relation to fashion."
 )
 
