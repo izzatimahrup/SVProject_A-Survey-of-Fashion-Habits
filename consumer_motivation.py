@@ -12,26 +12,6 @@ st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide"
 def load_data():
     # Base URL from your GitHub
     base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
-    
-    # Safely handle spaces and parentheses for the web request
-    safe_url = urllib.parse.quote(base_url, safe=':/')
-    
-    try:
-        data = pd.read_csv(safe_url)
-        # Clean column names to lowercase and underscores to match your list below
-        data.columns = (data.columns
-                        .str.strip()
-                        .str.lower()
-                        .str.replace(' ', '_')
-                        .str.replace('(', '')
-                        .str.replace(')', '')
-                        .str.replace('[', '')
-                        .str.replace(']', '')
-                        .str.replace('.', '', regex=False))
-        return data
-    except Exception as e:
-        st.error(f"Failed to load data. Error: {e}")
-        return None
 
 # 3. Main Logic
 df = load_data()
