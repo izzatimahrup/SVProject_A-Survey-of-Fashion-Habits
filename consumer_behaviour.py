@@ -4,17 +4,14 @@ st.title("Consumer Behaviour")
 st.write("Content will be added here.")
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
 
-def plot_platform_usage(df):
+def plot_platform_usage_plotly(df):
     """
-    Calculates high-activity users across specific social media platforms
-    and generates a donut chart comparison.
+    Calculates high-activity users across social media platforms 
+    and generates an interactive Plotly donut chart.
     """
     # 1. Configuration
-    sns.set_style("whitegrid")
-    
     # 0: Very Active, 1: Active
     most_used_levels = [0, 1]
     
@@ -26,38 +23,52 @@ def plot_platform_usage(df):
     ]
 
     # 2. Data Processing
-    most_used_counts = {}
+    plot_data = []
 
     for col in platforms_to_compare:
         if col in df.columns:
-            # Filter for active users and count rows
+            # Count respondents who are 'Very Active' or 'Active'
             count = df[df[col].isin(most_used_levels)].shape[0]
-            # Clean up the name for the chart (e.g., 'Active_Tiktok_Ordinal' -> 'Tiktok')
+            # Clean name for the chart
             platform_name = col.replace('Active_', '').replace('_Ordinal', '')
-            most_used_counts[platform_name] = count
+            plot_data.append({'Platform': platform_name, 'Active_Users': count})
         else:
-            print(f"Warning: Column '{col}' not found in DataFrame.")
+            print(f"Warning: Column '{col}' not found.")
 
-    # 3. Visualization
-    if not most_used_counts:
+    if not plot_data:
         print("No data available to create the comparison chart.")
         return
 
-    usage_series = pd.Series(most_used_counts)
-    
-    plt.figure(figsize=(10, 7))
-    
-    # Creating the Donut Chart
-    plt.pie(
-        usage_series, 
-        labels=usage_series.index, 
-        autopct='%1.1f%%', 
-        startangle=140, 
-        colors=sns.color_palette("viridis", len(usage_series)),
-        wedgeprops={'width': 0.4, 'edgecolor': 'w'}
+    # Convert results to a DataFrame for Plotly Express
+    usage_df = pd.DataFrame(plot_data)
+
+    # 3. Visualization
+    fig = px.pie(
+        usage_df, 
+        values='Active_Users', 
+        names='Platform', 
+        title='Comparison of Most Used Social Media Platforms',
+        hole=0.4,  # Creates the donut shape
+        color_discrete_sequence=px.colors.qualitative.Prism # Professional color palette
     )
 
-    plt.title('Market Share of Active Users by Platform', fontsize=16, pad=20)
+    # Enhancing the layout for a clean GitHub/Portfolio look
+    fig.update_traces(
+        textposition='inside', 
+        textinfo='percent+label',
+        marker=dict(line=dict(color='#FFFFFF', width=2))
+    )
+
+    fig.update_layout(
+        title_x=0.5, # Center the title
+        margin=dict(t=50, b=20, l=20, r=20),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
+    )
+
+    fig.show()
+
+# To use this with your data:
+# plot_platform_usage_plotly(df)
     plt.tight_layout()
     plt.show()
 
