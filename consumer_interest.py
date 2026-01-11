@@ -51,21 +51,21 @@ def load_data():
 
     return df
 
-# --- HELPER: RENDER BOKEH (HEIGHT 450) ---
+# --- HELPER: RENDER BOKEH (BALANCED SIZE) ---
 def render_bokeh(plot):
     plot.sizing_mode = "scale_width"
     
-    # 1. SET TINGGI 450 (Lebih Besar & Jelas)
-    plot.height = 450 
+    # 1. TINGGI STANDARD (400px)
+    plot.height = 400 
     
-    # 2. MARGIN UNTUK LABEL
+    # 2. MARGIN UNTUK LABEL (Supaya tak putus)
     plot.min_border_bottom = 80  
     plot.min_border_left = 60
     
     html = file_html(plot, CDN, "my plot")
     
-    # 3. FRAME HTML 600 (450 + 150 buffer selamat)
-    components.html(html, height=600, scrolling=False)
+    # 3. FRAME HTML 550 (400 + 150 buffer)
+    components.html(html, height=550, scrolling=False)
 
 # --- PALETTE ---
 PRO_PALETTE = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51", "#8d99ae"]
@@ -147,7 +147,7 @@ def chart_bar_influence(df):
 def chart_heatmap_job_budget(df):
     df_group = df.groupby(['Job', 'Budget']).size().reset_index(name='counts')
     max_count = df_group['counts'].max()
-    df_group['bubble_size'] = (df_group['counts'] / max_count) * 40 + 5 # Besar sikit bubble
+    df_group['bubble_size'] = (df_group['counts'] / max_count) * 40 + 5 
     
     source = ColumnDataSource(df_group)
     job_factors = sorted(df['Job'].unique().tolist())
@@ -245,12 +245,12 @@ def app():
         st.warning("⚠️ No data available. Please adjust filters.")
         return
 
-    # --- VISUALIZATION + ANALYSIS (HEIGHT 450) ---
+    # --- VISUALIZATION + ANALYSIS (BALANCED SIZE [1, 5, 1]) ---
     
     # 1. DISTRIBUTION
     st.header("1. Distribution Analysis")
     st.caption("Overview of budget allocation among respondents.")
-    c1, c2, c3 = st.columns([1, 2, 1]) 
+    c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
         render_bokeh(chart_donut_budget(df_filtered))
         st.info("""
@@ -263,7 +263,7 @@ def app():
     # 2. CORRELATION
     st.header("2. Correlation Analysis")
     st.caption("Examining relationships between demographics and spending.")
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_scatter_age_budget(df_filtered))
         st.info("""
@@ -276,7 +276,7 @@ def app():
     # 3. RANKING
     st.header("3. Ranking Analysis")
     st.caption("Identifying key drivers of consumer decisions.")
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_bar_influence(df_filtered))
         st.info("""
@@ -289,7 +289,7 @@ def app():
     # 4. PATTERN RECOGNITION
     st.header("4. Pattern Recognition")
     st.caption("Employment status density against spending brackets.")
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_heatmap_job_budget(df_filtered))
         st.info("""
@@ -302,7 +302,7 @@ def app():
     # 5. COMPARISON
     st.header("5. Comparison Analysis")
     st.caption("Contrasting behavior between gender groups.")
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_stacked_gender_influence(df_filtered))
         st.info("""
@@ -315,7 +315,7 @@ def app():
     # 6. TRENDS
     st.header("6. Trend Analysis")
     st.caption("Self-perceived fashion awareness levels.")
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_lollipop_awareness(df_filtered))
         st.info("""
