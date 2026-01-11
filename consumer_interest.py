@@ -80,14 +80,21 @@ def load_data():
     
     return df
 
-# --- HELPER: RENDER BOKEH ---
+# --- HELPER: RENDER BOKEH (GAP FIXED) ---
 def render_bokeh(plot):
     plot.sizing_mode = "scale_width"
+    
+    # Tinggi Graf
     plot.height = 400 
     plot.min_border_bottom = 80  
     plot.min_border_left = 60
+    
     html = file_html(plot, CDN, "my plot")
-    components.html(html, height=550, scrolling=False)
+    
+    # --- INI YANG SAYA UBAH (GAP FIX) ---
+    # Dulu 550 (Terlalu besar). Sekarang 450 (Ngam-ngam).
+    # Ini akan tarik teks bawah naik ke atas.
+    components.html(html, height=450, scrolling=False)
 
 # --- PALETTES ---
 PALETTE_MAIN = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51", "#8d99ae"]
@@ -253,7 +260,7 @@ def chart_stacked_influence_budget(df):
 def app():
     st.title("SECTION C : CONSUMER INTERESTS ABOUT FASHION")
     
-    # --- OBJECTIVE (1 Sentence) ---
+    # --- OBJECTIVE ---
     st.markdown("""
     <div style="background-color: #f8f9fa; padding: 15px; border-left: 5px solid #264653; margin-bottom: 20px;">
         <h4 style="color: #264653; margin-top: 0;">Objective</h4>
@@ -371,7 +378,7 @@ def app():
         """)
 
     st.markdown("---")
-    st.success("✅ **Consumer Interest Analysis Complete**")
+    st.success("✅ **Consumer Interest Analysis Complete (7 Charts)**")
 
 if __name__ == "__main__":
     app()
