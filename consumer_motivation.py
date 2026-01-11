@@ -1,102 +1,156 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+import plotly.figure_factory as ff
 
-# 1. Title
-st.title("📊 Fashion Brand Motivation Dashboard")
+# ======================================================
+# PAGE CONFIG
+# ======================================================
+st.set_page_config(
+    page_title="Fashion Brand Motivation Analysis",
+    layout="wide"
+)
 
-# 2. Data Loading Logic
-DEFAULT_URL = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+# ======================================================
+# HELPER: CENTER ALL PLOTLY TITLES
+# ======================================================
+def center_title(fig):
+    fig.update_layout(
+        title={
+            'x': 0.5,
+            'xanchor': 'center'
+        }
+    )
+    return fig
 
+# ======================================================
+# PAGE TITLE & DESCRIPTION
+# ======================================================
+st.title("📊 Fashion Brand Motivation Analysis")
+st.markdown(
+    "This section explores why consumers follow fashion brands on social media, "
+    "ranking their motivations from promotions to community building."
+)
+
+# ======================================================
+# LOAD & MAP DATA
+# ======================================================
 @st.cache_data
-def load_and_map_data(file_source):
-    data = pd.read_csv(file_source)
-    data.columns = data.columns.str.strip()
+def load_motivation_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+    data = pd.read_csv(url)
     
-    # Mapping the long question sentences to short keys for the code
+    # Mapping the long question sentences to short keys for analysis
     column_mapping = {
-        "I follow fashion brands on social media to get updates on new collections or promotions": "follow_for_updates_promotions",
-        "I follow fashion brands on social media because  I like their products and style": "follow_because_like_products",
-        "I follow fashion brands on social media because it is entertaining.": "follow_because_entertaining",
-        "I follow fashion brands on social media because I want to receive discounts or participate in contests.": "follow_because_discounts_contests",
-        "I follow fashion brands on social media because it helps me express my personality": "follow_because_express_personality",
-        "I follow fashion brands on social media because I want to feel part of an online community.": "follow_because_online_community",
-        "I follow fashion brands on social media because I want to support or show loyalty to the brand.": "follow_because_support_loyalty"
+        "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
+        "I follow fashion brands on social media because  I like their products and style": "Product & Style",
+        "I follow fashion brands on social media because it is entertaining.": "Entertainment",
+        "I follow fashion brands on social media because I want to receive discounts or participate in contests.": "Discounts & Contests",
+        "I follow fashion brands on social media because it helps me express my personality": "Express Personality",
+        "I follow fashion brands on social media because I want to feel part of an online community.": "Online Community",
+        "I follow fashion brands on social media because I want to support or show loyalty to the brand.": "Brand Loyalty"
     }
     
-    # Rename columns that exist in the file
     data = data.rename(columns=column_mapping)
-    return data
+    return data, list(column_mapping.values())
 
-# Handle Data Source (Checks if main.py already uploaded a file, otherwise uses URL)
-df = None
-if 'uploaded_file' in st.session_state and st.session_state.uploaded_file is not None:
-    df = load_and_map_data(st.session_state.uploaded_file)
-else:
-    try:
-        df = load_and_map_data(DEFAULT_URL)
-    except Exception as e:
-        st.error(f"Could not load default data: {e}")
+df, motivation_cols = load_motivation_data()
 
-# 3. Visualization Logic
-if df is not None:
-    motivation_keys = [
-        'follow_for_updates_promotions',
-        'follow_because_like_products',
-        'follow_because_entertaining',
-        'follow_because_discounts_contests',
-        'follow_because_express_personality',
-        'follow_because_online_community',
-        'follow_because_support_loyalty'
-    ]
+if df.empty:
+    st.error("Data could not be loaded.")
+    st.stop()
 
-    # Filter to only keys that successfully mapped
-    existing_cols = [k for k in motivation_keys if k in df.columns]
+# ======================================================
+# SECTION 1: OVERALL RANKING (MEAN SCORES)
+# ======================================================
+st.header("Section 1: Why Consumers Follow Brands")
 
-    if not existing_cols:
-        st.error("Motivation columns not found. Please check column naming.")
-        st.write("Available columns:", list(df.columns))
+# Calculate means and sort
+motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
+motivation_means.columns = ['Motivation', 'Mean Score']
+
+fig1 = px.bar(
+    motivation_means,
+    x='Mean Score',
+    y='Motivation',
+    orientation='h',
+    text=motivation_means['Mean Score'].apply(lambda x: f'{x:.2f}'),
+    title="Average Agreement Score per Motivation (1-5)",
+    color='Mean Score',
+    color_continuous_scale='Viridis'
+)
+
+fig1.update_layout(xaxis_range=[0, 5])
+fig1 = center_title(fig1)
+st.plotly_chart(fig1, use_container_width=True)
+
+# ======================================================
+# SECTION 2: DISTRIBUTION OF RESPONSES
+# ======================================================
+st.divider()
+st.header("Section 2: Distribution of Agreement Levels")
+
+# Display charts in 2 columns
+col1, col2 = st.columns(2)
+
+for i, col in enumerate(motivation_cols):
+    counts = df[col].value_counts().sort_index().reset_index()
+    counts.columns = ['Likert Scale', 'Respondent Count']
+    
+    fig = px.bar(
+        counts,
+        x='Likert Scale',
+        y='Respondent Count',
+        text='Respondent Count',
+        title=f"Distribution: {col}",
+        color='Likert Scale',
+        color_continuous_scale='Plasma'
+    )
+    
+    fig.update_traces(textposition='outside')
+    fig.update_layout(showlegend=False, xaxis_title="1 (Strongly Disagree) to 5 (Strongly Agree)")
+    fig = center_title(fig)
+
+    if i % 2 == 0:
+        col1.plotly_chart(fig, use_container_width=True)
     else:
-        tab1, tab2, tab3, tab4 = st.tabs([
-            "Distributions", "Mean Scores", "Correlations", "Relationship Analysis"
-        ])
+        col2.plotly_chart(fig, use_container_width=True)
 
-        sns.set_style("whitegrid")
+# ======================================================
+# SECTION 3: MOTIVATION RELATIONSHIPS
+# ======================================================
+st.divider()
+st.header("Section 3: Motivation Correlation & Relationships")
 
-        with tab1:
-            st.header("Response Distribution")
-            fig1, axes = plt.subplots(nrows=len(existing_cols), ncols=1, figsize=(10, 4 * len(existing_cols)))
-            if len(existing_cols) == 1: axes = [axes]
-            
-            for i, col in enumerate(existing_cols):
-                counts = df[col].value_counts().sort_index()
-                sns.barplot(x=counts.index, y=counts.values, ax=axes[i], palette='viridis', hue=counts.index, legend=False)
-                axes[i].set_title(f"Question: {col.replace('_', ' ').title()}")
-            
-            plt.tight_layout()
-            st.pyplot(fig1)
+c1, c2 = st.columns([1.2, 0.8])
 
-        with tab2:
-            st.header("Overall Motivation Ranking")
-            motivation_means = df[existing_cols].mean().sort_values(ascending=False)
-            fig2, ax2 = plt.subplots(figsize=(10, 6))
-            sns.barplot(x=motivation_means.values, y=motivation_means.index, palette='viridis', ax=ax2)
-            for index, value in enumerate(motivation_means.values):
-                ax2.text(value + 0.05, index, f'{value:.2f}', va='center')
-            ax2.set_xlim(0, 5)
-            st.pyplot(fig2)
+with c1:
+    # Correlation Heatmap
+    corr_matrix = df[motivation_cols].corr()
+    fig_corr = px.imshow(
+        corr_matrix,
+        text_auto=".2f",
+        aspect="auto",
+        color_continuous_scale='RdBu_r',
+        title="Correlation Heatmap between Motivations"
+    )
+    fig_corr = center_title(fig_corr)
+    st.plotly_chart(fig_corr, use_container_width=True)
 
-        with tab3:
-            st.header("Correlation Heatmap")
-            fig3, ax3 = plt.subplots(figsize=(10, 8))
-            sns.heatmap(df[existing_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax3)
-            st.pyplot(fig3)
+with c2:
+    # Scatter Plot with Regression
+    st.subheader("Deep Dive into Relationships")
+    var_x = st.selectbox("Select Motivation (X-axis)", motivation_cols, index=1)
+    var_y = st.selectbox("Select Motivation (Y-axis)", motivation_cols, index=5)
+    
+    fig_scatter = px.scatter(
+        df, x=var_x, y=var_y, 
+        trendline="ols", 
+        opacity=0.5,
+        title=f"Relationship: {var_x} vs {var_y}"
+    )
+    fig_scatter = center_title(fig_scatter)
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
-        with tab4:
-            st.header("Relationship Analysis")
-            col_x = st.selectbox("Select X-axis variable", existing_cols, index=1)
-            col_y = st.selectbox("Select Y-axis variable", existing_cols, index=5)
-            fig4, ax4 = plt.subplots(figsize=(10, 7))
-            sns.regplot(data=df, x=col_x, y=col_y, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax4)
-            st.pyplot(fig4)
+st.divider()
+st.markdown("✔ **Consumer Motivation Visualizations Complete**")
