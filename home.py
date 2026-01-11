@@ -67,22 +67,22 @@ st.write("The dashboard is split into 4 Section:")
 s1, s2, s3, s4 = st.columns(4)
 
 with s1:
-    st.markdown("### 🧍\n**Section A**")
+    st.markdown("### 🧍\n**Section A - Izzati**")
     st.caption("Demographic Overview")
     st.markdown("*Gender, age, education, and monthly fashion spend.*")
 
 with s2:
-    st.markdown("### 📱\n**Section B**")
+    st.markdown("### 📱\n**Section B - Hanis **")
     st.caption("Consumer Behaviour on Social Media")
     st.markdown("*Activity levels and how users interact with content.*")
 
 with s3:
-    st.markdown("### 👗\n**Section C**")
+    st.markdown("### 👗\n**Section C - Syadira**")
     st.caption("Fashion Awareness")
     st.markdown("*Interests, trends, and the influence of social media.*")
 
 with s4:
-    st.markdown("### 🛍️\n**Section D**")
+    st.markdown("### 🛍️\n**Section D - Aina**")
     st.caption("Shopping Motivation")
     st.markdown("*The 'Why' behind the buy and brand influence.*")
 
