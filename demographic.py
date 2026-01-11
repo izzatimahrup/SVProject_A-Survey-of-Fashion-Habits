@@ -41,7 +41,50 @@ st.markdown(
     "To examine how demographic factors relate to consumers’ fashion awareness, "
     "spending behaviour, and shopping influences on social media."
 )
+# =========================================================
+# SUMMARY BOX: KEY DEMOGRAPHIC INDICATORS
+# =========================================================
 
+st.subheader("Key Demographic Summary")
+
+col1, col2, col3 = st.columns(3)
+
+# -------------------------
+# Total Respondents
+# -------------------------
+total_respondents = len(df)
+
+col1.metric(
+    label="Total Respondents",
+    value=f"{total_respondents}",
+    help="Total number of valid survey responses collected"
+)
+
+# -------------------------
+# Majority Gender
+# -------------------------
+gender_counts = df["Gender"].value_counts()
+top_gender = gender_counts.idxmax()
+top_gender_pct = (gender_counts.max() / total_respondents) * 100
+
+col2.metric(
+    label="Majority Gender",
+    value=top_gender,
+    help=f"{top_gender_pct:.1f}% of respondents"
+)
+
+# -------------------------
+# Majority Region
+# -------------------------
+region_counts = df["Region"].value_counts()
+top_region = region_counts.idxmax()
+top_region_pct = (region_counts.max() / total_respondents) * 100
+
+col3.metric(
+    label="Majority Region",
+    value=top_region,
+    help=f"{top_region_pct:.1f}% of respondents"
+)
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
