@@ -253,13 +253,13 @@ def chart_stacked_influence_budget(df):
 def app():
     st.title("SECTION C : CONSUMER INTERESTS ABOUT FASHION")
     
-    # --- OBJECTIVE ---
+    # --- OBJECTIVE (1 Sentence) ---
     st.markdown("""
     <div style="background-color: #f8f9fa; padding: 15px; border-left: 5px solid #264653; margin-bottom: 20px;">
         <h4 style="color: #264653; margin-top: 0;">Objective</h4>
         <p style="margin-bottom: 0; color: #333;">
-            To see what fashion consumers like, how much they spend, and what makes them want to buy products.
-            We want to understand their shopping habits and interests.
+            To analyze consumer interests in fashion by examining their spending habits, trend awareness, 
+            and the key external drivers that influence their purchasing decisions.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -294,8 +294,8 @@ def app():
         render_bokeh(chart_donut_budget(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Most people have a low budget (under RM500).** This shows that price is very important. 
-        * **Trend:** People want fashion that is cheap and affordable, not expensive luxury brands.
+        * **A significant majority of respondents allocate a low monthly budget (under RM500) for fashion.**
+        * **Trend:** This indicates that price sensitivity is a major factor, with a clear preference for affordable, value-for-money products over expensive luxury brands.
         """)
     st.markdown("---")
     
@@ -306,8 +306,8 @@ def app():
         render_bokeh(chart_lollipop_awareness(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Most people rate themselves 3 or 4 out of 5.** This means they know about current fashion trends.
-        * **Insight:** Even if they don't have much money, they still care about looking stylish and modern.
+        * **Most respondents rate their fashion knowledge at levels 3 or 4, showing they are quite updated with current trends.**
+        * **Insight:** This suggests that despite having limited budgets, they still care deeply about maintaining a stylish image and staying relevant.
         """)
     st.markdown("---")
     
@@ -318,8 +318,8 @@ def app():
         render_bokeh(chart_bar_influence(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Online Community and Influencers are the most popular.**
-        * **Trend:** People trust what they see on social media more than normal brand advertisements.
+        * **Online Communities and Social Media Influencers rank as the top drivers of interest, far surpassing traditional advertisements.**
+        * **Trend:** This confirms that modern consumers trust social proof and peer reviews more than direct marketing from brands.
         """)
     st.markdown("---")
     
@@ -330,8 +330,8 @@ def app():
         render_bokeh(chart_heatmap_freq_budget(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Many people shop very often but keep a low budget.**
-        * **Pattern:** This shows they prefer buying cheap items many times (Fast Fashion) rather than buying one expensive item.
+        * **A strong pattern emerges where consumers shop frequently (weekly or monthly) but maintain a low budget.**
+        * **Pattern:** This points towards a 'Fast Fashion' behavior, where the interest lies in buying affordable items often to constantly refresh their wardrobe.
         """)
     st.markdown("---")
 
@@ -342,8 +342,8 @@ def app():
         render_bokeh(chart_scatter_awareness_budget(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Knowing a lot about fashion (Level 5) doesn't mean spending a lot.**
-        * **Insight:** Smart shoppers follow trends by finding cheaper alternatives or sales, not just spending blindly.
+        * **Interestingly, high fashion awareness (Level 5) does not strictly correlate with high spending.**
+        * **Insight:** This suggests that knowledgeable consumers are 'smart shoppers' who use their trend awareness to find cheaper alternatives or sales rather than overspending.
         """)
     st.markdown("---")
 
@@ -354,8 +354,8 @@ def app():
         render_bokeh(chart_stacked_influence_freq(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **People who follow Influencers shop more often.**
-        * **Link:** Social media always shows new trends every day, making people feel the need to buy things continuously.
+        * **Respondents influenced by Influencers tend to shop more frequently compared to those relying on family advice.**
+        * **Link:** This is likely because social media feeds constantly expose them to new trends, triggering a continuous desire to buy and stay updated.
         """)
     st.markdown("---")
 
@@ -366,12 +366,12 @@ def app():
         render_bokeh(chart_stacked_influence_budget(df_filtered))
         st.info("""
         **📝 Analysis:**
-        * **Friends and Family usually suggest safer, cheaper choices.**
-        * **Insight:** To make people spend big money (over RM1000), they usually need strong convincing from Influencers or Ads.
+        * **While advice from Family and Friends usually leads to conservative spending, high-value purchases (>RM1000) are often driven by external media.**
+        * **Insight:** This suggests that stronger visual persuasion from Ads or Influencers is needed to justify larger financial commitments.
         """)
 
     st.markdown("---")
-    st.success("✅ **Consumer Interest Analysis Complete (7 Charts)**")
+    st.success("✅ **Consumer Interest Analysis Complete**")
 
 if __name__ == "__main__":
     app()
