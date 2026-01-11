@@ -120,26 +120,61 @@ with tab4:
         ax.set_title(f"Correlation between {x_axis} and {y_axis}")
         st.pyplot(fig)
 
-# Add this as a new tab in your Streamlit app
-with tab5: # Create a 5th tab for Summary
+# Standardized list of questions (Check these match your CSV exactly!)
+motivation_questions = [
+    'follow_for_updates_promotions',
+    'follow_because_like_products',
+    'follow_because_entertaining',
+    'follow_because_discounts_contests',
+    'follow_because_express_personality',
+    'follow_because_online_community',
+    'follow_because_support_loyalty'
+]
+
+# --- CHANGE THIS LINE TO ADD TAB 5 ---
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Distribution", 
+    "Mean Scores", 
+    "Correlations", 
+    "Relationship Analysis",
+    "Summary & Trends"
+])
+
+# ... (Existing code for Tab 1, 2, 3, 4 goes here) ...
+
+# --- NEW TAB 5: Summary & Trends ---
+with tab5:
     st.header("Summary of Key Motivations and Trends")
     
-    # Calculate stats dynamically
+    # Calculate means for the summary
     motivation_means = df[motivation_questions].mean().sort_values(ascending=False)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.success(f"**Most Agreed-Upon:** {motivation_means.index[0]} ({motivation_means.iloc[0]:.2f})")
-    with col2:
-        st.warning(f"**Least Agreed-Upon:** {motivation_means.index[-1]} ({motivation_means.iloc[-1]:.2f})")
-
+    # Key Metrics
+    m1, m2 = st.columns(2)
+    m1.metric("Most Agreed-Upon", motivation_means.index[0], f"{motivation_means.iloc[0]:.2f}")
+    m2.metric("Least Agreed-Upon", motivation_means.index[-1], f"{motivation_means.iloc[-1]:.2f}")
+    
     st.divider()
+    
+    # Detailed Distribution Table
+    st.subheader("Statistical Breakdown (%)")
+    summary_data = []
+    for col in motivation_questions:
+        counts = df[col].value_counts(normalize=True).sort_index() * 100
+        mode_val = df[col].mode()[0]
+        summary_data.append({
+            "Motivation": col.replace('_', ' ').title(),
+            "Most Common Score": mode_val,
+            "Avg Score": round(df[col].mean(), 2)
+        })
+    
+    st.table(pd.DataFrame(summary_data))
 
-    # Display Trend Observations
+    # General Trends (Your Colab text)
     st.subheader("General Trends Observed")
-    st.markdown("""
-    - **Top Drivers:** Highest agreement is for **product style** and **promotional updates**.
-    - **Entertainment:** Plays a significant role in brand following.
-    - **Neutral Areas:** Personal expression and discounts show moderate, often neutral, sentiment.
-    - **Low Impact:** Online community and brand loyalty are the weakest drivers in this dataset.
+    st.info("""
+    - **Primary Drivers:** Highest agreement for liking products/style and updates on promotions.
+    - **Secondary Drivers:** Entertainment value is a significant factor.
+    - **Moderate Interest:** Discounts and personal expression show high neutral sentiment.
+    - **Lower Interest:** Online community and brand loyalty are the least compelling reasons.
     """)
