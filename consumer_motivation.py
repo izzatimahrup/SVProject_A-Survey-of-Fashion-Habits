@@ -11,7 +11,7 @@ st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide"
 @st.cache_data
 def load_data():
     # Correcting the URL and handling the filename spaces/parentheses
-    base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+    base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
     safe_url = urllib.parse.quote(base_url, safe=':/')
     
 
