@@ -49,14 +49,12 @@ def load_data():
     
     # 1. BUDGET ORDER (Kecil ke Besar)
     budget_order_logic = ["<500", "500-1000", "1000-3000", ">3000"]
-    # Check data sebenar
     found_budget = [x for x in budget_order_logic if x in df['Budget'].unique()]
     other_budget = [x for x in df['Budget'].unique() if x not in found_budget]
     final_budget = found_budget + other_budget
     df['Budget'] = pd.Categorical(df['Budget'], categories=final_budget, ordered=True)
     
     # 2. FREQUENCY ORDER (Kerap ke Jarang - Ikut Standard Google Form)
-    # Ini senarai kemungkinan jawapan. Dia akan cari mana yang ada dalam data awak.
     freq_order_logic = [
         "Daily", "Every day", "Everyday", 
         "Weekly", "Once a week", "Every week",
@@ -66,15 +64,10 @@ def load_data():
         "Annually", "Once a year", "Yearly",
         "Rarely", "Never"
     ]
-    
-    # Tapis: Ambil hanya yang wujud dalam Excel awak
     found_freq = [x for x in freq_order_logic if x in df['Frequency'].unique()]
-    # Kalau ada jawapan pelik yang tak ada dalam list atas, letak di belakang
     other_freq = [x for x in df['Frequency'].unique() if x not in found_freq]
-    
     final_freq = found_freq + other_freq
     
-    # Kalau list kosong (tak match langsung), fallback ke alphabetical
     if not final_freq:
         final_freq = sorted(df['Frequency'].dropna().unique().tolist())
         
@@ -82,7 +75,6 @@ def load_data():
 
     # 3. AWARENESS (1 ke 5)
     df['Awareness_Str'] = df['Awareness'].astype(str)
-    # Pastikan '1' depan, '5' belakang
     awareness_order = sorted(df['Awareness_Str'].unique().tolist())
     df['Awareness_Str'] = pd.Categorical(df['Awareness_Str'], categories=awareness_order, ordered=True)
     
@@ -172,7 +164,6 @@ def chart_heatmap_freq_budget(df):
     df_group['bubble_size'] = (df_group['counts'] / max_count) * 45 + 5
     
     source = ColumnDataSource(df_group)
-    # Guna sorted categorical lists untuk paksi supaya tak lari order
     freq_factors = df['Frequency'].cat.categories.tolist()
     budget_factors = df['Budget'].cat.categories.tolist()
     
@@ -301,7 +292,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
         render_bokeh(chart_donut_budget(df_filtered))
-        st.info("**Analysis:** Majority prefers budget <RM500, indicating a price-conscious interest.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Pattern:** Significant majority falls into the **<RM500 (Low Budget)** category.
+        * **Insight:** The market interest is heavily driven by affordability, suggesting that price point is a critical factor for engagement.
+        """)
     st.markdown("---")
     
     # 2. AWARENESS LEVEL
@@ -309,7 +304,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
         render_bokeh(chart_lollipop_awareness(df_filtered))
-        st.info("**Analysis:** Market is skewed towards levels 3-4, showing moderate-to-high fashion interest.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Trend:** The data is skewed towards **levels 3 and 4**, indicating a moderate-to-high interest in fashion trends.
+        * **Insight:** Despite budget constraints, respondents consider themselves knowledgeable, implying they value style and aesthetics.
+        """)
     st.markdown("---")
     
     # 3. RANKING
@@ -317,7 +316,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_bar_influence(df_filtered))
-        st.info("**Analysis:** Online Community & Influencers are the top sparks for consumer interest.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Ranking:** **Online Community** and **Influencers** are the top drivers, surpassing traditional 'Ads'.
+        * **Insight:** Interest is sparked primarily through social proof and digital peer validation rather than direct marketing.
+        """)
     st.markdown("---")
     
     # 4. FREQUENCY vs BUDGET
@@ -325,7 +328,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_heatmap_freq_budget(df_filtered))
-        st.info("**Analysis:** High frequency but low budget cluster indicates interest in 'Fast Fashion'.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Pattern:** A dense cluster is observed at **High Frequency** but **Low Budget**.
+        * **Insight:** This behavior reflects 'Fast Fashion' consumption—consumers satisfy their fashion interest by buying affordable items frequently.
+        """)
     st.markdown("---")
 
     # 5. AWARENESS vs BUDGET
@@ -333,7 +340,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_scatter_awareness_budget(df_filtered))
-        st.info("**Analysis:** High awareness doesn't guarantee high spending; users are 'smart shoppers'.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Anomaly:** High awareness (Level 5) does not strictly correlate with the highest budget bracket.
+        * **Insight:** Consumers use their fashion knowledge to find value deals (dupes/sales) rather than spending blindly on expensive brands.
+        """)
     st.markdown("---")
 
     # 6. INFLUENCE vs FREQUENCY
@@ -341,7 +352,11 @@ def app():
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
         render_bokeh(chart_stacked_influence_freq(df_filtered))
-        st.info("**Analysis:** Influencer-driven consumers shop more frequently compared to others.")
+        st.info("""
+        **📝 Interpretation & Analysis:**
+        * **Pattern:** Respondents influenced by **Influencers** tend to have higher shopping frequency counts.
+        * **Insight:** Social media creates a continuous loop of new trends, triggering more frequent engagement compared to static influences like 'Family'.
+        """)
     st.markdown("---")
 
     # 7. INFLUENCE vs BUDGET
@@ -351,8 +366,8 @@ def app():
         render_bokeh(chart_stacked_influence_budget(df_filtered))
         st.info("""
         **📝 Interpretation & Analysis:**
-        * **High Value Drivers:** Analyze if 'Ads' or 'Influencers' convert more users into the >RM1000 category.
-        * **Budget Stability:** Family/Friends influence usually correlates with safer, lower budget spending.
+        * **Comparison:** **Family/Friends** influence is often associated with conservative spending (<RM500).
+        * **Insight:** To unlock higher spending tiers (>RM1000), external validation (Ads/Influencers) plays a stronger role in justifying the cost.
         """)
 
     st.markdown("---")
