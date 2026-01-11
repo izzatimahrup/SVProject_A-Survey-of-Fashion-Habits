@@ -11,10 +11,6 @@ def load_data():
 
 df = load_data()
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
 # --- YOUR LOGIC STARTS HERE ---
 
 # Define activity levels that count as 'most used'
@@ -62,6 +58,7 @@ if most_used_counts:
     # Clean up layout to match your tight_layout and title style
     fig.update_traces(textposition='inside', textinfo='percent+label')
     fig.update_layout(title_x=0.5)
+    title_xanchor='center'
 
     # STREAMLIT DISPLAY
     st.plotly_chart(fig, use_container_width=True)
