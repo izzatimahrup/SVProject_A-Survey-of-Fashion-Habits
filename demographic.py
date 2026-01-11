@@ -92,10 +92,15 @@ col1, col2 = st.columns(2)
 # -------------------------
 # Gender Distribution
 # -------------------------
-gender_counts = df["Gender"].value_counts().reset_index(name="count")
+gender_counts = (
+    df["Gender"]
+    .value_counts()
+    .reset_index(name="count")
+    .rename(columns={"index": "Gender"})
+)
 fig1 = px.pie(
     gender_counts,
-    names="index",
+    names="Gender",
     values="count",
     hole=0.4,
     title="Gender Distribution of Respondents"
