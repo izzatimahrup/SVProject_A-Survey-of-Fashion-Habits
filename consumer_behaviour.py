@@ -10,7 +10,10 @@ def load_data():
     return pd.read_csv(url)
 
 df = load_data()
+uploaded_file = st.file_uploader("Upload your Social Media CSV", type=['csv'])
 
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
 sns.set_style("whitegrid")
 
     # Define activity levels that count as 'most used'
