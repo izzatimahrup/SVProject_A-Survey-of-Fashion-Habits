@@ -185,7 +185,10 @@ ordinal_frequency_cols = [
 # Display charts in 2 columns like reference
 col1, col2 = st.columns(2)
 
-       for col in (ordinal_frequency_cols):
+if not ordinal_frequency_cols:
+    st.info("No ordinal social media frequency columns found to visualize.")
+else:
+    for col in ordinal_frequency_cols:
         platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
 
         counts = df[col].value_counts().sort_index().reset_index()
