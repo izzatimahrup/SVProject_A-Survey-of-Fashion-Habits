@@ -59,15 +59,9 @@ if most_used_counts:
         color_discrete_sequence=px.colors.qualitative.Safe
     )
 
+    # Clean up layout to match your tight_layout and title style
     fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(
-        title={
-            'text': 'Comparison of Most Used Social Media Platforms',
-            'y': 0.95,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-            )
+    fig.update_layout(title_x=0.5)
 
     # STREAMLIT DISPLAY
     st.plotly_chart(fig, use_container_width=True)
