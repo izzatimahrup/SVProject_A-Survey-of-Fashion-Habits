@@ -7,10 +7,6 @@ import seaborn as sns
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
 st.title("📊 Fashion Brand Motivation Dashboard")
 
-# 1. Sidebar for Data Upload
-st.sidebar.header("Data Source")
-uploaded_file = st.sidebar.file_uploader("Upload your survey CSV", type=["csv"])
-
 # URL for fallback data
 DEFAULT_URL = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
 
