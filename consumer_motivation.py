@@ -6,11 +6,26 @@ import seaborn as sns
 # 1. Page Configuration
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
 
-# 2. Correct Data Loading
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
-    data = pd.read_csv(url)
+    # We manually handle the space character (1) with URL encoding
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF%20(1).csv"
+    safe_url = url.replace(" ", "%20")
+    
+    try:
+        data = pd.read_csv(safe_url)
+        # Clean column names immediately upon loading
+        data.columns = data.columns.str.strip().str.lower().str.replace(' ', '_')
+        return data
+    except Exception as e:
+        st.error(f"Could not find the file at the URL provided. Error: {e}")
+        return None
+
+df = load_data()
+
+if df is not None:
+    st.success("File found and loaded successfully!")
+    # ... rest of your code ...
     
     # --- CRITICAL FIX: Clean the Column Names ---
     # This removes spaces, dots, and brackets and makes everything lowercase
