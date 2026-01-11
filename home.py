@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-)
-
-df = load_data()
 
 # =========================================================
 # HOMEPAGE
