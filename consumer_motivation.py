@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import urllib.parse
 
 # 1. Page Configuration - MUST be the very first Streamlit command
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
