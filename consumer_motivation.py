@@ -8,6 +8,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+def load_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
+    return pd.read_csv(url)
+
 # --- App Configuration ---
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
 st.title("📊 Fashion Brand Motivation Dashboard")
