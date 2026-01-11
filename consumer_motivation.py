@@ -2,126 +2,114 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import urllib.parse
 
-# --- App Configuration ---
+# 1. Page Configuration - MUST be the very first Streamlit command
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
-st.title("📊 Fashion Brand Motivation Dashboard")
 
-# --- Load Data ---
-# Replace 'your_data.csv' with your actual file path
+# 2. Define the Data Loading Function
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
-    return pd.read_csv(url)
+    # Base URL from your GitHub
+    base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF (1).csv"
+    
+    # Safely handle spaces and parentheses for the web request
+    safe_url = urllib.parse.quote(base_url, safe=':/')
+    
+    try:
+        data = pd.read_csv(safe_url)
+        # Clean column names to lowercase and underscores to match your list below
+        data.columns = (data.columns
+                        .str.strip()
+                        .str.lower()
+                        .str.replace(' ', '_')
+                        .str.replace('(', '')
+                        .str.replace(')', '')
+                        .str.replace('[', '')
+                        .str.replace(']', '')
+                        .str.replace('.', '', regex=False))
+        return data
+    except Exception as e:
+        st.error(f"Failed to load data. Error: {e}")
+        return None
 
-if df.empty:
-    st.stop()
-    return df
-
+# 3. Main Logic
 df = load_data()
 
-# Define motivation questions
-motivation_questions = [
-    'follow_for_updates_promotions',
-    'follow_because_like_products',
-    'follow_because_entertaining',
-    'follow_because_discounts_contests',
-    'follow_because_express_personality',
-    'follow_because_online_community',
-    'follow_because_support_loyalty'
-]
+if df is not None:
+    st.title("📊 Fashion Brand Motivation Dashboard")
 
-# --- Sidebar ---
-st.sidebar.header("Settings")
-st.sidebar.info("Use the tabs below to explore different visualizations of the motivation data.")
+    # 4. Standardized list of questions (matches the cleaning logic above)
+    motivation_questions = [
+        'follow_for_updates_promotions',
+        'follow_because_like_products',
+        'follow_because_entertaining',
+        'follow_because_discounts_contests',
+        'follow_because_express_personality',
+        'follow_because_online_community',
+        'follow_because_support_loyalty'
+    ]
 
-# --- Main Tabs ---
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Distribution", 
-    "Mean Scores", 
-    "Correlations", 
-    "Relationship Analysis"
-])
+    # Matching logic: Find actual columns that match our keywords
+    existing_cols = []
+    for q in motivation_questions:
+        match = [col for col in df.columns if q in col]
+        if match:
+            existing_cols.append(match[0])
 
-# --- Tab 1: Distribution of Responses ---
-with tab1:
-    st.header("Distribution of Responses")
-    sns.set_style("whitegrid")
-    
-    num_questions = len(motivation_questions)
-    fig, axes = plt.subplots(nrows=num_questions, ncols=1, figsize=(10, 5 * num_questions))
-    
-    if num_questions == 1:
-        axes = [axes]
+    if not existing_cols:
+        st.error("🚨 No matching columns found in the CSV headers.")
+        with st.sidebar.expander("Debug: View Actual Columns"):
+            st.write(df.columns.tolist())
+    else:
+        # Create Tabs
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "Distribution", "Mean Scores", "Correlations", "Relationship Analysis", "Summary"
+        ])
 
-    for i, col in enumerate(motivation_questions):
-        response_counts = df[col].astype(str).value_counts().sort_index()
-        ax = axes[i]
-        sns.barplot(x=response_counts.index, y=response_counts.values, ax=ax, palette='viridis', hue=response_counts.index, legend=False)
-        ax.set_title(f"Question: {col.replace('_', ' ').title()}", fontsize=14)
-        ax.set_xlabel('Response (1=Strongly Disagree, 5=Strongly Agree)')
-        ax.set_ylabel('Number of Respondents')
+        with tab1:
+            st.header("Distribution of Responses")
+            num_q = len(existing_cols)
+            fig, axes = plt.subplots(num_q, 1, figsize=(10, 5 * num_q))
+            if num_q == 1: axes = [axes]
+            for i, col in enumerate(existing_cols):
+                counts = df[col].astype(str).value_counts().sort_index()
+                sns.barplot(x=counts.index, y=counts.values, ax=axes[i], palette='viridis')
+                axes[i].set_title(f"Question: {col.replace('_', ' ').title()}")
+                axes[i].set_xlabel('Score (1=Strongly Disagree, 5=Strongly Agree)')
+            plt.tight_layout()
+            st.pyplot(fig)
 
-    plt.tight_layout()
-    st.pyplot(fig)
+        with tab2:
+            st.header("Mean Agreement Scores")
+            means = df[existing_cols].mean().sort_values(ascending=False)
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(x=means.values, y=means.index, palette='viridis', ax=ax)
+            ax.set_xlim(0, 5)
+            for i, v in enumerate(means.values):
+                ax.text(v + 0.05, i, f'{v:.2f}', va='center')
+            st.pyplot(fig)
 
-# --- Tab 2: Mean Agreement Scores ---
-with tab2:
-    st.header("Mean Agreement Scores")
-    motivation_means = df[motivation_questions].mean().sort_values(ascending=False)
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(x=motivation_means.values, y=motivation_means.index, palette='viridis', ax=ax)
-    
-    ax.set_title('Mean Agreement Scores for Motivation Questions', fontsize=16)
-    ax.set_xlabel('Mean Agreement Score (1-5)')
-    ax.set_xlim(0, 5)
+        with tab3:
+            st.header("Correlation Heatmap")
+            if len(existing_cols) > 1:
+                fig, ax = plt.subplots(figsize=(10, 8))
+                sns.heatmap(df[existing_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+                st.pyplot(fig)
 
-    # Add value labels
-    for index, value in enumerate(motivation_means.values):
-        ax.text(value + 0.05, index, f'{value:.2f}', va='center', fontsize=10)
+        with tab4:
+            st.header("Relationship Analysis")
+            c1, c2 = st.columns(2)
+            x_ax = c1.selectbox("Select X-axis", existing_cols, index=0)
+            y_ax = c2.selectbox("Select Y-axis", existing_cols, index=1)
+            fig, ax = plt.subplots()
+            sns.regplot(data=df, x=x_ax, y=y_ax, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax)
+            st.pyplot(fig)
 
-    st.pyplot(fig)
-
-# --- Tab 3: Correlation Heatmap ---
-with tab3:
-    st.header("Correlation Heatmap")
-    correlation_matrix = df[motivation_questions].corr()
-    
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(
-        correlation_matrix, 
-        annot=True, 
-        cmap='coolwarm', 
-        fmt=".2f", 
-        linewidths=.5, 
-        ax=ax
-    )
-    plt.xticks(rotation=45, ha='right')
-    st.pyplot(fig)
-
-# --- Tab 4: Relationship Analysis ---
-with tab4:
-    st.header("Relationship Analysis")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        x_axis = st.selectbox("Select X-axis Motivation", motivation_questions, index=1)
-    with col2:
-        y_axis = st.selectbox("Select Y-axis Motivation", motivation_questions, index=5)
-
-    fig, ax = plt.subplots(figsize=(10, 7))
-    sns.regplot(
-        data=df, 
-        x=x_axis, 
-        y=y_axis, 
-        scatter_kws={'alpha':0.6}, 
-        line_kws={'color':'red'},
-        ax=ax
-    )
-    
-    ax.set_title(f'Relationship: {x_axis.title()} vs {y_axis.title()}')
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    st.pyplot(fig)
-    st.write("**Interpretation:** This scatter plot with a regression line visualizes the relationship between the two selected motivations.")
+        with tab5:
+            st.header("Summary of Key Trends")
+            st.info("""
+            - **Top Drivers:** High agreement for product style and promotional updates.
+            - **Moderate Drivers:** Entertainment and discounts.
+            - **Lowest Impact:** Online community and brand loyalty.
+            """)
