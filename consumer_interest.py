@@ -378,7 +378,7 @@ def app():
         """)
 
     st.markdown("---")
-    st.success("✅ **Consumer Interest Analysis Complete (7 Charts)**")
+    st.success("✅ **Consumer Interest Analysis Complete**")
 
 if __name__ == "__main__":
     app()
