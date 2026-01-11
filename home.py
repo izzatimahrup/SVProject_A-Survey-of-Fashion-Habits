@@ -1,4 +1,126 @@
-import streamlit as st
+# =========================================================
+# HOMEPAGE
+# =========================================================
 
-st.title("Home Page")
-st.write("Content will be added here.")
+st.title("📊 Fashion Habits on Social Media Dashboard")
+
+st.markdown(
+    """
+    This interactive dashboard presents findings from a survey conducted for the study  
+    *“Consumer Behaviour Towards Fashion Brands on Social Media.”*  
+    The dashboard visualises respondents’ demographic profiles, social media usage patterns, 
+    fashion interests, and motivations related to fashion consumption on social media platforms.
+    """
+)
+
+# ---------------------------------------------------------
+# SURVEY OVERVIEW
+# ---------------------------------------------------------
+st.subheader("Survey Overview")
+
+total_respondents = len(df)
+
+st.markdown(
+    f"""
+    A total of **{total_respondents} valid respondents** participated in this study.  
+    The survey was created and administered using **Google Forms**, and distributed online via  
+    **WhatsApp group sharing and personal contacts**, allowing for efficient data collection.
+    
+    👉 **Survey link:**  
+    https://forms.gle/XXXXXXXXXX
+    
+    The survey targeted respondents **across Malaysia**, with a focus on **young adults and adults**, 
+    as these groups represent the most active users of social media platforms and are more likely 
+    to engage with fashion-related content and online shopping.
+    """
+)
+
+# ---------------------------------------------------------
+# OVERVIEW OF DASHBOARD SECTIONS
+# ---------------------------------------------------------
+st.subheader("Overview of Dashboard Sections")
+
+st.markdown(
+    "The dashboard is organised into four analytical sections, each focusing on a different aspect "
+    "of consumers’ fashion behaviour on social media."
+)
+
+row1_col1, row1_col2 = st.columns(2)
+row2_col1, row2_col2 = st.columns(2)
+
+with row1_col1:
+    st.markdown(
+        """
+        ### 🧍 Section A: Demographic Overview
+        Presents the demographic characteristics of respondents, including gender, age group, 
+        region, education level, employment status, and average monthly fashion expenditure.
+        """
+    )
+
+with row1_col2:
+    st.markdown(
+        """
+        ### 📱 Section B: Social Media Usage Patterns
+        Illustrates respondents’ activity levels across different social media platforms and 
+        common online behaviours such as viewing, sharing, and interacting with content.
+        """
+    )
+
+with row2_col1:
+    st.markdown(
+        """
+        ### 👗 Section C: Fashion Interest and Awareness
+        Highlights respondents’ interest in fashion, awareness of current trends, and the role 
+        of social media in shaping fashion-related attitudes.
+        """
+    )
+
+with row2_col2:
+    st.markdown(
+        """
+        ### 🛍️ Section D: Motivation and Shopping Influence
+        Focuses on respondents’ motivations for following fashion brands and the factors that 
+        influence shopping decisions on social media platforms.
+        """
+    )
+
+# ---------------------------------------------------------
+# SUMMARY BOX: RESPONDENT PROFILE OVERVIEW
+# ---------------------------------------------------------
+st.subheader("Respondent Profile Overview")
+
+col1, col2, col3 = st.columns(3)
+
+# Total Respondents
+col1.metric(
+    label="Total Respondents",
+    value=f"{total_respondents}",
+    help="Total number of valid survey responses"
+)
+
+# Gender Distribution
+gender_counts = df["Gender"].value_counts()
+gender_summary = " | ".join(
+    [f"{g}: {(c/total_respondents)*100:.1f}%" for g, c in gender_counts.items()]
+)
+
+col2.metric(
+    label="Gender Distribution",
+    value=gender_summary,
+    help="Percentage distribution by gender"
+)
+
+# Region Distribution
+region_counts = df["Region"].value_counts()
+region_summary = " | ".join(
+    [f"{r}: {(c/total_respondents)*100:.1f}%" for r, c in region_counts.items()]
+)
+
+col3.metric(
+    label="Region Distribution",
+    value=region_summary,
+    help="Percentage distribution by region"
+)
+
+st.divider()
+
