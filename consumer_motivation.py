@@ -119,7 +119,7 @@ with tab_rel:
     with c1:
         x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
         y_var = st.selectbox("Select Y-axis", motivation_cols, index=min(1, len(motivation_cols)-1))
-        st.info("Note: To see the trendline, ensure 'statsmodels' is in your requirements.txt")
+       
     
     with c2:
         # Check if statsmodels is installed before trying to draw the trendline
