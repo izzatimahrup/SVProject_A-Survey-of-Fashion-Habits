@@ -14,22 +14,6 @@ def load_data():
     base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
     safe_url = urllib.parse.quote(base_url, safe=':/')
     
-    try:
-        # Load into a temporary variable 'data'
-        data = pd.read_csv(safe_url)
-        
-        # Standardize column names (lowercase, no spaces, no dots)
-        data.columns = (data.columns
-                        .str.strip()
-                        .str.lower()
-                        .str.replace(' ', '_')
-                        .str.replace('(', '')
-                        .str.replace(')', '')
-                        .str.replace('.', '', regex=False))
-        return data # Return 'data', not 'df'
-    except Exception as e:
-        st.error(f"Failed to load data. Error: {e}")
-        return None
 
 # 3. Execution
 df = load_data()
