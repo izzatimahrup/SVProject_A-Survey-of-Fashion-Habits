@@ -25,9 +25,10 @@ def center_title(fig):
 # PAGE TITLE & DESCRIPTION
 # ======================================================
 st.title("📊 Consumer Behaviour Analysis")
-st.markdown(
-    ("This dashboard presents an analysis of social media engagement patterns, "
-    "and consumer behaviour based on survey data.")
+st.markdown("""
+This dashboard presents an analysis of social media engagement patterns, 
+and consumer behaviour based on survey data.
+""")
     
 st.subheader("Objective")
 
