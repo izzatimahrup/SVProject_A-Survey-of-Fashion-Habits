@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# ===============================
+# ======================================================
 # PAGE TITLE (CENTERED)
-# ===============================
+# ======================================================
 st.markdown(
     "<h1 style='text-align: center;'>Consumer Behaviour</h1>",
     unsafe_allow_html=True
@@ -12,19 +12,27 @@ st.markdown(
 
 st.write("Content will be added here.")
 
-# ===============================
-# LOAD DATA
-# ===============================
+# ======================================================
+# LOAD DATA (SAFE FOR STREAMLIT CLOUD)
+# ======================================================
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
-    return pd.read_csv(url)
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF%20(1).csv"
+    try:
+        return pd.read_csv(url)
+    except Exception as e:
+        st.error("Failed to load data from GitHub.")
+        st.exception(e)
+        return pd.DataFrame()
 
 df = load_data()
 
-# ===============================
-# DONUT CHART: MOST USED PLATFORMS
-# ===============================
+if df.empty:
+    st.stop()
+
+# ======================================================
+# DONUT CHART: MOST USED SOCIAL MEDIA PLATFORMS
+# ======================================================
 most_used_levels = [0, 1]
 
 platforms_to_compare = [
@@ -66,9 +74,9 @@ if most_used_counts:
 else:
     st.error("No data available to create the comparison chart.")
 
-# ===============================
+# ======================================================
 # CORRELATION HEATMAP
-# ===============================
+# ======================================================
 ordinal_social_media_cols = [
     col for col in df.columns
     if (col.startswith('Active_') or col.startswith('Freq_')) and col.endswith('_Ordinal')
@@ -96,9 +104,9 @@ if ordinal_social_media_cols:
 
         st.plotly_chart(fig, use_container_width=True)
 
-# ===============================
-# BAR CHARTS: ACTIVITY LEVELS
-# ===============================
+# ======================================================
+# BAR CHARTS: DISTRIBUTION OF ACTIVITY LEVELS
+# ======================================================
 activity_labels = {
     0: 'Very Active',
     1: 'Active',
