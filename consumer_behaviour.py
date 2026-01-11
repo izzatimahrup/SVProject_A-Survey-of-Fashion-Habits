@@ -216,3 +216,48 @@ else:
             col1.plotly_chart(fig, use_container_width=True)
         else:
             col2.plotly_chart(fig, use_container_width=True)
+            
+
+# RELATIONSHIP SCATTER PLOT
+# ------------------------------------------------------
+# Define columns for the scatter plot
+x_col = 'Active_Instagram_Ordinal'
+y_col = 'Active_Tiktok_Ordinal'
+
+# Check if statsmodels is available for the regression line (trendline)
+try:
+    import statsmodels
+    t_line = "ols"  # Equivalent to Seaborn's regplot
+except ImportError:
+    t_line = None
+
+# Create the scatter plot
+fig3 = px.scatter(
+    df, 
+    x=x_col, 
+    y=y_col, 
+    trendline=t_line, 
+    opacity=0.6,  # Matches your scatter_kws={'alpha':0.6}
+    title='Relationship Between Instagram and TikTok Activity',
+    labels={
+        x_col: 'Instagram Activity (0=Very Active, 3=Inactive)',
+        y_col: 'TikTok Activity (0=Very Active, 3=Inactive)'
+    },
+    template="whitegrid" # Matches your sns.set_style("whitegrid")
+)
+
+# Apply red color to the regression line to match line_kws={'color':'red'}
+if t_line == "ols":
+    fig3.data[1].line.color = 'red'
+
+# Style the layout
+fig3.update_layout(
+    xaxis=dict(dtick=1), # Ensures only 0, 1, 2, 3 appear on axis
+    yaxis=dict(dtick=1)
+)
+
+# Use your centering function
+fig3 = center_title(fig3)
+
+# Display in Streamlit
+st.plotly_chart(fig3, use_container_width=True)
