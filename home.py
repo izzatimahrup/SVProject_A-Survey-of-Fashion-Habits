@@ -1,10 +1,6 @@
 import streamlit as st
 import pandas as pd
-
-@st.cache_data
-def load_data():
-    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
-    return pd.read_csv(url)
+)
 
 df = load_data()
 
@@ -37,7 +33,7 @@ st.markdown(
     **WhatsApp group sharing and personal contacts**, allowing for efficient data collection.
     
     👉 **Survey link:**  
-    https://forms.gle/XXXXXXXXXX
+    https://forms.gle/y8DT7eQfJXB7f7qY9
     
     The survey targeted respondents **across Malaysia**, with a focus on **young adults and adults**, 
     as these groups represent the most active users of social media platforms and are more likely 
@@ -93,44 +89,4 @@ with row2_col2:
         influence shopping decisions on social media platforms.
         """
     )
-
-# ---------------------------------------------------------
-# SUMMARY BOX: RESPONDENT PROFILE OVERVIEW
-# ---------------------------------------------------------
-st.subheader("Respondent Profile Overview")
-
-col1, col2, col3 = st.columns(3)
-
-# Total Respondents
-col1.metric(
-    label="Total Respondents",
-    value=f"{total_respondents}",
-    help="Total number of valid survey responses"
-)
-
-# Gender Distribution
-gender_counts = df["Gender"].value_counts()
-gender_summary = " | ".join(
-    [f"{g}: {(c/total_respondents)*100:.1f}%" for g, c in gender_counts.items()]
-)
-
-col2.metric(
-    label="Gender Distribution",
-    value=gender_summary,
-    help="Percentage distribution by gender"
-)
-
-# Region Distribution
-region_counts = df["Region"].value_counts()
-region_summary = " | ".join(
-    [f"{r}: {(c/total_respondents)*100:.1f}%" for r, c in region_counts.items()]
-)
-
-col3.metric(
-    label="Region Distribution",
-    value=region_summary,
-    help="Percentage distribution by region"
-)
-
-st.divider()
 
