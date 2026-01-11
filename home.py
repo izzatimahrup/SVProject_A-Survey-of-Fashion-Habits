@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
+    return pd.read_csv(url)
+
+df = load_data()
+
 # =========================================================
 # HOMEPAGE
 # =========================================================
