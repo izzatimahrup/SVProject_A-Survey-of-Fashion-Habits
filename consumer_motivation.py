@@ -24,7 +24,8 @@ def center_title(fig):
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
 st.markdown(
-    "Analyze the driving factors behind why consumers follow fashion brands on social media."
+    "Objective"
+    "To analyze the driving factors behind why consumers follow fashion brands on social media."
 )
 
 # ======================================================
