@@ -9,7 +9,6 @@ st.set_page_config(
     page_title="Consumer Behaviour Dashboard",
     layout="wide"
 )
-st.success("**to assess the level of activity and engagement of consumers on social media platforms in relation to fashion**)
 # ======================================================
 # HELPER: CENTER ALL PLOTLY TITLES
 # ======================================================
@@ -29,6 +28,11 @@ st.title("📊 Consumer Behaviour Analysis")
 st.markdown(
     "This dashboard presents an analysis of social media engagement patterns "
     "and consumer behaviour based on survey data."
+    
+st.subheader("Objective")
+
+st.markdown(
+    "to assess the level of activity and engagement of consumers on social media platforms in relation to fashion."
 )
 
 # ======================================================
