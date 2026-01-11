@@ -65,42 +65,47 @@ if most_used_counts:
 else:
     st.error("No data available to create the comparison chart.")
 
-# Identify all ordinally encoded social media columns
+# 1. Column Selection Logic
 ordinal_social_media_cols = [
     col for col in df.columns
     if (col.startswith('Active_') or col.startswith('Freq_')) and col.endswith('_Ordinal')
 ]
 
+# DEBUG: Check if columns were actually found
 if not ordinal_social_media_cols:
-    st.warning("No ordinal social media activity or frequency columns found for correlation heatmap.")
+    st.error("❌ No columns found! Check your CSV headers.")
+    st.write("Your CSV has these columns:", list(df.columns))
 else:
-    st.subheader("Correlation Heatmap for Social Media Engagement")
+    # 2. Data Cleaning (Force numbers)
+    # This ensures correlations can be calculated even if data looks like strings
+    social_media_ordinal_df = df[ordinal_social_media_cols].apply(pd.to_numeric, errors='coerce')
 
-    # Create a DataFrame with only the ordinal social media columns
-    social_media_ordinal_df = df[ordinal_social_media_cols]
-
-    # Calculate the correlation matrix
+    # 3. Calculate Correlation
     correlation_matrix = social_media_ordinal_df.corr()
 
-    # --- Generate Plotly Heatmap ---
-    fig = px.imshow(
-        correlation_matrix,
-        text_auto=".2f",                # Equivalent to annot=True and fmt=".2f"
-        aspect="auto",
-        color_continuous_scale='RdBu_r', # Equivalent to 'coolwarm'
-        labels=dict(color="Correlation"),
-        title='Correlation Heatmap of Ordinal Social Media Engagement Metrics'
-    )
+    # DEBUG: Check if the matrix is empty (happens if data is all NaNs)
+    if correlation_matrix.empty or correlation_matrix.isnull().all().all():
+        st.warning("⚠️ Could not calculate correlation. Ensure the columns contain numbers.")
+    else:
+        st.success(f"✅ Found {len(ordinal_social_media_cols)} columns. Generating heatmap...")
 
-    # Styling to match your matplotlib settings
-    fig.update_layout(
-        width=900, 
-        height=700,
-        title_x=0.5,
-        xaxis_tickangle=-45
-    )
+        # 4. Generate Plotly Heatmap
+        fig = px.imshow(
+            correlation_matrix,
+            text_auto=".2f",
+            aspect="auto",
+            color_continuous_scale='RdBu_r',
+            title='Correlation Heatmap of Social Media Engagement'
+        )
 
-    # --- Display in Streamlit ---
-    st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(
+            width=800, 
+            height=800,
+            xaxis_tickangle=-45
+        )
 
-    st.write("--- Correlation Heatmap Visualization Complete ---")
+        # 5. THE OUTPUT COMMAND
+        # If this line runs, the chart MUST appear
+        st.plotly_chart(fig, use_container_width=True)
+
+st.write("--- Process Finished ---")
