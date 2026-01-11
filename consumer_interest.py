@@ -46,7 +46,7 @@ def load_data():
         return val
     df['Influence'] = df['Influence'].apply(clean_influence)
     
-    # Sorting Categorical Data (Penting untuk susunan graf)
+    # Sorting Categorical Data
     budget_order = ["<500", "500-1000", "1000-3000", ">3000"]
     df['Budget'] = pd.Categorical(df['Budget'], categories=budget_order, ordered=True)
     
@@ -61,17 +61,10 @@ def load_data():
 # --- HELPER: RENDER BOKEH (SAIZ KEKAL: 400px / Balanced) ---
 def render_bokeh(plot):
     plot.sizing_mode = "scale_width"
-    
-    # KEKALKAN SIZE INI (Jangan Ubah)
     plot.height = 400 
-    
-    # Margin Bawah Lebih Besar Supaya Label X Tak Putus
     plot.min_border_bottom = 80  
     plot.min_border_left = 60
-    
     html = file_html(plot, CDN, "my plot")
-    
-    # Frame HTML set tinggi sikit dari graf (buffer)
     components.html(html, height=550, scrolling=False)
 
 # --- PALETTE ---
@@ -115,8 +108,12 @@ def chart_scatter_awareness_budget(df):
     budget_factors = ["<500", "500-1000", "1000-3000", ">3000"]
     
     unique_freq = df['Frequency'].unique().tolist()
-    # Pastikan palette cukup warna
-    palette_use = STACKED_PALETTE if len(unique_freq) <= 6 else Magma256[:len(unique_freq)]
+    # FIX: Pastikan warna cukup, tapi jangan lebih
+    if len(unique_freq) <= len(STACKED_PALETTE):
+        palette_use = STACKED_PALETTE[:len(unique_freq)]
+    else:
+        palette_use = Magma256[:len(unique_freq)]
+        
     color_mapper = CategoricalColorMapper(factors=unique_freq, palette=palette_use)
     
     p = figure(title="Fashion Awareness vs. Spending Preference", 
@@ -184,7 +181,11 @@ def chart_stacked_influence_freq(df):
     factors = cross_tab.index.tolist()
     freq_cols = cross_tab.columns.tolist()
     
-    palette_use = STACKED_PALETTE if len(freq_cols) <= 6 else Magma256[:len(freq_cols)]
+    # FIX: POTONG WARNA (SLICE) SUPAYA SAMA DENGAN JUMLAH DATA
+    if len(freq_cols) <= len(STACKED_PALETTE):
+        palette_use = STACKED_PALETTE[:len(freq_cols)] # <--- INI FIX DIA
+    else:
+        palette_use = Magma256[:len(freq_cols)]
     
     source = ColumnDataSource(data=cross_tab)
     
