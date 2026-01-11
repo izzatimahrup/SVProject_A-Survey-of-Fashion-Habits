@@ -11,9 +11,11 @@ st.title("📊 Fashion Brand Motivation Dashboard")
 # Replace 'your_data.csv' with your actual file path
 @st.cache_data
 def load_data():
-    # For demonstration, I'm assuming 'df' exists. 
-    # Ensure your dataframe is loaded here.
-    # df = pd.read_csv("your_data.csv")
+    url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+    return pd.read_csv(url)
+
+if df.empty:
+    st.stop()
     return df
 
 df = load_data()
