@@ -204,9 +204,9 @@ else:
             labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
         )
 
-      fig.update_traces(textposition='outside')
-      fig.update_layout(showlegend=False)
-      fig = center_title(fig)
+        fig.update_traces(textposition='outside')
+        fig.update_layout(showlegend=False)
+        fig = center_title(fig)
 
     if i % 2 == 0:
         col1.plotly_chart(fig, use_container_width=True)
