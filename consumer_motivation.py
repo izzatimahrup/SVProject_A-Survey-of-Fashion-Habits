@@ -11,7 +11,7 @@ st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide"
 @st.cache_data
 def load_data():
     # Base URL from your GitHub
-    base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF (1).csv"
+    base_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
     
     # Safely handle spaces and parentheses for the web request
     safe_url = urllib.parse.quote(base_url, safe=':/')
