@@ -60,8 +60,8 @@ st.write("") # Just some spacing
 # ---------------------------------------------------------
 # DASHBOARD NAVIGATION GUIDE
 # ---------------------------------------------------------
-st.markdown("#📑 Section**")
-st.write("The dashboard is split into four distinct analytical lenses:")
+st.markdown("## 📑  **Section**")
+st.write("The dashboard is split into 4 Section:")
 
 # Creating a 4-column grid for the sections
 s1, s2, s3, s4 = st.columns(4)
