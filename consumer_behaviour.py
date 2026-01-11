@@ -209,7 +209,7 @@ else:
         fig.update_traces(textposition='outside')
         fig.update_layout(showlegend=False)
         fig = center_title(fig)
-        )
+        
         
         # 3. Logic to alternate between col1 and col2
         if i % 2 == 0:
