@@ -11,15 +11,19 @@ def load_data():
 
 df = load_data()
 
-def plot_platform_usage_plotly(df):
-    """
-    Calculates high-activity users across social media platforms 
-    and generates an interactive Plotly donut chart.
-    """
-    # 1. Configuration
-    # 0: Very Active, 1: Active
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# 1. Page Configuration
+st.set_page_config(page_title="Social Media Usage Tracker", layout="wide")
+
+st.title("📱 Social Media Activity Dashboard")
+st.markdown("This app visualizes high-activity users across Pinterest, TikTok, Instagram, and Threads.")
+
+def plot_usage(df):
+    # --- Data Logic ---
     most_used_levels = [0, 1]
-    
     platforms_to_compare = [
         'Active_Pinterest_Ordinal',
         'Active_Tiktok_Ordinal',
@@ -27,55 +31,48 @@ def plot_platform_usage_plotly(df):
         'Active_Threads_Ordinal'
     ]
 
-    # 2. Data Processing
     plot_data = []
-
     for col in platforms_to_compare:
         if col in df.columns:
-            # Count respondents who are 'Very Active' or 'Active'
             count = df[df[col].isin(most_used_levels)].shape[0]
-            # Clean name for the chart
             platform_name = col.replace('Active_', '').replace('_Ordinal', '')
             plot_data.append({'Platform': platform_name, 'Active_Users': count})
-        else:
-            print(f"Warning: Column '{col}' not found.")
 
-    if not plot_data:
-        print("No data available to create the comparison chart.")
-        return
-
-    # Convert results to a DataFrame for Plotly Express
     usage_df = pd.DataFrame(plot_data)
 
-    # 3. Visualization
+    if usage_df.empty or usage_df['Active_Users'].sum() == 0:
+        st.error("No active user data found. Please check your dataset.")
+        return
+
+    # --- Plotly Visualization ---
     fig = px.pie(
         usage_df, 
         values='Active_Users', 
         names='Platform', 
-        title='Comparison of Most Used Social Media Platforms',
-        hole=0.4,  # Creates the donut shape
-        color_discrete_sequence=px.colors.qualitative.Prism # Professional color palette
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Pastel
     )
+    
+    fig.update_layout(margin=dict(t=20, b=20, l=20, r=20))
+    
+    # Display in Streamlit
+    st.plotly_chart(fig, use_container_width=True)
 
-    # Enhancing the layout for a clean GitHub/Portfolio look
-    fig.update_traces(
-        textposition='inside', 
-        textinfo='percent+label',
-        marker=dict(line=dict(color='#FFFFFF', width=2))
-    )
+# 2. Sidebar for Data Input
+st.sidebar.header("Data Source")
+uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
 
-    fig.update_layout(
-        title_x=0.5, # Center the title
-        margin=dict(t=50, b=20, l=20, r=20),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
-    )
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    
+    # Show Raw Data Preview
+    if st.sidebar.checkbox("Show Raw Data"):
+        st.subheader("Dataset Preview")
+        st.dataframe(df.head())
 
-    fig.show()
-
-# To use this with your data:
-# plot_platform_usage_plotly(df)
-    plt.tight_layout()
-    plt.show()
-
-# Example usage (assuming 'df' is your existing DataFrame)
-# plot_platform_usage(df)
+    # Generate Chart
+    st.subheader("Platform Usage Comparison")
+    plot_usage(df)
+else:
+    st.info("Please upload a CSV file via the sidebar to see the visualization.")
+    st.warning("Ensure your CSV contains columns like: 'Active_Tiktok_Ordinal', etc.")
