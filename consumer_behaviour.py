@@ -11,70 +11,47 @@ def load_data():
 
 df = load_data()
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+sns.set_style("whitegrid")
 
-st.set_page_config(page_title="Social Media Analyzer", layout="centered")
-
-st.title("📊 Social Media Activity Tracker")
-
-# 1. File Upload
-uploaded_file = st.file_uploader("Upload your dataset (CSV)", type=["csv"])
-
-if uploaded_file is not None:
-    # Load data
-    df = pd.read_csv(uploaded_file)
-    st.success("✅ File uploaded successfully!")
-
-    # 2. Configuration & Data Cleaning
+    # Define activity levels that count as 'most used'
+    # 0: Very Active, 1: Active
     most_used_levels = [0, 1]
+
+    # Columns for the specific platforms requested, now including Threads
     platforms_to_compare = [
         'Active_Pinterest_Ordinal',
         'Active_Tiktok_Ordinal',
         'Active_Instagram_Ordinal',
-        'Active_Threads_Ordinal'
+        'Active_Threads_Ordinal' # Added Threads
     ]
 
-    # Debug: Show found columns
-    found_cols = [c for c in platforms_to_compare if c in df.columns]
-    
-    if not found_cols:
-        st.error(f"❌ None of the required columns were found. Found: {list(df.columns)}")
-    else:
-        # 3. Processing Data
-        plot_data = []
-        for col in found_cols:
-            # Filter for active users
+    # Dictionary to store counts of 'most used' for each platform
+    most_used_counts = {}
+
+    for col in platforms_to_compare:
+        if col in df.columns:
+            # Count respondents who are 'Very Active' or 'Active'
             count = df[df[col].isin(most_used_levels)].shape[0]
             platform_name = col.replace('Active_', '').replace('_Ordinal', '')
-            plot_data.append({'Platform': platform_name, 'Count': count})
-
-        usage_df = pd.DataFrame(plot_data)
-
-        # 4. Final Check and Render
-        total_active = usage_df['Count'].sum()
-        
-        if total_active == 0:
-            st.warning("⚠️ The columns exist, but no users matched the 'Active' criteria (0 or 1).")
-            st.write("Data Preview for active columns:")
-            st.write(df[found_cols].head())
+            most_used_counts[platform_name] = count
         else:
-            # Create the chart
-            fig = px.pie(
-                usage_df, 
-                values='Count', 
-                names='Platform', 
-                hole=0.5,
-                title="Distribution of Active Users",
-                color_discrete_sequence=px.colors.qualitative.Safe
-            )
-            
-            # This is the specific command to show in Streamlit
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Show a summary table below
-            st.table(usage_df)
+            st.warning(f"Warning: Column '{col}' not found. Skipping.")
+
+    if most_used_counts:
+        # Convert to pandas Series for easier plotting
+        usage_series = pd.Series(most_used_counts)
+
+        fig, ax = plt.subplots(figsize=(8, 8)) # Streamlit works best with fig, ax
+        ax.pie(usage_series, labels=usage_series.index, autopct='%1.1f%%', startangle=90, wedgeprops={'width': 0.4})
+        plt.title('Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)', fontsize=16)
+        plt.tight_layout()
+        
+        # --- STREAMLIT SPECIFIC OUTPUT ---
+        st.pyplot(fig) 
+        # --- END OF YOUR EXACT CODE ---
+        
+    else:
+        st.error("No data available to create the comparison pie chart.")
 
 else:
-    st.info("👋 Please upload a CSV file to begin.")
+    st.info("Please upload a CSV file to generate the visualization.")
