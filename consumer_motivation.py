@@ -3,22 +3,33 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Page Config
+# 1. Page Config & Title
 st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
 st.title("📊 Fashion Brand Motivation Dashboard")
 
-# URL for fallback data
+# 2. Data Loading Logic
+# This URL is used automatically if no file is uploaded
 DEFAULT_URL = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
 
-# Load Data logic
-df = None
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-elif st.sidebar.button("Load Sample Data from GitHub"):
-    df = pd.read_csv(DEFAULT_URL)
+# Sidebar only for manual file uploads
+uploaded_file = st.sidebar.file_uploader("Upload a custom CSV (Optional)", type=["csv"])
 
+@st.cache_data # This keeps the data in memory so it doesn't reload every click
+def load_data(file):
+    if file is not None:
+        return pd.read_csv(file)
+    return pd.read_csv(DEFAULT_URL)
+
+# Execute data loading
+try:
+    df = load_data(uploaded_file)
+    st.success("Data loaded successfully!")
+except Exception as e:
+    st.error(f"Error loading data: {e}")
+    df = None
+
+# 3. Visualization Logic (Only runs if df is successfully created)
 if df is not None:
-    # Define the questions (ensure these match your CSV column names)
     motivation_questions = [
         'follow_for_updates_promotions',
         'follow_because_like_products',
@@ -29,77 +40,63 @@ if df is not None:
         'follow_because_support_loyalty'
     ]
 
-    # Tabs for different visualizations
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "Distributions", "Mean Scores", "Correlations", "Relationship Analysis"
-    ])
+    # Verify columns exist in the dataframe
+    existing_cols = [col for col in motivation_questions if col in df.columns]
 
-    sns.set_style("whitegrid")
+    if not existing_cols:
+        st.error("The required motivation columns were not found in this dataset.")
+    else:
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "Distributions", "Mean Scores", "Correlations", "Relationship Analysis"
+        ])
 
-    # --- TAB 1: DISTRIBUTIONS ---
-    with tab1:
-        st.header("Response Distribution per Question")
-        num_questions = len(motivation_questions)
-        fig1, axes = plt.subplots(nrows=num_questions, ncols=1, figsize=(10, 5 * num_questions))
-        
-        if num_questions == 1:
-            axes = [axes]
+        sns.set_style("whitegrid")
 
-        for i, col in enumerate(motivation_questions):
-            if col in df.columns:
+        # --- TAB 1: DISTRIBUTIONS ---
+        with tab1:
+            st.header("Response Distribution")
+            num_questions = len(existing_cols)
+            fig1, axes = plt.subplots(nrows=num_questions, ncols=1, figsize=(10, 5 * num_questions))
+            
+            if num_questions == 1:
+                axes = [axes]
+            
+            for i, col in enumerate(existing_cols):
                 response_counts = df[col].astype(str).value_counts().sort_index()
-                ax = axes[i]
-                sns.barplot(x=response_counts.index, y=response_counts.values, ax=ax, palette='viridis', hue=response_counts.index, legend=False)
-                ax.set_title(f"Question: {col.replace('_', ' ').title()}", fontsize=14)
-                ax.set_xlabel('Response (1=Strongly Disagree, 5=Strongly Agree)')
-                ax.set_ylabel('Number of Respondents')
-        
-        plt.tight_layout()
-        st.pyplot(fig1)
+                sns.barplot(x=response_counts.index, y=response_counts.values, ax=axes[i], palette='viridis', hue=response_counts.index, legend=False)
+                axes[i].set_title(f"Question: {col.replace('_', ' ').title()}")
+                axes[i].set_xlabel("1=Strongly Disagree, 5=Strongly Agree")
+            
+            plt.tight_layout()
+            st.pyplot(fig1)
 
-    # --- TAB 2: MEAN SCORES ---
-    with tab2:
-        st.header("Overall Motivation Ranking")
-        # Filter only existing columns to avoid errors
-        existing_cols = [c for c in motivation_questions if c in df.columns]
-        if existing_cols:
+        # --- TAB 2: MEAN SCORES ---
+        with tab2:
+            st.header("Overall Motivation Ranking")
             motivation_means = df[existing_cols].mean().sort_values(ascending=False)
             
             fig2, ax2 = plt.subplots(figsize=(10, 6))
             sns.barplot(x=motivation_means.values, y=motivation_means.index, palette='viridis', ax=ax2)
-            ax2.set_title('Mean Agreement Scores', fontsize=16)
-            ax2.set_xlim(0, 5)
             
-            # Add labels
             for index, value in enumerate(motivation_means.values):
-                ax2.text(value + 0.05, index, f'{value:.2f}', va='center', fontsize=10)
-                
+                ax2.text(value + 0.05, index, f'{value:.2f}', va='center')
+            
+            ax2.set_xlim(0, 5)
             st.pyplot(fig2)
-            st.write("**Insight:** This chart shows which factors most strongly drive users to follow fashion brands.")
 
-    # --- TAB 3: HEATMAP ---
-    with tab3:
-        st.header("Correlation Heatmap")
-        if existing_cols:
-            correlation_matrix = df[existing_cols].corr()
+        # --- TAB 3: HEATMAP ---
+        with tab3:
+            st.header("Correlation Heatmap")
             fig3, ax3 = plt.subplots(figsize=(10, 8))
-            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5, ax=ax3)
-            plt.xticks(rotation=45, ha='right')
+            sns.heatmap(df[existing_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax3)
             st.pyplot(fig3)
 
-    # --- TAB 4: RELATIONSHIP (REGPLOT) ---
-    with tab4:
-        st.header("Variable Relationship Analysis")
-        if existing_cols:
+        # --- TAB 4: RELATIONSHIP ---
+        with tab4:
+            st.header("Variable Relationship Analysis")
             col_x = st.selectbox("Select X-axis variable", existing_cols, index=1)
-            col_y = st.selectbox("Select Y-axis variable", existing_cols, index=min(5, len(existing_cols)-1))
+            col_y = st.selectbox("Select Y-axis variable", existing_cols, index=5)
             
             fig4, ax4 = plt.subplots(figsize=(10, 7))
             sns.regplot(data=df, x=col_x, y=col_y, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax4)
-            
-            ax4.set_title(f"Relationship: {col_x} vs {col_y}")
             st.pyplot(fig4)
-            st.info("The red line indicates the trend. If it slopes upward, people who agree with one tend to agree with the other.")
-
-else:
-    st.info("Please upload a CSV file or load the sample data from the sidebar to begin.")
