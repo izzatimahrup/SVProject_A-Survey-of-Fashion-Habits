@@ -72,7 +72,7 @@ with s1:
     st.markdown("*Gender, age, education, and monthly fashion spend.*")
 
 with s2:
-    st.markdown("### 📱\n**Section B - Hanis **")
+    st.markdown("### 📱\n**Section B - Hanis**")
     st.caption("Consumer Behaviour on Social Media")
     st.markdown("*Activity levels and how users interact with content.*")
 
