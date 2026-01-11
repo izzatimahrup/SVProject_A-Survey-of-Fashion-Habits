@@ -278,5 +278,4 @@ fig13 = px.bar(
     category_orders={"Average Monthly Expenses (RM)": expense_order}
 )
 st.plotly_chart(fig13, use_container_width=True)
-st.write("Unique Age Values:", df["Age"].unique().tolist())
-st.write("Unique Education Values:", df["Education Level"].unique().tolist())
+
