@@ -114,11 +114,22 @@ with col1:
     st.plotly_chart(fig1, use_container_width=True)
 
     # 2️⃣ Age Group — Ordered Vertical Bar Chart
-    age_counts = df["Age"].value_counts().reindex(age_order).reset_index()
-    fig2 = px.bar(age_counts, x='Age', y='count', text_auto=True,
-                 title="Age Group Distribution",
-                 category_orders={"Age": age_order})
-    st.plotly_chart(fig2, use_container_width=True)
+age_counts = (
+    df["Age"]
+    .value_counts()
+    .reindex(age_order, fill_value=0)
+    .reset_index(name="count")
+    .rename(columns={"index": "Age"})
+)
+
+fig2 = px.bar(
+    age_counts,
+    x="Age",
+    y="count",
+    text_auto=True,
+    title="Age Group Distribution",
+    category_orders={"Age": age_order}
+)
 
 with col2:
     # 5️⃣ Employment Status — Pie Chart
@@ -134,11 +145,24 @@ with col2:
     st.plotly_chart(fig3, use_container_width=True)
 
 # 4️⃣ Education Level — Horizontal Ordered Bar Chart
-edu_counts = df["Education Level"].value_counts().reindex(education_order).reset_index()
-fig4 = px.bar(edu_counts, x='count', y='Education Level', orientation='h', text_auto=True,
-             title="Education Level of Respondents",
-             category_orders={"Education Level": education_order})
-st.plotly_chart(fig4, use_container_width=True)
+edu_counts = (
+    df["Education Level"]
+    .value_counts()
+    .reindex(education_order, fill_value=0)
+    .reset_index(name="count")
+    .rename(columns={"index": "Education Level"})
+)
+
+fig4 = px.bar(
+    edu_counts,
+    x="count",
+    y="Education Level",
+    orientation="h",
+    text_auto=True,
+    title="Education Level of Respondents",
+    category_orders={"Education Level": education_order}
+)
+
 
 col3, col4 = st.columns(2)
 
