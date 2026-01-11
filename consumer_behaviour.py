@@ -207,10 +207,8 @@ else:
         )
 
         fig.update_traces(textposition='outside')
-        fig.update_layout(
-            showlegend=False,
-            title_x=0.5, # Centers the title
-            margin=dict(t=50, b=50, l=10, r=10)
+        fig.update_layout(showlegend=False)
+        fig = center_title(fig)
         )
         
         # 3. Logic to alternate between col1 and col2
