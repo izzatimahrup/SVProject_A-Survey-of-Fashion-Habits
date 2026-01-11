@@ -1,8 +1,14 @@
 import streamlit as st
 import pandas as pd
 
-# Set page to wide mode for a more professional look
-st.set_page_config(page_title="Fashion Habits Dashboard", layout="wide")
+# ---------------------------------------------------------
+# PAGE CONFIG
+# ---------------------------------------------------------
+st.set_page_config(
+    page_title="FSDK | The Digital Runway",
+    page_icon="✨",
+    layout="wide"
+)
 
 # ---------------------------------------------------------
 # LOAD DATA 
@@ -14,91 +20,84 @@ def load_data():
 
 df = load_data()
 
+# ---------------------------------------------------------
+# SIDEBAR - THE RESEARCH TEAM
+# ---------------------------------------------------------
+with st.sidebar:
+    st.markdown("### 🎓 **FSDK Research Team**")
+    st.markdown("---")
+    st.write("👤 **Izzati** (Demographics)")
+    st.write("👤 **Hanis** (Behaviour)")
+    st.write("👤 **Syadira** (Interests)")
+    st.write("👤 **Aina** (Motivations)")
+    st.divider()
+    st.info("Study: Consumer Behaviour Towards Fashion Brands")
+
 # =========================================================
 # HOMEPAGE HEADER
 # =========================================================
+st.markdown("# 👠 **THE DIGITAL RUNWAY**")
+st.markdown("### *A Study on Social Media Fashion Habits*")
+st.write("---")
 
-# Using a combination of emojis and subheaders for a "title" feel
-st.markdown("# 👗 **Fashion Habits on Social Media**")
-st.markdown("### *Decoding the Digital Runway: A Consumer Behavior Study*")
-
-st.divider()
-
-# A nice "Intro" box using st.info for a soft background color
-st.info(
+# Introductory Statement
+st.markdown(
     """
-    **Welcome!** This interactive dashboard explores the findings from our study:  
-    > *“Consumer Behaviour Towards Fashion Brands on Social Media.”* Explore how demographics, social platforms, and personal motivations drive the way we shop and interact with fashion online today.
+    Welcome to our Final Year Project dashboard. We are students from the **Faculty of Data Science and Computing (FSDK), Year 4**. 
+    This survey analyzes how social media platforms shape the way we discover, follow, and purchase fashion.
     """
 )
 
 # ---------------------------------------------------------
-# SURVEY OVERVIEW (The "Quick Stats" Row)
+# QUICK STATS BANNERS
 # ---------------------------------------------------------
-st.markdown("## 📋 **Survey Overview**")
+st.write("")
+m1, m2, m3 = st.columns(3)
+with m1:
+    st.metric(label="Total Respondents", value=len(df))
+with m2:
+    st.metric(label="Target Region", value="Malaysia")
+with m3:
+    st.metric(label="Academic Year", value="2024/2025")
 
-col1, col2 = st.columns([1, 2])
+st.write("---")
+
+# ---------------------------------------------------------
+# THEMED RESEARCH SECTIONS
+# ---------------------------------------------------------
+st.markdown("## 📊 **Research Focus Areas**")
+st.write("Click into each section to explore the data curated by our team.")
+
+# Layout for the four sections
+col1, col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
 with col1:
-    # A big, bold stat for impact
-    st.markdown(f"""
-        ### **{len(df)}**
-        **Valid Respondents**
-    """)
-    st.write("---")
-    st.markdown("📍 **Location:** Across Malaysia")
-    st.markdown("👥 **Focus:** Young Adults & Adults")
+    st.markdown("### 🧍 **Section A: Audience Profile**")
+    st.markdown("> **Lead Researcher: Izzati**")
+    st.caption("Analyzing gender distribution, age groups, and regional background to define who our fashion consumers are.")
+    if st.button("Explore Demographics", use_container_width=True):
+        st.write("Navigation logic for Izzati's section goes here.")
 
 with col2:
-    st.markdown(
-        """
-        The data was gathered via **Google Forms** and distributed through a 
-        network of **WhatsApp groups and personal contacts**. 
-        
-        This method allowed us to capture a snapshot of the most active social media users 
-        who are shaping the future of online fashion engagement.
-        
-        🔗 **[Click here to view the original Survey] (https://forms.gle/y8DT7eQfJXB7f7qY9)**
-        """
-    )
+    st.markdown("### 📱 **Section B: Digital Engagement**")
+    st.markdown("> **Lead Researcher: Hanis**")
+    st.caption("Tracking activity levels across Instagram, TikTok, and Pinterest, and how users interact with fashion content.")
+    if st.button("Explore Behaviour", use_container_width=True):
+        st.write("Navigation logic for Hanis's section goes here.")
 
-st.write("") # Just some spacing
+with col3:
+    st.markdown("### 👗 **Section C: Style & Trend Awareness**")
+    st.markdown("> **Lead Researcher: Syadira**")
+    st.caption("Measuring interest in fashion trends and the impact of social media on personal style choices.")
+    if st.button("Explore Interests", use_container_width=True):
+        st.write("Navigation logic for Syadira's section goes here.")
 
-# ---------------------------------------------------------
-# DASHBOARD NAVIGATION GUIDE
-# ---------------------------------------------------------
-st.markdown("## 🧭 **What’s Inside?**")
-st.write("The dashboard is split into four distinct analytical lenses:")
-
-# Creating a 4-column grid for the sections
-s1, s2, s3, s4 = st.columns(4)
-
-with s1:
-    st.markdown("### 🧍\n**Section A**")
-    st.caption("Demographic Overview")
-    st.markdown("*Gender, age, education, and monthly fashion spend.*")
-
-with s2:
-    st.markdown("### 📱\n**Section B**")
-    st.caption("Social Media Usage")
-    st.markdown("*Activity levels and how users interact with content.*")
-
-with s3:
-    st.markdown("### 👗\n**Section C**")
-    st.caption("Fashion Awareness")
-    st.markdown("*Interests, trends, and the influence of social media.*")
-
-with s4:
-    st.markdown("### 🛍️\n**Section D**")
-    st.caption("Shopping Motivation")
-    st.markdown("*The 'Why' behind the buy and brand influence.*")
+with col4:
+    st.markdown("### 🛍️ **Section D: Purchase Motivations**")
+    st.markdown("> **Lead Researcher: Aina**")
+    st.caption("Identifying the 'Why'—from discount hunting to brand loyalty and self-expression.")
+    if st.button("Explore Motivations", use_container_width=True):
+        st.write("Navigation logic for Aina's section goes here.")
 
 st.divider()
-
-# ---------------------------------------------------------
-# FOOTER
-# ---------------------------------------------------------
-st.markdown(
-    "<div style='text-align: center; color: gray;'>Built with ❤️ using Streamlit | Fashion Habit Study 2024</div>", 
-    unsafe_allow_html=True
-)
