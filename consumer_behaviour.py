@@ -47,12 +47,10 @@ if most_used_counts:
 
     # Create the Plotly donut chart (exact logic as your matplotlib wedgeprops)
     fig = px.pie(usage_df, values='Count', names='Platform', 
-        title='Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)',
+        title='Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)'),
         hole=0.4, # This creates the 'width' effect from your original code
         color_discrete_sequence=px.colors.qualitative.Safe
         st.plotly_chart(fig, use_container_width=True)
-    )
-
 
 else:
     st.error("No data available to create the comparison chart.")
