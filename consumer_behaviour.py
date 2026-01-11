@@ -188,8 +188,8 @@ col1, col2 = st.columns(2)
 if not ordinal_frequency_cols:
     st.info("No ordinal social media frequency columns found to visualize.")
 else:
-    for col in ordinal_frequency_cols:
-        platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
+    for i, col in enumerate(ordinal_Frequency_cols):
+    platform_name = col.replace('Freq_', '').replace('_Ordinal', '')
 
         counts = df[col].value_counts().sort_index().reset_index()
         counts.columns = [col, 'count']
