@@ -24,22 +24,22 @@ def load_data():
 
 df = load_data()
 
-# Custom Sort Orders
+# Updated Sort Orders to match Google Form standards
 age_order = [
-    "<25 Years Old",
-    "26-34 Years Old",
-    "35-45 Years Old",
-    "46-55 Years Old",
-    ">55 Years Old"
+    "<25 years old",
+    "26-34 years old",
+    "35-45 years old",
+    "46-55 years old",
+    ">55 years old"
 ]
 
 education_order = [
-    "Lower Secondary Education",
-    "Secondary Education",
-    "Post-Secondary Education",
-    "Bachelor's Degree",
-    "Master's Degree",
-    "Doctoral Degree"
+    "Lower secondary education",
+    "Secondary education",
+    "Post-secondary education",
+    "Bachelor’s degree",  # Use the curly apostrophe if that's in the CSV
+    "Master’s degree",
+    "Doctoral degree"
 ]
 
 expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
@@ -278,3 +278,5 @@ fig13 = px.bar(
     category_orders={"Average Monthly Expenses (RM)": expense_order}
 )
 st.plotly_chart(fig13, use_container_width=True)
+st.write("Unique Age Values:", df["Age"].unique().tolist())
+st.write("Unique Education Values:", df["Education Level"].unique().tolist())
