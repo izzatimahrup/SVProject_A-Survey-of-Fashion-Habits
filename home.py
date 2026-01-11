@@ -1,35 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# 1. Page Configuration (Must be the first Streamlit command)
-st.set_page_config(
-    page_title="Fashion Habits Dashboard",
-    page_icon="👠",
-    layout="wide",
-)
-
-# 2. Custom CSS for a "Fashion" feel
-st.markdown("""
-    <style>
-    .main {
-        background-color: #fcfaf8;
-    }
-    .stMetric {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .section-card {
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #ffffff;
-        border-left: 5px solid #ff4b4b;
-        margin-bottom: 20px;
-        height: 100%;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# Set page to wide mode for a more professional look
+st.set_page_config(page_title="Fashion Habits Dashboard", layout="wide")
 
 # ---------------------------------------------------------
 # LOAD DATA 
@@ -39,111 +12,93 @@ def load_data():
     url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF.csv"
     return pd.read_csv(url)
 
-try:
-    df = load_data()
-except Exception as e:
-    st.error("Could not load data. Check your URL.")
-    df = pd.DataFrame()
+df = load_data()
 
 # =========================================================
-# HEADER SECTION
+# HOMEPAGE HEADER
 # =========================================================
-col_header, col_logo = st.columns([3, 1])
 
-with col_header:
-    st.title("✨ Fashion Habits & Social Media")
-    st.subheader("Visualizing Consumer Behavior in the Digital Age")
+# Using a combination of emojis and subheaders for a "title" feel
+st.markdown("# 👗 **Fashion Habits on Social Media**")
+st.markdown("### *Decoding the Digital Runway: A Consumer Behavior Study*")
+
+st.divider()
+
+# A nice "Intro" box using st.info for a soft background color
+st.info(
+    """
+    **Welcome!** This interactive dashboard explores the findings from our study:  
+    > *“Consumer Behaviour Towards Fashion Brands on Social Media.”* Explore how demographics, social platforms, and personal motivations drive the way we shop and interact with fashion online today.
+    """
+)
+
+# ---------------------------------------------------------
+# SURVEY OVERVIEW (The "Quick Stats" Row)
+# ---------------------------------------------------------
+st.markdown("## 📋 **Survey Overview**")
+
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    # A big, bold stat for impact
+    st.markdown(f"""
+        ### **{len(df)}**
+        **Valid Respondents**
+    """)
+    st.write("---")
+    st.markdown("📍 **Location:** Across Malaysia")
+    st.markdown("👥 **Focus:** Young Adults & Adults")
+
+with col2:
     st.markdown(
         """
-        This interactive dashboard explores how social media influences fashion choices 
-        among Malaysians. Dive into demographics, trends, and shopping motivations.
+        The data was gathered via **Google Forms** and distributed through a 
+        network of **WhatsApp groups and personal contacts**. 
+        
+        This method allowed us to capture a snapshot of the most active social media users 
+        who are shaping the future of online fashion engagement.
+        
+        🔗 **[Click here to view the original Survey] (https://forms.gle/y8DT7eQfJXB7f7qY9)**
         """
     )
 
-with col_logo:
-    # A simple placeholder or a fashion-related emoji/graphic
-    st.markdown("<h1 style='text-align: right; font-size: 80px;'>🛍️</h1>", unsafe_allow_html=True)
+st.write("") # Just some spacing
+
+# ---------------------------------------------------------
+# DASHBOARD NAVIGATION GUIDE
+# ---------------------------------------------------------
+st.markdown("## 🧭 **What’s Inside?**")
+st.write("The dashboard is split into four distinct analytical lenses:")
+
+# Creating a 4-column grid for the sections
+s1, s2, s3, s4 = st.columns(4)
+
+with s1:
+    st.markdown("### 🧍\n**Section A**")
+    st.caption("Demographic Overview")
+    st.markdown("*Gender, age, education, and monthly fashion spend.*")
+
+with s2:
+    st.markdown("### 📱\n**Section B**")
+    st.caption("Social Media Usage")
+    st.markdown("*Activity levels and how users interact with content.*")
+
+with s3:
+    st.markdown("### 👗\n**Section C**")
+    st.caption("Fashion Awareness")
+    st.markdown("*Interests, trends, and the influence of social media.*")
+
+with s4:
+    st.markdown("### 🛍️\n**Section D**")
+    st.caption("Shopping Motivation")
+    st.markdown("*The 'Why' behind the buy and brand influence.*")
 
 st.divider()
 
 # ---------------------------------------------------------
-# HIGHLIGHT METRICS
-# ---------------------------------------------------------
-total_respondents = len(df)
-
-m1, m2, m3 = st.columns(3)
-with m1:
-    st.metric(label="Total Respondents", value=total_respondents, delta="Valid Entries")
-with m2:
-    st.metric(label="Primary Platform", value="Instagram", delta="Trending") # You can calculate this dynamically
-with m3:
-    st.metric(label="Target Region", value="Malaysia", delta="National Survey")
-
-# ---------------------------------------------------------
-# SURVEY OVERVIEW (Expander to save space)
-# ---------------------------------------------------------
-with st.expander("📖 About the Study & Methodology"):
-    st.markdown(
-        f"""
-        The survey was administered via **Google Forms** and distributed through **WhatsApp** targeting active social media users.
-        
-        * **Target Audience:** Young adults & adults in Malaysia.
-        * **Objective:** Understand the bridge between social content and purchasing decisions.
-        * **Link:** [View Original Survey](https://forms.gle/y8DT7eQfJXB7f7qY9)
-        """
-    )
-
-st.write("## 🧭 Explore the Data")
-
-# ---------------------------------------------------------
-# DASHBOARD SECTIONS (Using modern grid approach)
-# ---------------------------------------------------------
-
-row1 = st.columns(2)
-row2 = st.columns(2)
-
-with row1[0]:
-    st.markdown("""
-        <div class="section-card">
-            <h3>🧍 Section A: Demographics</h3>
-            <p>Who are the respondents? Explore gender splits, age groups, education, and monthly fashion spending.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    if st.button("View Demographics", key="btn_a"):
-        st.info("Navigate to the Demographics page in the sidebar (or logic below).")
-
-with row1[1]:
-    st.markdown("""
-        <div class="section-card">
-            <h3>📱 Section B: Social Media Usage</h3>
-            <p>How do people interact? Analysis of platform activity levels and sharing behaviors.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    if st.button("View Usage Patterns", key="btn_b"):
-        pass
-
-with row2[0]:
-    st.markdown("""
-        <div class="section-card">
-            <h3>👗 Section C: Fashion Awareness</h3>
-            <p>The role of influencers and digital trends in shaping personal style and attitudes.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    if st.button("View Fashion Interest", key="btn_c"):
-        pass
-
-with row2[1]:
-    st.markdown("""
-        <div class="section-card">
-            <h3>🛍️ Section D: Shopping Motivation</h3>
-            <p>The 'Why' behind the buy. Identifying factors that convert views into purchases.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    if st.button("View Shopping Influence", key="btn_d"):
-        pass
-
-# ---------------------------------------------------------
 # FOOTER
 # ---------------------------------------------------------
-st.markdown("---")
-st.caption("Developed for the study: 'Consumer Behaviour Towards Fashion Brands on Social Media' • 2024")
+st.markdown(
+    "<div style='text-align: center; color: gray;'>Built with ❤️ using Streamlit | Fashion Habit Study 2024</div>", 
+    unsafe_allow_html=True
+)
