@@ -1,10 +1,10 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
 st.title("Consumer Behaviour")
 st.write("Content will be added here.")
 
-import pandas as pd
-import plotly.express as px
 def load_data():
     url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/refs/heads/main/Cleaned_FashionHabitGF%20(1).csv"
     return pd.read_csv(url)
