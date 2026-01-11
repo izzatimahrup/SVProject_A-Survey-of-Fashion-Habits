@@ -53,6 +53,10 @@ if most_used_counts:
         title='Comparison of Most Used Social Media Platforms (Pinterest, TikTok, Instagram, Threads)',
         hole=0.4, # This creates the 'width' effect from your original code
         color_discrete_sequence=px.colors.qualitative.Safe
+
+    fig.update_layout(
+    title_x=0.5,
+    title_xanchor='center'
     )
 
     # Clean up layout to match your tight_layout and title style
@@ -65,9 +69,6 @@ if most_used_counts:
 else:
     st.error("No data available to create the comparison chart.")
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
 
 # 1. Identify all ordinally encoded social media columns
 ordinal_social_media_cols = [
