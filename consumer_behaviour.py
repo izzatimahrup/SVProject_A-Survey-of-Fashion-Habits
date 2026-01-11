@@ -103,4 +103,3 @@ if ordinal_social_media_cols:
         # 5. The only thing that will appear in Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
-st.write("--- Process Finished ---")
