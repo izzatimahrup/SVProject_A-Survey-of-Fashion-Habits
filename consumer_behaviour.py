@@ -127,23 +127,13 @@ fig2 = center_title(fig2)
 
 st.plotly_chart(fig2, use_container_width=True)
 
-st.markdown("---")
-    st.markdown("### 💡 Key Findings from Heatmap")
-    
-c1, c2, c3 = st.columns(3)
-    
-    with c1:
-        st.info("**Platform Loyalty**\n\nPositive correlations exist between activities on the same platforms (e.g., higher activity on Instagram correlates with higher engagement in Instagram tasks).")
-    
-    with c2:
-        st.success("**Social Synergy**\n\nBehaviors like sharing or commenting correlate strongly across platforms, indicating a 'Socially Active' user segment.")
-    
-    with c3:
-        st.warning("**Displacement Effect**\n\nNegative correlations suggest high activity on one platform (like Facebook) may correlate with lower activity on others (like TikTok).")
+st.write("""
+    Key Observations:
+    1. **Positive correlations exist between activities on the same platforms (e.g., higher activity on Instagram is correlated with higher engagement on Instagram-related tasks like reading posts** 
+    2. **Some behaviors, like frequent sharing or commenting, show a positive correlation with various platforms (e.g., commenting on posts correlates strongly with sharing posts or uploading pictures/videos).**
+    3. **Negative correlations are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others (e.g., active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)**
+    """)
 
-# ======================================================
-# SECTION C
-# ======================================================
 st.divider()
 st.header("Section C: Activity Level Distribution")
 
