@@ -157,46 +157,48 @@ ordinal_activity_cols = [
 # 2. Create Layout Columns
 col1, col2 = st.columns(2)
 
-# 3. Single Loop for Chart + Interpretation
 for i, col in enumerate(ordinal_activity_cols):
-    platform_name = col.replace('Active_', '').replace('_Ordinal', '')
+    platform_name = col.replace('Active_', '').replace('_Ordinal', '')
 
-    # Prepare Chart Data
-    counts = df[col].value_counts().sort_index().reset_index()
-    counts.columns = [col, 'count']
-    counts['label'] = counts[col].map(activity_labels)
+    # Prepare Chart Data
+    counts = df[col].value_counts().sort_index().reset_index()
+    counts.columns = [col, 'count']
+    counts['label'] = counts[col].map(activity_labels)
 
-    # Create Chart
-    fig = px.bar(
-        counts,
-        x='label',
-        y='count',
-        text='count',
-        title=f"Activity Distribution: {platform_name}",
-        labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
-        template="plotly_white"
-    )
-    fig.update_traces(textposition='outside', marker_color='#0068c9')
-    fig.update_layout(showlegend=False, margin=dict(b=20))
-    fig = center_title(fig)
+    # Create Chart
+    fig = px.bar(
+        counts,
+        x='label',
+        y='count',
+        text='count',
+        title=f"Activity Distribution: {platform_name}",
+        labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
+        template="plotly_white"
+    )
+    fig.update_traces(textposition='outside', marker_color='#0068c9')
+    fig.update_layout(showlegend=False, margin=dict(b=20))
+    fig = center_title(fig)
 
-    # Determine Column Placement
-    target_col = col1 if i % 2 == 0 else col2
+    # Determine Column Placement
+    target_col = col1 if i % 2 == 0 else col2
 
-    with target_col:
-        # Display the Plotly Chart
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Display the Interpretation directly below
-        with st.container(border=True):
-            st.markdown(f"**Quick Insight: {platform_name}**")
-            # Get the text from our dictionary, default to a placeholder if not found
-            text = interpretations.get(platform_name, "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends.")
-            st.write(text)
-            
-         # Add spacing before the next row
-        st.write("##")
-        
+    with target_col:
+        st.plotly_chart(fig, use_container_width=True)
+        
+        with st.container(border=True):
+            st.markdown(f"**Quick Insight: {platform_name}**")
+            text = interpretations.get(platform_name, "Data analysis in progress.")
+            st.write(text)
+        
+        st.write("##")
+
+# Final Key Findings (Outside the loop)
+st.divider()
+st.info("""
+**Key Findings:**
+* **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
+* **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
+""")
     
         
         
