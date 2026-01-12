@@ -90,6 +90,14 @@ fig1 = center_title(fig1)
 
 st.plotly_chart(fig1, use_container_width=True)
 
+st.info("""
+**Interpretation:**
+The survey reveals a clear preference for short-form video and visual-heavy platforms. 
+* **Dominance:** TikTok and Instagram combined represent nearly **70%** of the user base.
+* **Secondary Usage:** Threads (16.6%) and Pinterest (14.9%) follow as niche interests.
+* **Conclusion:** For fashion-related content, TikTok and Instagram are the primary drivers of consumer engagement.
+""")
+
 # ======================================================
 # SECTION B
 # ======================================================
