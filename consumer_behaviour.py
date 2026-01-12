@@ -314,7 +314,11 @@ if t_line == "ols":
 fig3.update_layout(
     xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
     yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
-)
+
+st.divider()
+st.info("""
+The scatter plot reveals a positive correlation between Instagram and TikTok activity. Users who are highly active on one platform tend to be active on the other, indicating a segment of "Power Users" who dominate fashion engagement across the ecosystem.
+""")
 
 fig3 = center_title(fig3)
 st.plotly_chart(fig3, use_container_width=True)
