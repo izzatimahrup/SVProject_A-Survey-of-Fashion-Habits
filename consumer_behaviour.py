@@ -282,6 +282,7 @@ st.info("""
 # ======================================================
 # SECTION E
 # ======================================================
+st.divider()
 st.header("Section E: Cross Platform Connection")
 
 x_col = 'Active_Instagram_Ordinal'
