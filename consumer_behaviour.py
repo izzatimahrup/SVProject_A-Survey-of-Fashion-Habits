@@ -188,7 +188,7 @@ for i, col in enumerate(ordinal_activity_cols):
         st.plotly_chart(fig, use_container_width=True)
         with st.container(border=True):
             st.markdown(f"**Quick Insight: {p_name}**")
-            st.write(interpretations.get(p_name, "Data analysis complete."))
+            st.write(interpretations.get(p_name, "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends."))
         st.write("##")
 
 # 5. Final Key Findings (Bottom of Section C)
