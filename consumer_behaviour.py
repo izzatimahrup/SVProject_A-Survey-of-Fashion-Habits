@@ -314,6 +314,7 @@ if t_line == "ols":
 fig3.update_layout(
     xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
     yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
+)
 
 fig3 = center_title(fig3)
 st.plotly_chart(fig3, use_container_width=True)
