@@ -38,7 +38,6 @@ def load_motivation_data():
     data = pd.read_csv(url)
     data.columns = data.columns.str.strip()
     
-    # Mapping dictionary
     column_mapping = {
         "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
         "I follow fashion brands on social media because  I like their products and style": "Product & Style",
@@ -50,7 +49,6 @@ def load_motivation_data():
     }
     
     data = data.rename(columns=column_mapping)
-    # Return data and ONLY the columns that were successfully renamed
     valid_cols = [v for k, v in column_mapping.items() if v in data.columns]
     return data, valid_cols
 
@@ -76,13 +74,19 @@ fig_ranking = px.bar(
 fig_ranking.update_layout(xaxis_range=[1, 5])
 st.plotly_chart(center_title(fig_ranking), use_container_width=True)
 
+# Dynamic Interpretation for Ranking
+top_motivation = motivation_means.iloc[-1]['Motivation']
+top_score = motivation_means.iloc[-1]['Average Score']
+st.write(f"**Interpretation:** The primary driver for following brands is **{top_motivation}** with an average score of **{top_score:.2f}**. This suggests that consumers value tangible benefits or product aesthetics most highly.")
+
 # ======================================================
 # SECTION B: DISTRIBUTIONS
 # ======================================================
 st.divider()
 st.header("Section B: Response Distributions")
-col1, col2 = st.columns(2)
+st.write("This section shows the spread of responses. A 'skew' towards 4 and 5 indicates strong general agreement among respondents.")
 
+col1, col2 = st.columns(2)
 for i, col_name in enumerate(motivation_cols):
     counts = df[col_name].value_counts().sort_index().reset_index()
     counts.columns = ['Score', 'Respondents']
@@ -108,6 +112,7 @@ st.header("Section C: Engagement Relationships")
 tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
 
 with tab_corr:
+    st.write("### How motivations move together")
     corr_matrix = df[motivation_cols].corr()
     fig_heatmap = px.imshow(
         corr_matrix, text_auto=".2f",
@@ -115,16 +120,25 @@ with tab_corr:
         title="Correlation Heatmap"
     )
     st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
+    st.info("**Guide:** A score closer to **1.00** (dark blue) means that people who agree with one motivation almost always agree with the other. A score near **0.00** means the motivations are independent.")
 
 with tab_rel:
     c1, c2 = st.columns([1, 2])
     with c1:
         x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
         y_var = st.selectbox("Select Y-axis", motivation_cols, index=min(1, len(motivation_cols)-1))
-       
+        
+        # Qualitative Interpretation based on correlation
+        current_corr = df[x_var].corr(df[y_var])
+        st.write(f"**Relationship Strength:** {current_corr:.2f}")
+        if current_corr > 0.6:
+            st.success("These two motivations have a **strong positive** relationship.")
+        elif current_corr > 0.3:
+            st.warning("These two motivations have a **moderate** relationship.")
+        else:
+            st.error("These two motivations have a **weak** relationship.")
     
     with c2:
-        # Check if statsmodels is installed before trying to draw the trendline
         try:
             import statsmodels
             t_line = "ols"
@@ -138,3 +152,6 @@ with tab_rel:
             title=f"{x_var} vs {y_var}"
         )
         st.plotly_chart(center_title(fig_scatter), use_container_width=True)
+
+st.divider()
+st.markdown("✔ **Social Media Activity Visualizations Complete**")
