@@ -127,11 +127,11 @@ fig2 = center_title(fig2)
 
 st.plotly_chart(fig2, use_container_width=True)
 
-st.write("""
-    Key Observations:
-    1. **Positive correlations exist between activities on the same platforms (e.g., higher activity on Instagram is correlated with higher engagement on Instagram-related tasks like reading posts** 
-    2. **Some behaviors, like frequent sharing or commenting, show a positive correlation with various platforms (e.g., commenting on posts correlates strongly with sharing posts or uploading pictures/videos).**
-    3. **Negative correlations are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others (e.g., active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)**
+st.info("""
+    **Key Observations:**
+    1. **Positive correlations** exist between activities on the same platforms such as higher activity on Instagram is correlated with higher engagement on Instagram-related tasks like reading posts.
+    2. **Some behaviors,** like frequent sharing or commenting, show a positive correlation with various platforms such as commenting on posts correlates strongly with sharing posts or uploading pictures/videos).
+    3. **Negative correlations** are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others such as active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)
     """)
 
 st.divider()
