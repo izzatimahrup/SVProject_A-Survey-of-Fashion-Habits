@@ -191,7 +191,7 @@ for i, col in enumerate(ordinal_activity_cols):
         with st.container(border=True):
             st.markdown(f"**Quick Insight: {platform_name}**")
             # Get the text from our dictionary, default to a placeholder if not found
-            text = interpretations.get(platform_name, "No specific interpretation data available for this platform.")
+            text = interpretations.get(platform_name, "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends.")
             st.write(text)
         
         # Add spacing before the next row
