@@ -127,6 +127,9 @@ fig2 = center_title(fig2)
 
 st.plotly_chart(fig2, use_container_width=True)
 
+st.markdown("---")
+    st.markdown("### 💡 Key Findings from Heatmap")
+    
 c1, c2, c3 = st.columns(3)
     
     with c1:
