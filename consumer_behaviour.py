@@ -176,30 +176,38 @@ for i, col in enumerate(ordinal_activity_cols):
         col1.plotly_chart(fig, use_container_width=True)
     else:
         col2.plotly_chart(fig, use_container_width=True)
-        
-with left_info:
-    st.info("### 📱 High-Engagement Platforms")
-    st.write("""
-    **Instagram** emerges as the leader for high-frequency engagement:
-    * It has the highest count of **'Very Active'** (35) and **'Active'** (37) users combined.
-    * This indicates that Instagram is likely the primary 'daily' app for fashion consumers.
-    
-    **Pinterest** shows a unique 'Discovery' pattern:
-    * The majority of users fall into **'Sometimes Active'** (41). 
-    * This suggests users visit Pinterest for specific inspiration rather than constant daily scrolling.
-    """)
 
-with right_info:
-    st.warning("### 📉 Low-Engagement & Emerging Platforms")
-    st.write("""
-    **Facebook** shows a shift toward casual usage:
-    * It has the lowest **'Very Active'** segment (only 7 respondents).
-    * Most users are now **'Sometimes Active'** (42), suggesting it is no longer the primary hub for this demographic.
+st.header("📊 Detailed Platform Interpretation")
+
+# Define your interpretations in a list of dictionaries
+platform_data = [
+    {"name": "Instagram", "level": "Very Active", "text": "Instagram leads the survey with 35 'Very Active' users. This confirms its status as the primary destination for daily fashion inspiration and real-time trend tracking."},
+    {"name": "TikTok", "level": "Active", "text": "TikTok shows a high 'Active' count (38.6%), dominating the short-form video space. Users here engage deeply with viral challenges and fashion hauls."},
+    {"name": "Facebook", "level": "Sometimes Active", "text": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends."},
+    {"name": "Pinterest", "level": "Sometimes Active", "text": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction."},
+    {"name": "Threads", "level": "Inactive", "text": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits."},
+    {"name": "YouTube", "level": "Active", "text": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."}
+]
+
+# Create the 3-column grid
+col1, col2, col3 = st.columns(3)
+
+# Distribute the 6 paragraphs into the columns
+for i, platform in enumerate(platform_data):
+    # Determine which column to place the paragraph in
+    if i % 3 == 0:
+        target_col = col1
+    elif i % 3 == 1:
+        target_col = col2
+    else:
+        target_col = col3
     
-    **Threads** exhibits a polarized user base:
-    * While it has a decent 'Active' base (30), it also has the highest **'Inactive'** count (36).
-    * This indicates Threads is still in a 'trial' phase for many fashion consumers.
-    """)
+    with target_col:
+        # Use a consistent styling for each "paragraph box"
+        st.markdown(f"### {platform['name']}")
+        st.caption(f"**Primary Level: {platform['level']}**")
+        st.write(platform['text'])
+        st.markdown("---") # Visual separator for the next row
 
 # ======================================================
 # SECTION D
