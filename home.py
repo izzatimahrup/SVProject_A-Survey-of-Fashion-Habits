@@ -36,8 +36,14 @@ st.markdown(
 st.markdown("## ❓ Problem Definition")
 
 st.markdown(
-    "Despite the growing role of social media in fashion marketing, there is limited empirical understanding of how "
-    "**demographic factors influence fashion awareness, spending behaviour, and shopping decisions** online."
+    """
+    Despite the increasing influence of social media in the fashion industry, there is limited empirical understanding 
+    of how **demographic characteristics, social media behaviour, fashion interest, and motivational factors** 
+    shape consumers’ fashion awareness and purchasing decisions online.
+
+    Therefore, this study aims to examine how these factors collectively influence consumer engagement and behaviour 
+    towards fashion brands on social media platforms.
+    """
 )
 
 
