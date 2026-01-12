@@ -23,12 +23,34 @@ st.markdown("# 🛍️ **Dashboard of Fashion Habits on Social Media**")
 
 st.divider()
 
+# Case Study 
+st.markdown("## 🏭 Case Study & Industrial Relevance")
+
+st.markdown(
+    "This study adopts a **case study approach** to examine consumer fashion behaviour on social media platforms. "
+    "The findings are highly relevant to the **fashion and digital marketing industry**, where social media "
+    "strongly influences brand engagement and online purchasing decisions."
+)
+
+# Problem Definition 
+st.markdown("## ❓ Problem Definition")
+
+st.markdown(
+    "Despite the growing role of social media in fashion marketing, there is limited empirical understanding of how "
+    "**demographic factors influence fashion awareness, spending behaviour, and shopping decisions** online."
+)
 
 
 # ---------------------------------------------------------
 # SURVEY OVERVIEW (The "Quick Stats" Row)
 # ---------------------------------------------------------
 st.markdown("## 📋 **Survey Overview**")
+st.markdown("## 🛡️ Ethical Considerations & Data Collection")
+
+st.markdown(
+    "The survey was conducted using **Google Forms** and distributed online through **WhatsApp and personal contacts**. "
+    "Participation was voluntary, and no personal or identifiable information was collected, ensuring ethical research practices."
+)
 
 col1, col2 = st.columns([1, 2])
 
