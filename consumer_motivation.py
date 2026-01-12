@@ -92,38 +92,46 @@ with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
 # ======================================================
 st.divider()
 st.header("Section B: Response Distributions")
-st.write("This section visualizes the consensus. A high concentration in scores 4 and 5 suggests a universal motivator.")
+st.write("This section visualizes the spread of scores. A concentration on the right (4-5) indicates a primary motivator.")
 
 col1, col2 = st.columns(2)
+
 for i, col_name in enumerate(motivation_cols):
+    # Data processing
     counts = df[col_name].value_counts().sort_index().reset_index()
     counts.columns = ['Score', 'Respondents']
     
+    # Calculate some quick stats for the interpretation
+    avg_score = df[col_name].mean()
+    agreement_rate = (df[col_name] >= 4).sum() / len(df) * 100
+    
+    # Create the Plotly chart
     fig_dist = px.bar(
         counts, x='Score', y='Respondents', text='Respondents',
         title=f"Distribution: {col_name}",
         color='Score', color_continuous_scale='Bluered_r'
     )
-    fig_dist.update_layout(showlegend=False)
+    fig_dist.update_layout(showlegend=False, height=400)
     
-    if i % 2 == 0:
-        col1.plotly_chart(center_title(fig_dist), use_container_width=True)
-    else:
-        col2.plotly_chart(center_title(fig_dist), use_container_width=True)
-
-st.markdown("### 📝 Distribution Interpretation Guide")
-dist_col1, dist_col2 = st.columns(2)
-with dist_col1:
-    st.info("""
-    **Agreement Levels:**
-    * **Clusters at 4-5:** High consensus. These are 'must-have' attributes for a brand's social media presence.
-    * **Clusters at 1-2:** High disagreement. These factors are not currently influencing your survey group.
-    """)
-with dist_col2:
-    st.info("""
-    **Audience Segmentation:**
-    * A **balanced distribution** across all scores (1-5) suggests a diverse audience with varying needs, requiring a multi-faceted content strategy.
-    """)
+    # Place chart and specific interpretation in columns
+    target_col = col1 if i % 2 == 0 else col2
+    
+    with target_col:
+        st.plotly_chart(center_title(fig_dist), use_container_width=True)
+        
+        # Specific Interpretation Logic per chart
+        if avg_score >= 4.0:
+            status = "🚀 **High Priority:**"
+            insight = f"Most respondents (over {agreement_rate:.0f}%) agree that this is a major reason they follow brands."
+        elif avg_score >= 3.0:
+            status = "⚖️ **Moderate Interest:**"
+            insight = "Respondents are somewhat divided or neutral. This is a secondary factor in their decision-making."
+        else:
+            status = "⚠️ **Lower Impact:**"
+            insight = "This factor does not strongly resonate with the majority of your current survey group."
+            
+        st.write(f"{status} {insight}")
+        st.markdown("---") # Small divider between rows
 
 # ======================================================
 # SECTION C: RELATIONSHIPS
