@@ -138,26 +138,38 @@ st.divider()
 st.header("Section C: Activity Level Distribution")
 
 
-activity_labels = {0: 'Very Active', 1: 'Active', 2: 'Sometimes Active', 3: 'Inactive'}
+activity_labels = {
+    0: 'Very Active', 
+    1: 'Active', 
+    2: 'Sometimes Active', 
+    3: 'Inactive'
+}
 
-# Convert list to a dictionary for easy lookup during the loop
 interpretations = {
     "Instagram": "Instagram is a top-tier fashion hub, showing the most balanced high-engagement profile. With roughly 35 'Very Active' and 37 'Active' users, it serves as the consistent daily 'go-to' platform for broad fashion inspiration.",
-    "TikTok": "TikTok shows a high 'Active' count (38.6%), dominating the short-form video space. Users here engage deeply with viral challenges and fashion hauls.",
+    "TikTok": "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends.",
     "Facebook": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends.",
     "Pinterest": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction.",
     "Threads": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits.",
     "YouTube": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."
 }
 
+# Identify the columns to visualize
 ordinal_activity_cols = [
     col for col in df.columns
     if col.startswith('Active_') and col.endswith('_Ordinal')
 ]
-# 2. Create Layout Columns
+
+# --- 3. STREAMLIT UI LAYOUT ---
+st.divider()
+st.header("Section C: Activity Level Distribution")
+
+# Create two columns for side-by-side charts
 col1, col2 = st.columns(2)
 
+# --- 4. VISUALIZATION LOOP ---
 for i, col in enumerate(ordinal_activity_cols):
+    # Clean the name for the title and dictionary lookup
     platform_name = col.replace('Active_', '').replace('_Ordinal', '')
 
     # Prepare Chart Data
@@ -165,7 +177,7 @@ for i, col in enumerate(ordinal_activity_cols):
     counts.columns = [col, 'count']
     counts['label'] = counts[col].map(activity_labels)
 
-    # Create Chart
+    # Create Plotly Chart
     fig = px.bar(
         counts,
         x='label',
@@ -175,24 +187,29 @@ for i, col in enumerate(ordinal_activity_cols):
         labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
         template="plotly_white"
     )
+    
+    # Styling
     fig.update_traces(textposition='outside', marker_color='#0068c9')
     fig.update_layout(showlegend=False, margin=dict(b=20))
     fig = center_title(fig)
 
-    # Determine Column Placement
+    # Determine Column Placement (Alternating)
     target_col = col1 if i % 2 == 0 else col2
 
     with target_col:
+        # Display the Plotly Chart
         st.plotly_chart(fig, use_container_width=True)
         
+        # Display the Interpretation directly below in a container
         with st.container(border=True):
             st.markdown(f"**Quick Insight: {platform_name}**")
-            text = interpretations.get(platform_name, "Data analysis in progress.")
+            text = interpretations.get(platform_name, "Analysis data available below.")
             st.write(text)
         
+        # Add vertical spacing
         st.write("##")
 
-# Final Key Findings (Outside the loop)
+# --- 5. FINAL KEY FINDINGS (BOTTOM ONLY) ---
 st.divider()
 st.info("""
 **Key Findings:**
