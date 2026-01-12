@@ -30,7 +30,7 @@ consumer_behaviour_hanis = st.Page(
 )
 
 consumer_interest_syadira = st.Page(
-    "consumer_interest",
+    "consumer_interest.py",
     title="Consumer Interest",
     icon="👗"
 )
