@@ -50,13 +50,14 @@ def load_motivation_data():
     }
     
     data = data.rename(columns=column_mapping)
-    valid_cols = [v for k, v in column_mapping.items() if v in data.columns]
+    # Extract only the values that now exist as column names in the dataframe
+    valid_cols = [v for v in column_mapping.values() if v in data.columns]
     return data, valid_cols
 
 df, motivation_cols = load_motivation_data()
 
 if not motivation_cols:
-    st.error("Could not find the motivation columns in the CSV.")
+    st.error("Could not find the motivation columns in the CSV. Check your column mapping keys.")
     st.stop()
 
 # ======================================================
@@ -91,72 +92,4 @@ with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
 # ======================================================
 st.divider()
 st.header("Section B: Response Distributions")
-st.write("This section visualizes the consensus. A high concentration in scores 4 and 5 suggests a universal motivator.")
-
-col1, col2 = st.columns(2)
-for i, col_name in enumerate(motivation_cols):
-    counts = df[col_name].value_counts().sort_index().reset_index()
-    counts.columns = ['Score', 'Respondents']
-    
-    fig_dist = px.bar(
-        counts, x='Score', y='Respondents', text='Respondents',
-        title=f"Distribution: {col_name}",
-        color='Score', color_continuous_scale='Bluered_r'
-    )
-    fig_dist.update_layout(showlegend=False)
-    
-    if i % 2 == 0:
-        col1.plotly_chart(center_title(fig_dist), use_container_width=True)
-    else:
-        col2.plotly_chart(center_title(fig_dist), use_container_width=True)
-
-st.markdown("### 📝 Distribution Interpretation Guide")
-dist_col1, dist_col2 = st.columns(2)
-with dist_col1:
-    st.info("""
-    **Agreement Levels:**
-    * **Clusters at 4-5:** High consensus. These are 'must-have' attributes for a brand's social media presence.
-    * **Clusters at 1-2:** High disagreement. These factors are not currently influencing your survey group.
-    """)
-with dist_col2:
-    st.info("""
-    **Audience Segmentation:**
-    * A **balanced distribution** across all scores (1-5) suggests a diverse audience with varying needs, requiring a multi-faceted content strategy.
-    """)
-
-# ======================================================
-# SECTION C: RELATIONSHIPS
-# ======================================================
-st.divider()
-st.header("Section C: Engagement Relationships")
-
-tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
-
-with tab_corr:
-    st.write("### How motivations move together")
-    corr_matrix = df[motivation_cols].corr()
-    fig_heatmap = px.imshow(
-        corr_matrix, text_auto=".2f",
-        color_continuous_scale='RdBu_r',
-        title="Correlation Heatmap"
-    )
-    st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
-    
-    with st.expander("📝 Detailed Interpretation: Heatmap Correlation"):
-        st.write("""
-        * **Positive Correlation (Blue):** When two motivations are highly correlated (e.g., > 0.60), it means users who follow for one reason are very likely to follow for the other. 
-        * **Strategic Value:** High correlations allow brands to "bundle" content. For example, if 'Entertainment' and 'Style' correlate, entertaining videos should always showcase product style.
-        """)
-    
-
-with tab_rel:
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
-        y_var = st.selectbox("Select Y-axis", motivation_cols, index=min(1, len(motivation_cols)-1))
-        
-        current_corr = df[x_var].corr(df[y_var])
-        st.write(f"**Correlation Coefficient:** {current_corr:.2f}")
-        
-        if current_corr > 0.6:
-            st.success("Analysis: **Strong Relationship**. These
+st.write("This section visualizes the consensus. A high concentration in
