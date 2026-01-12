@@ -321,5 +321,6 @@ st.plotly_chart(fig3, use_container_width=True)
 
 st.divider()
 st.info("""
+**Interpretation:**
 The scatter plot reveals a positive correlation between Instagram and TikTok activity. Users who are highly active on one platform tend to be active on the other, indicating a segment of "Power Users" who dominate fashion engagement across the ecosystem.
 """)
