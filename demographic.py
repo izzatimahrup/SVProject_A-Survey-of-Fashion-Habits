@@ -115,7 +115,11 @@ fig1 = px.pie(
 )
 st.plotly_chart(fig1, use_container_width=True)
 
+st.subheader("📝 Interpretation 1:")
+st.markdown("""
 
+""")
+st.markdown("---") 
 # 2️⃣ Age Group Distribution
 st.subheader("2. Age Group Distribution of Respondents")
 
@@ -136,7 +140,11 @@ fig2 = px.bar(
     category_orders={"Age": age_order}
 )
 st.plotly_chart(fig2, use_container_width=True)
+st.subheader("📝 Interpretation 2:")
+st.markdown("""
 
+""")
+st.markdown("---") 
 
 # 3️⃣ Regional Distribution
 st.subheader("3. Regional Distribution of Respondents")
