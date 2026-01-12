@@ -181,10 +181,10 @@ for i, col in enumerate(ordinal_activity_cols):
     fig.update_layout(showlegend=False, margin=dict(b=20))
     fig = center_title(fig)
 
-        # Determine Column Placement
-        target_col = col1 if i % 2 == 0 else col2
+    # Determine Column Placement
+    target_col = col1 if i % 2 == 0 else col2
 
-        with target_col:
+    with target_col:
         # Display the Plotly Chart
         st.plotly_chart(fig, use_container_width=True)
         
@@ -197,6 +197,8 @@ for i, col in enumerate(ordinal_activity_cols):
             
          # Add spacing before the next row
         st.write("##")
+        
+    
         
         
 # ======================================================
