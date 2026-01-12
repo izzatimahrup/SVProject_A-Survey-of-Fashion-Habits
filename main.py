@@ -19,25 +19,25 @@ home = st.Page(
 
 demographic_izzati = st.Page(
     "demographic.py",
-    title="Demographic Analysis (Izzati)",
+    title="Demographic Information",
     icon="👥"
 )
 
 consumer_behaviour_hanis = st.Page(
     "consumer_behaviour.py",
-    title="Consumer Behaviour (Hanis)",
+    title="Consumer Behaviour on Social Media",
     icon="📱"
 )
 
 consumer_interest_syadira = st.Page(
     "consumer_interest.py",
-    title="Consumer Interest (Syadira)",
+    title="Consumer Intrest in Fashion",
     icon="👗"
 )
 
 consumer_motivation_aina = st.Page(
     "consumer_motivation.py",
-    title="Shopping Motivation (Aina)",
+    title="Motivation to Follow Fashion Brand",
     icon="🎯"
 )
 
