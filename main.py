@@ -1,8 +1,5 @@
 import streamlit as st
 
-# ---------------------------------------------------------
-# Page Configuration
-# ---------------------------------------------------------
 st.set_page_config(
     page_title="Fashion Shopping Behaviour Dashboard",
     page_icon="🛍️",
@@ -10,7 +7,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# Define Pages (BASED ON GOOGLE FORM SECTIONS)
+# Define Pages
 # ---------------------------------------------------------
 
 home = st.Page(
@@ -20,44 +17,44 @@ home = st.Page(
     default=True
 )
 
-demographic = st.Page(
-    "demographic.py",
-    title="Demographic Information",
+demographic_izzati = st.Page(
+    "demographic/izzati.py",
+    title="Demographic Analysis (Izzati)",
     icon="👥"
 )
 
-consumerbehaviour = st.Page(
-    "consumer_behaviour.py",
-    title="Consumer Behaviour",
+consumer_behaviour_hanis = st.Page(
+    "consumer_behaviour/hanis.py",
+    title="Consumer Behaviour (Hanis)",
     icon="📱"
 )
 
-consumerinterest = st.Page(
-    "consumer_interest.py",
-    title="Consumer Interest in Fashion",
+consumer_interest_syadira = st.Page(
+    "consumer_interest/syadira.py",
+    title="Consumer Interest (Syadira)",
     icon="👗"
 )
 
-consumermotivation = st.Page(
-    "consumer_motivation.py",
-    title="Motivation to Follow Fashion Brands",
+consumer_motivation_aina = st.Page(
+    "consumer_motivation/aina.py",
+    title="Shopping Motivation (Aina)",
     icon="🎯"
 )
 
 # ---------------------------------------------------------
 # Navigation Menu
 # ---------------------------------------------------------
+
 pg = st.navigation(
     {
         "Main Menu": [
             home,
-            demographic,
-            consumerbehaviour,
-            consumerinterest,
-            consumermotivation
+            demographic_izzati,
+            consumer_behaviour_hanis,
+            consumer_interest_syadira,
+            consumer_motivation_aina
         ]
     }
 )
 
-# Run Navigation
 pg.run()
