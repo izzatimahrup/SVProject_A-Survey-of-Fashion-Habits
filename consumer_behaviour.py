@@ -134,13 +134,9 @@ st.info("""
     3. **Negative correlations** are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others such as active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)
     """)
 
-# --- 1. HELPER FUNCTIONS ---
-def center_title(fig):
-    fig.update_layout(title_x=0.5, title_xanchor='center')
-    return fig
+   -- SECTION C: ACTIVITY LEVEL CLEAN VERSION ---
 
-# --- 2. DATA CONFIGURATION ---
-# Note: Ensure your 'df' is loaded before this block
+# 1. Configuration
 activity_labels = {
     0: 'Very Active', 
     1: 'Active', 
@@ -157,70 +153,52 @@ interpretations = {
     "YouTube": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."
 }
 
-# Identify the columns to visualize
-ordinal_activity_cols = [
-    col for col in df.columns
-    if col.startswith('Active_') and col.endswith('_Ordinal')
-]
+# 2. Identify Columns
+ordinal_activity_cols = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
 
-# --- 3. STREAMLIT UI LAYOUT ---
-st.divider()
 st.header("Section C: Activity Level Distribution")
 
-# Create two columns for side-by-side charts
-col1, col2 = st.columns(2)
+# 3. Create Columns for Layout
+c1, c2 = st.columns(2)
 
-# --- 4. VISUALIZATION LOOP ---
+# 4. Loop for Charts and Insights
 for i, col in enumerate(ordinal_activity_cols):
-    # Clean the name for the title and dictionary lookup
-    platform_name = col.replace('Active_', '').replace('_Ordinal', '')
-
-    # Prepare Chart Data
+    p_name = col.replace('Active_', '').replace('_Ordinal', '')
+    
+    # Data aggregation
     counts = df[col].value_counts().sort_index().reset_index()
     counts.columns = [col, 'count']
     counts['label'] = counts[col].map(activity_labels)
-
-    # Create Plotly Chart
+    
+    # Chart Creation
     fig = px.bar(
-        counts,
-        x='label',
-        y='count',
-        text='count',
-        title=f"Activity Distribution: {platform_name}",
-        labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
+        counts, 
+        x='label', 
+        y='count', 
+        text='count', 
+        title=f"Activity: {p_name}",
         template="plotly_white"
     )
-    
-    # Styling
     fig.update_traces(textposition='outside', marker_color='#0068c9')
-    fig.update_layout(showlegend=False, margin=dict(b=20))
-    fig = center_title(fig)
-
-    # Determine Column Placement (Alternating between col1 and col2)
-    target_col = col1 if i % 2 == 0 else col2
-
-    with target_col:
-        # 1. Display the Plotly Chart
+    fig.update_layout(margin=dict(b=20), showlegend=False)
+    
+    # Alternate between columns
+    target = c1 if i % 2 == 0 else c2
+    
+    with target:
         st.plotly_chart(fig, use_container_width=True)
-        
-        # 2. Display the Interpretation directly below in a container
         with st.container(border=True):
-            st.markdown(f"**Quick Insight: {platform_name}**")
-            # Pull text from dictionary, default if name doesn't match
-            text = interpretations.get(platform_name, "Activity data analyzed for this platform.")
-            st.write(text)
-        
-        # Add vertical spacing
+            st.markdown(f"**Quick Insight: {p_name}**")
+            st.write(interpretations.get(p_name, "Data analysis complete."))
         st.write("##")
 
-# --- 5. FINAL KEY FINDINGS (OUTSIDE LOOP - BOTTOM ONLY) ---
+# 5. Final Key Findings (Bottom of Section C)
 st.divider()
 st.info("""
 **Key Findings:**
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
 * **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
 """)
-        
         
 # ======================================================
 # SECTION D
