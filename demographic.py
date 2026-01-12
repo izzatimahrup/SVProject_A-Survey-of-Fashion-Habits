@@ -108,7 +108,7 @@ with col1:
         values='count',
         names='Gender',
         hole=0.4,
-        title="Gender Distribution of Respondents"
+        fig1.update_layout(title="1. Pie Chart of Gender Distribution")
     )
     st.plotly_chart(fig1, use_container_width=True)
 
