@@ -88,43 +88,56 @@ with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
     """)
 
 # ======================================================
-# SECTION B: AUDIENCE SENTIMENT (DISTRIBUTIONS)
+# SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
 # ======================================================
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
-st.write("Analyzing how 'polarized' or 'unified' your audience is regarding specific brand values.")
+st.write("Analyzing the specific trends and trust factors for each motivation.")
+
+
 
 col1, col2 = st.columns(2)
+
 for i, col_name in enumerate(motivation_cols):
+    # Data Processing
     counts = df[col_name].value_counts().sort_index().reset_index()
     counts.columns = ['Score', 'Respondents']
     avg_score = df[col_name].mean()
     
+    # Create the Chart
     fig_dist = px.bar(
         counts, x='Score', y='Respondents', text='Respondents',
         title=f"Distribution: {col_name}",
         color='Score', color_continuous_scale='Plasma'
     )
-    fig_dist.update_layout(showlegend=False, height=350)
+    fig_dist.update_layout(showlegend=False, height=350, xaxis_title="1 (Disagree) to 5 (Agree)")
     
     target_col = col1 if i % 2 == 0 else col2
+    
     with target_col:
         st.plotly_chart(center_title(fig_dist), use_container_width=True)
         
-        # RELEVANT INTERPRETATION LOGIC
-        if col_name == "Updates & Promotions":
-            st.write("💡 **Insight:** This measures 'Functional Value.' High scores mean followers use your page as a catalog. Don't post fluff; post products.")
-        elif col_name == "Product & Style":
-            st.write("💡 **Insight:** This measures 'Aesthetic Value.' High scores suggest your brand is a source of inspiration. Focus on high-quality photography.")
-        elif col_name == "Discounts & Contests":
-            st.write("💡 **Insight:** This measures 'Transactional Value.' If this is high, your followers are price-sensitive. Use 'Limited Time Offers' to trigger sales.")
-        elif col_name == "Express Personality":
-            st.write("💡 **Insight:** This measures 'Self-Identity.' If high, followers see your brand as a badge of who they are. Focus on lifestyle and 'vibe'.")
+        # 📝 DYNAMIC ANALYSIS LOGIC
+        st.write("### 📝 Analysis:")
+        
+        # 1. Determine the Driver Status
+        if avg_score >= 3.8:
+            status = f"**{col_name}** ranks as a **top driver** of interest among respondents."
+        elif avg_score >= 3.0:
+            status = f"**{col_name}** is a **moderate driver**, showing steady but not primary interest."
         else:
-            if avg_score > 3.5:
-                st.write(f"💡 **Insight:** A strong secondary driver. **{col_name}** helps build long-term retention beyond just products.")
-            else:
-                st.write(f"💡 **Insight:** Lower relevance. **{col_name}** is not a main priority for your current audience.")
+            status = f"**{col_name}** currently ranks as a **minor driver**, suggesting lower impact on this audience."
+        
+        # 2. Determine the Strategic Trend
+        if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
+            trend = "This confirms that modern consumers trust **social proof** and peer identity more than traditional direct marketing."
+        elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
+            trend = "This reflects a **transactional trend**, where consumers follow for immediate, tangible rewards and efficiency."
+        else:
+            trend = "This highlights a focus on **aesthetic alignment**, where the visual 'vibe' of the brand is the main anchor for the consumer."
+
+        st.write(status)
+        st.write(f"**Trend:** {trend}")
         st.markdown("---")
 
 # ======================================================
