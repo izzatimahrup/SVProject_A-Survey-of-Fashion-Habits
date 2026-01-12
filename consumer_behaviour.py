@@ -137,9 +137,40 @@ st.info("""
 st.divider()
 st.header("Section C: Activity Level Distribution")
 
-# ... (Previous code for column setup and chart data remains the same)
 
-# 3. Single Loop for Chart + Interpretation
+activity_labels = {0: 'Very Active', 1: 'Active', 2: 'Sometimes Active', 3: 'Inactive'}
+
+
+interpretations = {
+
+    "Instagram": "Instagram is a top-tier fashion hub, showing the most balanced high-engagement profile. With roughly 35 'Very Active' and 37 'Active' users, it serves as the consistent daily 'go-to' platform for broad fashion inspiration.",
+
+    "TikTok": "TikTok shows a high 'Active' count (38.6%), dominating the short-form video space. Users here engage deeply with viral challenges and fashion hauls.",
+
+    "Facebook": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends.",
+
+    "Pinterest": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction.",
+
+    "Threads": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits.",
+
+    "YouTube": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."
+
+}
+
+
+
+ordinal_activity_cols = [
+
+    col for col in df.columns
+
+    if col.startswith('Active_') and col.endswith('_Ordinal')
+
+]
+
+
+
+col1, col2 = st.columns(2)
+
 for i, col in enumerate(ordinal_activity_cols):
     platform_name = col.replace('Active_', '').replace('_Ordinal', '')
 
