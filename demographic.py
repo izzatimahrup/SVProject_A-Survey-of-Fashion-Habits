@@ -116,8 +116,7 @@ fig1 = px.pie(
 st.plotly_chart(fig1, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart presents the gender composition of respondents to understand how gender may influence fashion behaviour on social media.
 
 - Female respondents form the majority of the sample.
@@ -147,8 +146,7 @@ fig2 = px.bar(
 )
 st.plotly_chart(fig2, use_container_width=True)
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown("""  
 This chart illustrates the age distribution of respondents to identify which age groups are most represented.
 
 - Younger age groups, particularly those below 35 years old, dominate the sample.
@@ -172,8 +170,7 @@ fig3 = px.bar(
 st.plotly_chart(fig3, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown("""  
 This chart compares respondents from East and West Malaysia to assess geographic representation.
 
 - Respondents from East Malaysia slightly outnumber those from West Malaysia.
@@ -207,8 +204,7 @@ fig4 = px.bar(
 st.plotly_chart(fig4, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart shows respondents’ highest education levels, which may influence information processing and decision-making.
 
 - Most respondents possess post-secondary or tertiary education.
@@ -232,7 +228,6 @@ st.plotly_chart(fig5, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
-**Context:**  
 This chart presents respondents’ employment status to understand their economic positioning.
 
 - A large proportion of respondents are employed either full-time or part-time.
@@ -258,8 +253,7 @@ fig6 = px.bar(
 st.plotly_chart(fig6, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart examines respondents’ average monthly spending on fashion items.
 
 - Most respondents fall within low to middle expenditure categories.
@@ -285,8 +279,7 @@ fig7 = px.bar(
 st.plotly_chart(fig7, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart reflects respondents’ self-reported awareness of current fashion trends.
 
 - A majority of respondents report moderate to high awareness of fashion trends.
@@ -311,7 +304,6 @@ fig8.update_layout(yaxis={'categoryorder': 'total ascending'})
 st.plotly_chart(fig8, use_container_width=True) 
 st.subheader("📝 Interpretation:")
 st.markdown("""
-**Context:**  
 This chart ranks the sources influencing respondents’ fashion shopping decisions.
 
 - Social influences such as influencers, peers, and online content emerge as dominant factors.
@@ -343,8 +335,7 @@ fig9 = px.bar(
 st.plotly_chart(fig9, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart examines how gender differences relate to levels of awareness of current fashion trends on social media.
 
 - Female respondents show higher concentrations at moderate to high awareness levels.
@@ -409,8 +400,7 @@ fig_heatmap = px.imshow(
 
 st.plotly_chart(fig_heatmap, use_container_width=True)
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart explores how employment status relates to respondents’ monthly fashion expenditure.
 
 - Employed respondents, particularly full-time workers, appear more frequently in higher expenditure categories.
@@ -435,8 +425,7 @@ fig11 = px.bar(
 st.plotly_chart(fig11, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown("""  
 This chart compares how different sources influence fashion shopping decisions across genders.
 
 - Female respondents show stronger influence from social sources such as influencers and online communities.
@@ -462,8 +451,7 @@ fig13 = px.bar(
 st.plotly_chart(fig13, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
-st.markdown("""
-**Context:**  
+st.markdown(""" 
 This chart analyses how monthly fashion expenditure levels relate to shopping influence sources.
 
 - Higher-spending respondents are more influenced by brand-driven and influencer-related recommendations.
