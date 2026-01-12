@@ -47,10 +47,10 @@ expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 # ---------------------------------------------------------
 # Page Title & Description
 # ---------------------------------------------------------
-st.title("📊 Fashion Demographic & Behavioural Analysis")
-st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
+st.title("📊👥 Demographic Analysis")
+# st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
 
-st.subheader("Objective")
+st.subheader("🎯 Objective")
 
 st.markdown(
     "To examine how demographic factors relate to consumers’ fashion awareness, "
@@ -60,7 +60,7 @@ st.markdown(
 # =========================================================
 # SUMMARY BOX: KEY DEMOGRAPHIC INDICATORS
 # =========================================================
-st.subheader("Key Demographic Summary")
+st.subheader("👥 Key Demographic Summary")
 
 col1, col2, col3 = st.columns(3)
 
@@ -254,17 +254,17 @@ fig11 = px.bar(
 )
 st.plotly_chart(fig11, use_container_width=True)
 
-gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-fig12 = px.bar(
-    gender_expense,
-    x="Gender",
-    y="Count",
-    color="Average Monthly Expenses (RM)",
-    title="Average Monthly Fashion Expenses by Gender",
-    barmode='group',
-    category_orders={"Average Monthly Expenses (RM)": expense_order}
-)
-st.plotly_chart(fig12, use_container_width=True)
+# gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+# fig12 = px.bar(
+#     gender_expense,
+#     x="Gender",
+#     y="Count",
+#     color="Average Monthly Expenses (RM)",
+#     title="Average Monthly Fashion Expenses by Gender",
+#     barmode='group',
+#     category_orders={"Average Monthly Expenses (RM)": expense_order}
+# )
+# st.plotly_chart(fig12, use_container_width=True)
 
 expense_influence = df.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig13 = px.bar(
