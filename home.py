@@ -87,7 +87,7 @@ s1, s2, s3, s4 = st.columns(4)
 
 with s1:
     st.markdown("### 🧍\n**Section A - Izzati**")
-    st.caption("Demographic Overview")
+    st.caption("Demographic Information")
     st.markdown("*Gender, age, education, and monthly fashion spend.*")
 
 with s2:
@@ -97,12 +97,12 @@ with s2:
 
 with s3:
     st.markdown("### 👗\n**Section C - Syadira**")
-    st.caption("Fashion Awareness")
+    st.caption("Consumer Intrest in Fashion")
     st.markdown("*Interests, trends, and the influence of social media.*")
 
 with s4:
     st.markdown("### 🛍️\n**Section D - Aina**")
-    st.caption("Shopping Motivation")
+    st.caption("Motivation to Follow Fashion Brand")
     st.markdown("*The 'Why' behind the buy and brand influence.*")
 
 st.divider()
