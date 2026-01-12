@@ -194,14 +194,15 @@ for i, col in enumerate(ordinal_activity_cols):
             text = interpretations.get(platform_name, "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends.")
             st.write(text)
             
+         # Add spacing before the next row
+        st.write("##")
+        
             st.info("""
             **Key Findings:**
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
 * **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
 """)
         
-        # Add spacing before the next row
-        st.write("##")
 # ======================================================
 # SECTION D
 # ======================================================
