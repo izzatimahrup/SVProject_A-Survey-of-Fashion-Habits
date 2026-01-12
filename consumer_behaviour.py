@@ -270,9 +270,14 @@ else:
                 # Pull insight from dictionary using the cleaned name
                 insight_text = frequency_insights.get(platform_name, "No specific analysis available for this activity.")
                 st.write(insight_text)
-            
-            # Add vertical spacing for the next row
             st.write("##")
+
+st.divider()
+st.info("""
+**Key Findings:**
+* **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
+* **User Behavior:**Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment..
+""")
             
 
 # RELATIONSHIP SCATTER PLOT
