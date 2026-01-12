@@ -115,7 +115,7 @@ fig1 = px.pie(
 )
 st.plotly_chart(fig1, use_container_width=True)
 
-st.subheader("📝 Interpretation 1:")
+st.subheader("📝 Interpretation:")
 st.markdown("""
 
 """)
@@ -140,7 +140,7 @@ fig2 = px.bar(
     category_orders={"Age": age_order}
 )
 st.plotly_chart(fig2, use_container_width=True)
-st.subheader("📝 Interpretation 2:")
+st.subheader("📝 Interpretation:")
 st.markdown("""
 
 """)
@@ -159,6 +159,11 @@ fig3 = px.bar(
 )
 st.plotly_chart(fig3, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 4️⃣ Education Level Distribution
 st.subheader("4. Education Level Distribution of Respondents")
@@ -182,6 +187,11 @@ fig4 = px.bar(
 )
 st.plotly_chart(fig4, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 5️⃣ Employment Status Distribution
 st.subheader("5. Employment Status Distribution")
@@ -195,7 +205,11 @@ fig5 = px.pie(
 )
 st.plotly_chart(fig5, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
 
+""")
+st.markdown("---") 
 # 6️⃣ Monthly Fashion Expenditure
 st.subheader("6. Monthly Fashion Expenditure Distribution")
 
@@ -212,6 +226,11 @@ fig6 = px.bar(
 )
 st.plotly_chart(fig6, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 7️⃣ Awareness of Fashion Trends
 st.subheader("7. Awareness of Fashion Trends")
@@ -228,6 +247,11 @@ fig7 = px.bar(
 )
 st.plotly_chart(fig7, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 8️⃣ Factors Influencing Shopping Decisions
 st.subheader("8. Factors Influencing Fashion Shopping Decisions")
@@ -243,6 +267,11 @@ fig8 = px.bar(
 )
 fig8.update_layout(yaxis={'categoryorder': 'total ascending'})
 st.plotly_chart(fig8, use_container_width=True) 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
 # =========================================================
@@ -280,6 +309,11 @@ fig10 = px.bar(
 )
 st.plotly_chart(fig10, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 1️⃣1️⃣ Shopping Influence by Gender
 st.subheader("11. Shopping Influence Factors by Gender")
@@ -295,6 +329,11 @@ fig11 = px.bar(
 )
 st.plotly_chart(fig11, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 
 # 1️⃣2️⃣ Shopping Influence by Monthly Expenditure Level
 st.subheader("12. Shopping Influence by Monthly Expenditure Level")
@@ -311,6 +350,11 @@ fig13 = px.bar(
 )
 st.plotly_chart(fig13, use_container_width=True)
 
+st.subheader("📝 Interpretation:")
+st.markdown("""
+
+""")
+st.markdown("---") 
 # gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 # fig12 = px.bar(
 #     gender_expense,
