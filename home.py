@@ -45,12 +45,6 @@ st.markdown(
 # SURVEY OVERVIEW (The "Quick Stats" Row)
 # ---------------------------------------------------------
 st.markdown("## 📋 **Survey Overview**")
-st.markdown("## 🛡️ Ethical Considerations & Data Collection")
-
-st.markdown(
-    "The survey was conducted using **Google Forms** and distributed online through **WhatsApp and personal contacts**. "
-    "Participation was voluntary, and no personal or identifiable information was collected, ensuring ethical research practices."
-)
 
 col1, col2 = st.columns([1, 2])
 
@@ -69,7 +63,10 @@ with col2:
         """
         The data was gathered via **Google Forms** and distributed through a 
         network of **WhatsApp groups and personal contacts**. 
-        
+ 
+        Participation was **voluntary**, responses were **anonymous**, and the data was used 
+        strictly for **academic purposes**, ensuring ethical research practices.
+    
         This method allowed us to capture a snapshot of the most active social media users 
         who are shaping the future of online fashion engagement.
         
@@ -82,7 +79,7 @@ st.write("") # Just some spacing
 # ---------------------------------------------------------
 # DASHBOARD NAVIGATION GUIDE
 # ---------------------------------------------------------
-st.markdown("## 📑  **Section**")
+st.markdown("## 📑  **Dashboard Section**")
 st.write("The dashboard is split into 4 Section:")
 
 # Creating a 4-column grid for the sections
