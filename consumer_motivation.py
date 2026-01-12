@@ -88,50 +88,44 @@ with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
     """)
 
 # ======================================================
-# SECTION B: DISTRIBUTIONS
+# SECTION B: AUDIENCE SENTIMENT (DISTRIBUTIONS)
 # ======================================================
 st.divider()
-st.header("Section B: Response Distributions")
-st.write("This section visualizes the spread of scores. A concentration on the right (4-5) indicates a primary motivator.")
+st.header("Section B: Deep Dive into Motivations")
+st.write("Analyzing how 'polarized' or 'unified' your audience is regarding specific brand values.")
 
 col1, col2 = st.columns(2)
-
 for i, col_name in enumerate(motivation_cols):
-    # Data processing
     counts = df[col_name].value_counts().sort_index().reset_index()
     counts.columns = ['Score', 'Respondents']
-    
-    # Calculate some quick stats for the interpretation
     avg_score = df[col_name].mean()
-    agreement_rate = (df[col_name] >= 4).sum() / len(df) * 100
     
-    # Create the Plotly chart
     fig_dist = px.bar(
         counts, x='Score', y='Respondents', text='Respondents',
         title=f"Distribution: {col_name}",
-        color='Score', color_continuous_scale='Bluered_r'
+        color='Score', color_continuous_scale='Plasma'
     )
-    fig_dist.update_layout(showlegend=False, height=400)
+    fig_dist.update_layout(showlegend=False, height=350)
     
-    # Place chart and specific interpretation in columns
     target_col = col1 if i % 2 == 0 else col2
-    
     with target_col:
         st.plotly_chart(center_title(fig_dist), use_container_width=True)
         
-        # Specific Interpretation Logic per chart
-        if avg_score >= 4.0:
-            status = "🚀 **High Priority:**"
-            insight = f"Most respondents (over {agreement_rate:.0f}%) agree that this is a major reason they follow brands."
-        elif avg_score >= 3.0:
-            status = "⚖️ **Moderate Interest:**"
-            insight = "Respondents are somewhat divided or neutral. This is a secondary factor in their decision-making."
+        # RELEVANT INTERPRETATION LOGIC
+        if col_name == "Updates & Promotions":
+            st.write("💡 **Insight:** This measures 'Functional Value.' High scores mean followers use your page as a catalog. Don't post fluff; post products.")
+        elif col_name == "Product & Style":
+            st.write("💡 **Insight:** This measures 'Aesthetic Value.' High scores suggest your brand is a source of inspiration. Focus on high-quality photography.")
+        elif col_name == "Discounts & Contests":
+            st.write("💡 **Insight:** This measures 'Transactional Value.' If this is high, your followers are price-sensitive. Use 'Limited Time Offers' to trigger sales.")
+        elif col_name == "Express Personality":
+            st.write("💡 **Insight:** This measures 'Self-Identity.' If high, followers see your brand as a badge of who they are. Focus on lifestyle and 'vibe'.")
         else:
-            status = "⚠️ **Lower Impact:**"
-            insight = "This factor does not strongly resonate with the majority of your current survey group."
-            
-        st.write(f"{status} {insight}")
-        st.markdown("---") # Small divider between rows
+            if avg_score > 3.5:
+                st.write(f"💡 **Insight:** A strong secondary driver. **{col_name}** helps build long-term retention beyond just products.")
+            else:
+                st.write(f"💡 **Insight:** Lower relevance. **{col_name}** is not a main priority for your current audience.")
+        st.markdown("---")
 
 # ======================================================
 # SECTION C: RELATIONSHIPS
