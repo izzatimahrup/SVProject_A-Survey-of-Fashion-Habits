@@ -197,8 +197,8 @@ for i, col in enumerate(ordinal_activity_cols):
          # Add spacing before the next row
         st.write("##")
         
-            st.info("""
-            **Key Findings:**
+        st.info("""
+        **Key Findings:**
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
 * **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
 """)
