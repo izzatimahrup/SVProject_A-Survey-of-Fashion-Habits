@@ -25,19 +25,19 @@ demographic_izzati = st.Page(
 
 consumer_behaviour_hanis = st.Page(
     "consumer_behaviour.py",
-    title="Consumer Behaviour",
+    title="Consumer Behaviour (Hanis)",
     icon="📱"
 )
 
 consumer_interest_syadira = st.Page(
     "consumer_interest.py",
-    title="Consumer Interest",
+    title="Consumer Interest (Syadira)",
     icon="👗"
 )
 
 consumer_motivation_aina = st.Page(
     "consumer_motivation.py",
-    title="Shopping Motivation",
+    title="Shopping Motivation (Aina)",
     icon="🎯"
 )
 
@@ -49,10 +49,10 @@ pg = st.navigation(
     {
         "Main Menu": [
             home,
-            demographic,
-            consumer_behaviour,
-            consumer_interest,
-            consumer_motivation
+            demographic_izzati,
+            consumer_behaviour_hanis,
+            consumer_interest_syadira,
+            consumer_motivation_aina
         ]
     }
 )
