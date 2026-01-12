@@ -151,10 +151,9 @@ interpretations = {
 }
 
 ordinal_activity_cols = [
-    col for col in df.columns
-    if col.startswith('Active_') and col.endswith('_Ordinal')
+    col for col in df.columns
+    if col.startswith('Active_') and col.endswith('_Ordinal')
 ]
-
 # 2. Create Layout Columns
 col1, col2 = st.columns(2)
 
