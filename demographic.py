@@ -117,9 +117,15 @@ st.plotly_chart(fig1, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart presents the gender composition of respondents to understand how gender may influence fashion behaviour on social media.
 
+- Female respondents form the majority of the sample.
+- This indicates stronger participation of females in fashion-related social media spaces.
+- The dominance of female respondents suggests that gender is a significant demographic factor influencing fashion awareness and online shopping decisions, aligning with the study’s objective.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 # 2️⃣ Age Group Distribution
 st.subheader("2. Age Group Distribution of Respondents")
 
@@ -142,9 +148,15 @@ fig2 = px.bar(
 st.plotly_chart(fig2, use_container_width=True)
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart illustrates the age distribution of respondents to identify which age groups are most represented.
 
+- Younger age groups, particularly those below 35 years old, dominate the sample.
+- This reflects higher engagement of young adults with social media platforms where fashion content is actively consumed.
+- The concentration of younger respondents highlights age as a key demographic variable shaping fashion awareness and spending behaviour online.
 """)
-st.markdown("---") 
+st.markdown("---")
+ 
 
 # 3️⃣ Regional Distribution
 st.subheader("3. Regional Distribution of Respondents")
@@ -161,8 +173,15 @@ st.plotly_chart(fig3, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart compares respondents from East and West Malaysia to assess geographic representation.
 
+- Respondents from East Malaysia slightly outnumber those from West Malaysia.
+- This suggests that fashion engagement through social media is not confined to highly urbanised regions.
+- The result indicates that social media reduces geographic barriers in shaping fashion awareness and shopping behaviour.
 """)
+st.markdown("---")
+
 st.markdown("---") 
 
 # 4️⃣ Education Level Distribution
@@ -189,9 +208,15 @@ st.plotly_chart(fig4, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart shows respondents’ highest education levels, which may influence information processing and decision-making.
 
+- Most respondents possess post-secondary or tertiary education.
+- Higher education levels are often associated with greater exposure to digital content and brand information.
+- This distribution suggests that educational background may influence how individuals interpret fashion trends and make informed shopping decisions online.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 
 # 5️⃣ Employment Status Distribution
 st.subheader("5. Employment Status Distribution")
@@ -207,9 +232,15 @@ st.plotly_chart(fig5, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart presents respondents’ employment status to understand their economic positioning.
 
+- A large proportion of respondents are employed either full-time or part-time.
+- Employment status reflects financial stability, which directly affects purchasing capacity.
+- This highlights employment as a relevant demographic factor influencing fashion spending behaviour on social media.
 """)
-st.markdown("---") 
+st.markdown("---")
+ 
 # 6️⃣ Monthly Fashion Expenditure
 st.subheader("6. Monthly Fashion Expenditure Distribution")
 
@@ -228,9 +259,15 @@ st.plotly_chart(fig6, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart examines respondents’ average monthly spending on fashion items.
 
+- Most respondents fall within low to middle expenditure categories.
+- This indicates cautious but consistent fashion consumption behaviour.
+- The spending pattern suggests that affordability and perceived value influence online fashion purchasing decisions.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 
 # 7️⃣ Awareness of Fashion Trends
 st.subheader("7. Awareness of Fashion Trends")
@@ -249,9 +286,14 @@ st.plotly_chart(fig7, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart reflects respondents’ self-reported awareness of current fashion trends.
 
+- A majority of respondents report moderate to high awareness of fashion trends.
+- This indicates frequent exposure to fashion-related content on social media platforms.
+- The finding supports the study’s objective of examining how demographic characteristics relate to fashion awareness.
 """)
-st.markdown("---") 
+st.markdown("---")
 
 # 8️⃣ Factors Influencing Shopping Decisions
 st.subheader("8. Factors Influencing Fashion Shopping Decisions")
@@ -269,9 +311,15 @@ fig8.update_layout(yaxis={'categoryorder': 'total ascending'})
 st.plotly_chart(fig8, use_container_width=True) 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart ranks the sources influencing respondents’ fashion shopping decisions.
 
+- Social influences such as influencers, peers, and online content emerge as dominant factors.
+- This highlights the interaction between demographic characteristics and external recommendation sources.
+- The result aligns with the study’s focus on understanding how demographics shape online fashion decision-making.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
 # =========================================================
@@ -293,6 +341,17 @@ fig9 = px.bar(
     title="Fashion Awareness by Gender"
 )
 st.plotly_chart(fig9, use_container_width=True)
+
+st.subheader("📝 Interpretation:")
+st.markdown("""
+**Context:**  
+This chart examines how gender differences relate to levels of awareness of current fashion trends on social media.
+
+- Female respondents show higher concentrations at moderate to high awareness levels.
+- This suggests stronger exposure to and engagement with fashion-related content among females.
+- The pattern indicates that gender plays a meaningful role in shaping fashion awareness, supporting the study’s objective of examining demographic influence.
+""")
+st.markdown("---")
 
 
 # 🔟 Monthly Fashion Expenditure by Employment Status
@@ -351,9 +410,15 @@ fig_heatmap = px.imshow(
 st.plotly_chart(fig_heatmap, use_container_width=True)
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart explores how employment status relates to respondents’ monthly fashion expenditure.
 
+- Employed respondents, particularly full-time workers, appear more frequently in higher expenditure categories.
+- This reflects greater financial capacity among employed individuals to engage in fashion consumption.
+- The relationship highlights employment status as a key demographic factor influencing spending behaviour on fashion items.
 """)
-st.markdown("---") 
+st.markdown("---")
+ 
 
 # 1️⃣1️⃣ Shopping Influence by Gender
 st.subheader("11. Shopping Influence Factors by Gender")
@@ -371,9 +436,15 @@ st.plotly_chart(fig11, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart compares how different sources influence fashion shopping decisions across genders.
 
+- Female respondents show stronger influence from social sources such as influencers and online communities.
+- Male respondents display a more varied or neutral influence pattern.
+- This suggests that gender differences affect how social recommendations shape online fashion purchasing behaviour.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 
 # 1️⃣2️⃣ Shopping Influence by Monthly Expenditure Level
 st.subheader("12. Shopping Influence by Monthly Expenditure Level")
@@ -392,9 +463,15 @@ st.plotly_chart(fig13, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown("""
+**Context:**  
+This chart analyses how monthly fashion expenditure levels relate to shopping influence sources.
 
+- Higher-spending respondents are more influenced by brand-driven and influencer-related recommendations.
+- Lower-spending respondents rely more on personal judgment or non-commercial sources.
+- This indicates that spending capacity interacts with external influence, reinforcing the link between economic demographics and shopping decisions.
 """)
-st.markdown("---") 
+st.markdown("---")
+
 # gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 # fig12 = px.bar(
 #     gender_expense,
