@@ -296,19 +296,59 @@ st.plotly_chart(fig9, use_container_width=True)
 
 
 # 🔟 Monthly Fashion Expenditure by Employment Status
-st.subheader("10. Monthly Fashion Expenditure by Employment Status")
+#st.subheader("10. Monthly Fashion Expenditure by Employment Status")
 
-fig10 = px.bar(
-    df.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count"),
-    x="Employment Status",
-    y="Count",
-    color="Average Monthly Expenses (RM)",
-    barmode="group",
-    title="Monthly Fashion Expenditure by Employment Status",
-    category_orders={"Average Monthly Expenses (RM)": expense_order}
+#fig10 = px.bar(
+    #df.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count"),
+    #x="Employment Status",
+    #y="Count",
+    #color="Average Monthly Expenses (RM)",
+    #barmode="group",
+    #title="Monthly Fashion Expenditure by Employment Status",
+    #category_orders={"Average Monthly Expenses (RM)": expense_order}
+#)
+#st.plotly_chart(fig10, use_container_width=True)
+
+#st.subheader("📝 Interpretation:")
+#st.markdown("""
+
+#""")
+#st.markdown("---") 
+# 🔟 Monthly Fashion Expenditure by Employment Status (Heatmap)
+st.subheader("10. Monthly Fashion Expenditure by Employment Status (Heatmap)")
+
+# Prepare data
+heatmap_data = (
+    df.groupby(["Employment Status", "Average Monthly Expenses (RM)"])
+      .size()
+      .reset_index(name="Count")
 )
-st.plotly_chart(fig10, use_container_width=True)
 
+# Pivot for heatmap
+heatmap_pivot = heatmap_data.pivot(
+    index="Employment Status",
+    columns="Average Monthly Expenses (RM)",
+    values="Count"
+).fillna(0)
+
+# Ensure correct order of expense categories
+heatmap_pivot = heatmap_pivot[expense_order]
+
+# Plot heatmap
+fig_heatmap = px.imshow(
+    heatmap_pivot,
+    text_auto=True,
+    aspect="auto",
+    color_continuous_scale="Blues",
+    labels=dict(
+        x="Average Monthly Fashion Expenses (RM)",
+        y="Employment Status",
+        color="Number of Respondents"
+    ),
+    title="Monthly Fashion Expenditure by Employment Status"
+)
+
+st.plotly_chart(fig_heatmap, use_container_width=True)
 st.subheader("📝 Interpretation:")
 st.markdown("""
 
