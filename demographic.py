@@ -108,7 +108,7 @@ with col1:
         values='count',
         names='Gender',
         hole=0.4
-        title =1. Pie Chart of Gender Distribution"
+        title ="1. Pie Chart of Gender Distribution"
 
     )
     st.plotly_chart(fig1, use_container_width=True)
@@ -127,7 +127,7 @@ with col1:
         x="Age",
         y="count",
         text_auto=True,
-        title="Age Group Distribution",
+        title="2.Age Group Distribution",
         category_orders={"Age": age_order}
     )
 
