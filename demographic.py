@@ -49,6 +49,10 @@ expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 # ---------------------------------------------------------
 st.title("📊👥 Demographic Analysis")
 # st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
+st.markdown(
+    "This section summarises the demographic profile of the respondents, providing "
+    "background information on the sample characteristics."
+)
 
 st.subheader("🎯 Objective")
 
@@ -92,7 +96,7 @@ col3.metric(
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
-st.header("Section A: Demographic Data Visualisation")
+st.header(" 🧍 Part 1 : Demographic Overview")
 
 col1, col2 = st.columns(2)
 
@@ -217,7 +221,11 @@ st.plotly_chart(fig8, use_container_width=True)
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
 # =========================================================
 st.divider()
-st.header("Section B: Comparative & Behavioural Analysis")
+st.header("📈 Part 2: Demographic–Behavioural Relationships")
+st.markdown(
+    "This section examines how demographic factors are related to fashion awareness, "
+    "spending behaviour, and shopping influences on social media."
+)
 
 awareness_gender = df.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
 fig9 = px.bar(
