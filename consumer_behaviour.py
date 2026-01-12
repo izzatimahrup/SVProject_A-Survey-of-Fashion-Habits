@@ -210,45 +210,66 @@ frequency_labels = {
     4: 'Very often'
 }
 
+# Mapping specific column names to their unique insights based on survey data
+frequency_insights = {
+    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
+    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
+    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
+    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
+    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
+}
+
 ordinal_frequency_cols = [
     col for col in df.columns 
     if col.startswith('Freq_') and col.endswith('_Ordinal')
 ]
 
-# 1. Create the two column objects
+# 2. Create Layout Columns
 col1, col2 = st.columns(2)
 
 if not ordinal_frequency_cols:
-    st.info("No ordinal social media frequency columns found to visualize.")
+    st.info("No frequency data found to visualize.")
 else:
-    # 2. Use enumerate to get the index 'i'
     for i, col in enumerate(ordinal_frequency_cols):
+        # Clean the platform name/activity name for matching
         platform_name = col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
 
+        # Prepare Chart Data
         counts = df[col].value_counts().sort_index().reset_index()
         counts.columns = [col, 'count']
         counts['label'] = counts[col].map(frequency_labels)
 
+        # Create Chart
         fig = px.bar(
             counts,
             x='label',
             y='count',
             text='count',
-            title=f"Frequency of '{platform_name}' on Social Media",
+            title=f"Frequency: '{platform_name}'",
             labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
-            color_discrete_sequence=['#0068c9'] # Matches the blue in your screenshot
+            color_discrete_sequence=['#0068c9']
         )
 
         fig.update_traces(textposition='outside')
-        fig.update_layout(showlegend=False)
+        fig.update_layout(showlegend=False, margin=dict(b=20))
         fig = center_title(fig)
         
+        # 3. Logic to alternate and place Insight below Chart
+        target_col = col1 if i % 2 == 0 else col2
         
-        # 3. Logic to alternate between col1 and col2
-        if i % 2 == 0:
-            col1.plotly_chart(fig, use_container_width=True)
-        else:
-            col2.plotly_chart(fig, use_container_width=True)
+        with target_col:
+            # Display Chart
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Display Specific Quick Insight in a Box
+            with st.container(border=True):
+                st.markdown(f"**Quick Insight: {platform_name}**")
+                # Pull insight from dictionary using the cleaned name
+                insight_text = frequency_insights.get(platform_name, "No specific analysis available for this activity.")
+                st.write(insight_text)
+            
+            # Add vertical spacing for the next row
+            st.write("##")
             
 
 # RELATIONSHIP SCATTER PLOT
