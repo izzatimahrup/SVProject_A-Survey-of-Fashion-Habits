@@ -134,10 +134,13 @@ st.info("""
     3. **Negative correlations** are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others such as active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)
     """)
 
-st.divider()
-st.header("Section C: Activity Level Distribution")
+# --- 1. HELPER FUNCTIONS ---
+def center_title(fig):
+    fig.update_layout(title_x=0.5, title_xanchor='center')
+    return fig
 
-
+# --- 2. DATA CONFIGURATION ---
+# Note: Ensure your 'df' is loaded before this block
 activity_labels = {
     0: 'Very Active', 
     1: 'Active', 
@@ -193,30 +196,30 @@ for i, col in enumerate(ordinal_activity_cols):
     fig.update_layout(showlegend=False, margin=dict(b=20))
     fig = center_title(fig)
 
-    # Determine Column Placement (Alternating)
+    # Determine Column Placement (Alternating between col1 and col2)
     target_col = col1 if i % 2 == 0 else col2
 
     with target_col:
-        # Display the Plotly Chart
+        # 1. Display the Plotly Chart
         st.plotly_chart(fig, use_container_width=True)
         
-        # Display the Interpretation directly below in a container
+        # 2. Display the Interpretation directly below in a container
         with st.container(border=True):
             st.markdown(f"**Quick Insight: {platform_name}**")
-            text = interpretations.get(platform_name, "Analysis data available below.")
+            # Pull text from dictionary, default if name doesn't match
+            text = interpretations.get(platform_name, "Activity data analyzed for this platform.")
             st.write(text)
         
         # Add vertical spacing
         st.write("##")
 
-# --- 5. FINAL KEY FINDINGS (BOTTOM ONLY) ---
+# --- 5. FINAL KEY FINDINGS (OUTSIDE LOOP - BOTTOM ONLY) ---
 st.divider()
 st.info("""
 **Key Findings:**
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
 * **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
 """)
-    
         
         
 # ======================================================
