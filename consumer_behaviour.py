@@ -180,7 +180,7 @@ for i, col in enumerate(ordinal_activity_cols):
     # Determine Column Placement
     target_col = col1 if i % 2 == 0 else col2
 
-    with target_col:
+        with target_col:
         st.plotly_chart(fig, use_container_width=True)
         
         with st.container(border=True):
