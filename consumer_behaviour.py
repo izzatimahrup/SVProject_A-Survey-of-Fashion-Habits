@@ -176,6 +176,30 @@ for i, col in enumerate(ordinal_activity_cols):
         col1.plotly_chart(fig, use_container_width=True)
     else:
         col2.plotly_chart(fig, use_container_width=True)
+        
+with left_info:
+    st.info("### 📱 High-Engagement Platforms")
+    st.write("""
+    **Instagram** emerges as the leader for high-frequency engagement:
+    * It has the highest count of **'Very Active'** (35) and **'Active'** (37) users combined.
+    * This indicates that Instagram is likely the primary 'daily' app for fashion consumers.
+    
+    **Pinterest** shows a unique 'Discovery' pattern:
+    * The majority of users fall into **'Sometimes Active'** (41). 
+    * This suggests users visit Pinterest for specific inspiration rather than constant daily scrolling.
+    """)
+
+with right_info:
+    st.warning("### 📉 Low-Engagement & Emerging Platforms")
+    st.write("""
+    **Facebook** shows a shift toward casual usage:
+    * It has the lowest **'Very Active'** segment (only 7 respondents).
+    * Most users are now **'Sometimes Active'** (42), suggesting it is no longer the primary hub for this demographic.
+    
+    **Threads** exhibits a polarized user base:
+    * While it has a decent 'Active' base (30), it also has the highest **'Inactive'** count (36).
+    * This indicates Threads is still in a 'trial' phase for many fashion consumers.
+    """)
 
 # ======================================================
 # SECTION D
