@@ -127,30 +127,16 @@ fig2 = center_title(fig2)
 
 st.plotly_chart(fig2, use_container_width=True)
 
-with st.expander("📌 Platform-Specific Synergy", expanded=True):
-    st.write("""
-    **Positive correlations exist between activities on the same platforms.**
-    For example, users who are highly active on **Instagram** are significantly more likely to engage in 
-    platform-specific tasks such as reading posts or viewing stories. This suggests a deep, focused engagement 
-    within individual ecosystems.
-    """)
-
-# 2. Cross-Platform Social Behaviors
-st.success("""
-**🤝 High Social Engagement Patterns**
-Behaviors like **frequent sharing or commenting** show a strong positive correlation across various activities:
-* Commenting on posts correlates strongly with **sharing posts**.
-* High engagement in discussions often leads to **uploading pictures or videos**.
-* This indicates a "Socially Active" user segment that interacts heavily regardless of the content type.
-""")
-
-# 3. Platform Rivalry (Negative Correlations)
-st.warning("""
-**⚔️ Platform Displacement Effects**
-We observe **negative correlations** between certain platforms, suggesting a "time-budget" effect:
-* High activity on one platform often leads to **lower activity on others**.
-* **Example:** Active Facebook usage shows a negative correlation with activity on newer, visual-heavy platforms like **TikTok** or **Pinterest**.
-""")
+c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        st.info("**Platform Loyalty**\n\nPositive correlations exist between activities on the same platforms (e.g., higher activity on Instagram correlates with higher engagement in Instagram tasks).")
+    
+    with c2:
+        st.success("**Social Synergy**\n\nBehaviors like sharing or commenting correlate strongly across platforms, indicating a 'Socially Active' user segment.")
+    
+    with c3:
+        st.warning("**Displacement Effect**\n\nNegative correlations suggest high activity on one platform (like Facebook) may correlate with lower activity on others (like TikTok).")
 
 # ======================================================
 # SECTION C
