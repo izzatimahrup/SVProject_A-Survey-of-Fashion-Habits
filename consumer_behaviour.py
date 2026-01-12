@@ -134,7 +134,6 @@ st.info("""
     3. **Negative correlations** are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others such as active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)
     """)
 
-   -- SECTION C: ACTIVITY LEVEL CLEAN VERSION ---
 
 # 1. Configuration
 activity_labels = {
