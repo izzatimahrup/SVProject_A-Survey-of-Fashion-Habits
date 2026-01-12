@@ -70,7 +70,10 @@ with col2:
         """
     )
 
-    st.markdown("🔗 **[View the original survey questionnaire]**")
+st.markdown(
+    "🔗 **[View the original survey questionnaire]**"
+    "(https://forms.gle/y8DT7eQfJXB7f7qY9)"
+)
 
 st.write("") # Just some spacing
 
