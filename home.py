@@ -59,20 +59,18 @@ with col1:
     st.markdown("👥 **Focus:** Young Adults & Adults")
 
 with col2:
-    st.markdown(
-        """
-        The data was gathered via **Google Forms** and distributed through a 
-        network of **WhatsApp groups and personal contacts**. 
- 
-        Participation was **voluntary**, responses were **anonymous**, and the data was used 
-        strictly for **academic purposes**, ensuring ethical research practices.
-    
-        This method allowed us to capture a snapshot of the most active social media users 
-        who are shaping the future of online fashion engagement.
-        
-        🔗 **[Click here to view the original Survey] https://forms.gle/y8DT7eQfJXB7f7qY9 **
-        """
-    )
+st.markdown(
+    """
+    The data was gathered via **Google Forms** and distributed through a network of 
+    **WhatsApp groups and personal contacts**. The survey consists of **29 structured questions**, 
+    primarily measured using **5-point Likert scales**.
+
+    Participation was **voluntary**, responses were **anonymous**, and the data was used 
+    strictly for **academic purposes**, ensuring ethical research practices.
+    """
+)
+
+st.markdown("🔗 **[View the original survey questionnaire]**")
 
 st.write("") # Just some spacing
 
