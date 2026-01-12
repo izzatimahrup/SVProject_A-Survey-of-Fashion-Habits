@@ -192,7 +192,6 @@ for i, col in enumerate(ordinal_activity_cols):
         st.write("##")
 
 # 5. Final Key Findings (Bottom of Section C)
-st.divider()
 st.info("""
 **Key Findings:**
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
@@ -272,7 +271,6 @@ else:
                 st.write(insight_text)
             st.write("##")
 
-st.divider()
 st.info("""
 **Key Findings:**
 * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
