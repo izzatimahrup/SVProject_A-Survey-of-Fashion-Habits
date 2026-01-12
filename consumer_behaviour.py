@@ -279,9 +279,11 @@ st.info("""
 * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment..
 """)
             
+# ======================================================
+# SECTION E
+# ======================================================
+st.header("Section E: Cross Platform Connection")
 
-# RELATIONSHIP SCATTER PLOT
-# ------------------------------------------------------
 x_col = 'Active_Instagram_Ordinal'
 y_col = 'Active_Tiktok_Ordinal'
 
