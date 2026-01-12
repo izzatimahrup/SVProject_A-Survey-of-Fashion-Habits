@@ -137,11 +137,16 @@ st.info("""
 st.divider()
 st.header("Section C: Activity Level Distribution")
 
-activity_labels = {
-    0: 'Very Active',
-    1: 'Active',
-    2: 'Sometimes Active',
-    3: 'Inactive'
+activity_labels = {0: 'Very Active', 1: 'Active', 2: 'Sometimes Active', 3: 'Inactive'}
+
+# Convert list to a dictionary for easy lookup during the loop
+interpretations = {
+    "Instagram": "Instagram leads the survey with 35 'Very Active' users. This confirms its status as the primary destination for daily fashion inspiration and real-time trend tracking.",
+    "TikTok": "TikTok shows a high 'Active' count (38.6%), dominating the short-form video space. Users here engage deeply with viral challenges and fashion hauls.",
+    "Facebook": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends.",
+    "Pinterest": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction.",
+    "Threads": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits.",
+    "YouTube": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."
 }
 
 ordinal_activity_cols = [
@@ -149,66 +154,48 @@ ordinal_activity_cols = [
     if col.startswith('Active_') and col.endswith('_Ordinal')
 ]
 
-# Display charts in 2 columns like reference
+# 2. Create Layout Columns
 col1, col2 = st.columns(2)
 
+# 3. Single Loop for Chart + Interpretation
 for i, col in enumerate(ordinal_activity_cols):
     platform_name = col.replace('Active_', '').replace('_Ordinal', '')
 
+    # Prepare Chart Data
     counts = df[col].value_counts().sort_index().reset_index()
     counts.columns = [col, 'count']
     counts['label'] = counts[col].map(activity_labels)
 
+    # Create Chart
     fig = px.bar(
         counts,
         x='label',
         y='count',
         text='count',
-        title=f"Distribution of Activity Levels on {platform_name}",
-        labels={'label': 'Activity Level', 'count': 'Number of Respondents'}
+        title=f"Activity Distribution: {platform_name}",
+        labels={'label': 'Activity Level', 'count': 'Number of Respondents'},
+        template="plotly_white"
     )
-
-    fig.update_traces(textposition='outside')
-    fig.update_layout(showlegend=False)
+    fig.update_traces(textposition='outside', marker_color='#0068c9')
+    fig.update_layout(showlegend=False, margin=dict(b=20))
     fig = center_title(fig)
 
-    if i % 2 == 0:
-        col1.plotly_chart(fig, use_container_width=True)
-    else:
-        col2.plotly_chart(fig, use_container_width=True)
+    # Determine Column Placement
+    target_col = col1 if i % 2 == 0 else col2
 
-st.header("📊 Detailed Platform Interpretation")
-
-# Define your interpretations in a list of dictionaries
-platform_data = [
-    {"name": "Instagram", "level": "Very Active", "text": "Instagram leads the survey with 35 'Very Active' users. This confirms its status as the primary destination for daily fashion inspiration and real-time trend tracking."},
-    {"name": "TikTok", "level": "Active", "text": "TikTok shows a high 'Active' count (38.6%), dominating the short-form video space. Users here engage deeply with viral challenges and fashion hauls."},
-    {"name": "Facebook", "level": "Sometimes Active", "text": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends."},
-    {"name": "Pinterest", "level": "Sometimes Active", "text": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction."},
-    {"name": "Threads", "level": "Inactive", "text": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits."},
-    {"name": "YouTube", "level": "Active", "text": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."}
-]
-
-# Create the 3-column grid
-col1, col2, col3 = st.columns(3)
-
-# Distribute the 6 paragraphs into the columns
-for i, platform in enumerate(platform_data):
-    # Determine which column to place the paragraph in
-    if i % 3 == 0:
-        target_col = col1
-    elif i % 3 == 1:
-        target_col = col2
-    else:
-        target_col = col3
-    
     with target_col:
-        # Use a consistent styling for each "paragraph box"
-        st.markdown(f"### {platform['name']}")
-        st.caption(f"**Primary Level: {platform['level']}**")
-        st.write(platform['text'])
-        st.markdown("---") # Visual separator for the next row
-
+        # Display the Plotly Chart
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Display the Interpretation directly below
+        with st.container(border=True):
+            st.markdown(f"**Quick Insight: {platform_name}**")
+            # Get the text from our dictionary, default to a placeholder if not found
+            text = interpretations.get(platform_name, "No specific interpretation data available for this platform.")
+            st.write(text)
+        
+        # Add spacing before the next row
+        st.write("##")
 # ======================================================
 # SECTION D
 # ======================================================
