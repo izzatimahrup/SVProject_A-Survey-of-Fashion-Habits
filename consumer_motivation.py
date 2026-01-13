@@ -136,10 +136,12 @@ st.header("Section B: Deep Dive into Motivations")
 st.write("Analyzing the overall percentage distribution of agreement for each motivation.")
 
 # --- 1. Data Preparation for Stacked Bar ---
-# Map Likert numbers to labels
 likert_labels = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
 plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
-colors_list = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+
+# Generate 5 colors from the Plasma scale
+# We sample at 0, 0.25, 0.5, 0.75, and 1.0 to get the full range
+plasma_colors = px.colors.sample_colorscale("Plasma", [0, 0.25, 0.5, 0.75, 1.0])
 
 pct_list = []
 for col in motivation_cols:
@@ -151,14 +153,14 @@ for col in motivation_cols:
 df_pct = pd.DataFrame(pct_list, index=motivation_cols, columns=plot_columns).reset_index()
 df_pct = df_pct.rename(columns={'index': 'Motivation'})
 
-# --- 2. Create Plotly Stacked Bar Chart ---
+# --- 2. Create Plotly Stacked Bar Chart with Plasma Colors ---
 fig_stacked = px.bar(
     df_pct, 
     y="Motivation", 
     x=plot_columns,
-    title="Percentage Distribution of Responses",
+    title="Percentage Distribution of Responses (Plasma Scale)",
     orientation='h',
-    color_discrete_sequence=colors_list,
+    color_discrete_sequence=plasma_colors, # Applied Plasma scale here
     text_auto='.1f'
 )
 
@@ -168,7 +170,8 @@ fig_stacked.update_layout(
     legend_title="Response",
     barmode='stack',
     height=500,
-    xaxis_range=[0, 100]
+    xaxis_range=[0, 100],
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
 
 st.plotly_chart(center_title(fig_stacked), use_container_width=True)
@@ -187,18 +190,18 @@ col_left, col_right = st.columns(2)
 with col_left:
     st.success(f"**Highest Agreement:** '{top_positive['Motivation']}' has the highest positive sentiment at **{top_positive['Positive']:.1f}%**.")
     st.write("""
-        The high concentration of green segments suggests these factors are the core drivers of brand following. 
-        Marketing strategies should focus on reinforcing these established strengths.
+        The color intensity in the chart (moving from dark purple to bright yellow) visualizes the shift from 
+        disagreement to strong agreement. The dominance of lighter shades indicates a highly motivated follower base.
     """)
 
 with col_right:
     # Logic for transactional vs aesthetic trends
-    if "Updates & Promotions" in top_positive['Motivation'] or "Discounts" in top_positive['Motivation']:
+    if any(keyword in top_positive['Motivation'] for keyword in ["Updates", "Promotions", "Discounts", "Contests"]):
         trend_type = "Transactional"
-        trend_desc = "Your audience follows brands primarily for immediate, tangible rewards and efficiency."
+        trend_desc = "Consumers are primarily motivated by functional benefits and rewards."
     else:
-        trend_type = "Aesthetic/Loyalty"
-        trend_desc = "Your audience is driven by the visual 'vibe' and emotional connection to the brand identity."
+        trend_type = "Relational/Aesthetic"
+        trend_desc = "Consumers are driven by emotional connection, style, and brand identity."
     
     st.info(f"**Dominant Trend:** {trend_type}")
     st.write(trend_desc)
