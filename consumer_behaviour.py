@@ -222,14 +222,13 @@ frequency_cols = [
 ]
 
 # Create df_melted_frequency for the Box Plot
-# We clean the names here so they match your 'frequency_insights' keys
 df_melted_frequency = df.melt(
     value_vars=frequency_cols,
     var_name='Activity_Type',
     value_name='Frequency_Level'
 )
 
-# Clean the Activity_Type strings to match your labels/insights
+# Clean the Activity_Type strings for display
 df_melted_frequency['Activity_Type'] = df_melted_frequency['Activity_Type'].str.replace('Freq_', '').str.replace('_Ordinal', '').str.replace('_', ' ')
 
 # --- 2. MAPPINGS ---
@@ -241,13 +240,14 @@ frequency_labels = {
     4: 'Very often'
 }
 
-frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
-    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
-    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
-}
+# Used primarily for the filter options and ordering
+activity_list = [
+    "Read posts or articles", 
+    "Watch videos", 
+    "Comment on posts", 
+    "Share posts or photos", 
+    "Upload pictures or videos"
+]
 
 # --- 3. IN-PAGE FILTERING ---
 st.subheader("Social Media Activity Frequency Analysis")
@@ -255,8 +255,8 @@ st.subheader("Social Media Activity Frequency Analysis")
 # Filter selection directly on page
 selected_activities = st.multiselect(
     "Filter Activities:",
-    options=list(frequency_insights.keys()),
-    default=list(frequency_insights.keys())
+    options=activity_list,
+    default=activity_list
 )
 
 # Apply Filter
@@ -274,8 +274,8 @@ if not filtered_df.empty:
         hue='Activity_Type',
         palette='viridis',
         legend=False,
-        # Ensure the order respects the selection
-        order=[a for a in frequency_insights.keys() if a in selected_activities]
+        # Ensure the order respects the original list and selection
+        order=[a for a in activity_list if a in selected_activities]
     )
 
     # Set Y-Axis labels to your custom frequency labels
@@ -287,28 +287,15 @@ if not filtered_df.empty:
     plt.ylabel('Frequency Level', fontsize=12)
     plt.xticks(rotation=45, ha='right', fontsize=10)
     
+    # Render the plot
     st.pyplot(fig)
 else:
     st.warning("Please select at least one activity type.")
 
 st.divider()
 
-# --- 5. STRUCTURED INSIGHTS (Matching your Column Layout) ---
-col1, col2 = st.columns(2)
-
-for i, activity in enumerate(selected_activities):
-    # Alternate between column 1 and column 2
-    target_col = col1 if i % 2 == 0 else col2
-    
-    with target_col:
-        # Display Insight in a Box
-        with st.container(border=True):
-            st.markdown(f"**Quick Insight: {activity}**")
-            insight_text = frequency_insights.get(activity, "No specific analysis available.")
-            st.write(insight_text)
-        st.write("##") # Space between items
-
-# --- 6. KEY FINDINGS ---
+# --- 5. KEY FINDINGS ---
+# Section 5 (Quick Insights) has been removed as requested.
 st.info("""
 **Key Findings:**
 * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
