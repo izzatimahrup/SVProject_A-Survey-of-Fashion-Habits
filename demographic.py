@@ -111,9 +111,12 @@ fig1 = px.pie(
     values='count',
     names='Gender',
     hole=0.4,
-    title="Gender Distribution of Respondents"
+    title="Gender Distribution of Respondents",
+    # Add custom hover data
+    hover_data=['count'], 
+    labels={'count': 'Total Participants'}
 )
-st.plotly_chart(fig1, use_container_width=True)
+fig1.update_traces(textinfo='percent+label', hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}')
 
 st.subheader("📝 Interpretation:")
 st.markdown(""" 
