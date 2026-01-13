@@ -389,7 +389,7 @@ fig6.update_traces(
 )
 
 fig6.update_layout(
-    bargap=0.4
+    bargap=0.4,
     yaxis_range=[0, awareness_counts["Count"].max() * 1.2],
     title_x=0, 
     height=400, 
@@ -430,10 +430,11 @@ fig7.update_traces(
 )
 
 fig7.update_layout(
+    bargap=0.4,
     yaxis={'categoryorder': 'total ascending'}, 
     title_x=0, 
     height=500,
-    coloraxis_showscale=False, # Hides the sidebar for a cleaner look
+    coloraxis_showscale=False, 
     xaxis_range=[0, influence_counts["Count"].max() * 1.3], # Headroom for text
     margin=dict(l=0, r=100),
     xaxis_title="Total Respondents",
