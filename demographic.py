@@ -818,63 +818,51 @@ fig12 = px.bar(
     title=f"Influence Factors for {expense_choice}"
 )
 
-# Keep the layout clean
 fig12.update_layout(yaxis={'categoryorder':'total ascending'})
 st.plotly_chart(fig12, use_container_width=True)
 
 
-# --- Figure 9: Fashion Awareness ---
-# We add hover_data to show clean labels and hide the internal color logic
-fig9 = px.bar(
-    fig9_data, 
-    x="Gender", 
-    y="Count", 
-    color=color_col if gender_choice != "All" else "Awareness Label",
-    color_discrete_map=color_mapping,
-    category_orders={"Awareness Label": ["5 - Extremely aware", "4 - Very aware", "3 - Moderately aware", "2 - Slightly aware", "1 - Not aware at all"]},
-    barmode="stack",
-    title=f"Awareness Levels: {gender_choice} Participants",
-    hover_data={"Gender": True, "Count": True, "Awareness Label": True} # Clean Tooltip
-)
-# Hide the 'Color_Key' from appearing in the tooltip if specific gender is selected
-if gender_choice != "All":
-    fig9.update_traces(hovertemplate="<b>%{x}</b><br>Level: %{fullData.name}<br>Count: %{y}<extra></extra>")
+# ==========================================
+# SECTION B: EXPENDITURE FOCUS
+# ==========================================
+st.subheader("📍 Section B: Expenditure & Employment Trends")
 
-st.plotly_chart(fig9, use_container_width=True)
+# Define the Orange/Terra Cotta Palette
+exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
+solid_orange = ["#F57C00"]
 
+# Re-establish expense choice
+rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
+expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_sec_b")
 
-# --- Figure 10: Shopping Influence ---
-fig10 = px.bar(
-    fig10_data, 
-    x="Influence on Shopping", 
-    y="Count", 
-    color="Gender",           
-    barmode='group',          
-    color_discrete_map=color_map,
-    title=f"Influence Factors: Comparison for {gender_choice}",
-    hover_name="Gender" # Shows Gender at the top of the tooltip
-)
-fig10.update_traces(hovertemplate="<b>%{hovertext}</b><br>Factor: %{x}<br>Respondents: %{y}<extra></extra>")
+df_expense = df.copy()
+if expense_choice != "All":
+    actual_val = expense_choice.replace("RM ", "")
+    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_val]
 
-st.plotly_chart(fig10, use_container_width=True)
+# 11. Distribution by Employment
+st.subheader("11. Spending Power by Employment")
+fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
-
-# --- Figure 11: Treemap Spending ---
 if not fig11_data.empty:
+    path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
     fig11 = px.treemap(
         fig11_data,
         path=path_logic,
         values="Count",
         color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
-        color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_color,
+        color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
         title=f"Spending Power Distribution: {expense_choice}"
     )
-    # Customizing Treemap Tooltip
-    fig11.update_traces(hovertemplate="<b>%{label}</b><br>Respondents: %{value}<extra></extra>")
+    fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
 
+# 12. Influence by Spending Level
+st.subheader("12. Influence by Spending Level")
+fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
-# --- Figure 12: Influence by Spending ---
 fig12 = px.bar(
     fig12_data, 
     x="Count", 
@@ -882,10 +870,14 @@ fig12 = px.bar(
     color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
     orientation='h', 
     barmode='stack',
-    color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_color,
-    title=f"Influence for {expense_choice} Category",
-    hover_data={"Influence on Shopping": True, "Count": True}
+    text_auto=True,
+    color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
+    title=f"Influence for {expense_choice} Category"
 )
-fig12.update_traces(hovertemplate="Category: %{fullData.name}<br>Factor: %{y}<br>Count: %{x}<extra></extra>")
 
+fig12.update_layout(
+    yaxis={'categoryorder':'total ascending'},
+    legend={'traceorder': 'normal'}
+)
+fig12.update_traces(hovertemplate="Level: %{fullData.name}<br>Factor: %{y}<br>Total: %{x}<extra></extra>")
 st.plotly_chart(fig12, use_container_width=True)
