@@ -313,13 +313,13 @@ fig5 = px.bar(
     x='Expense',
     y='pct',
     color='pct',
-    color_continuous_scale=['#F3E5F5', '#AB47BC', '#4A148C'], 
+    color_continuous_scale=['#B2DFDB', '#4DB6AC', '#263238'],
     title="Monthly Fashion Expenditure (%)",
     category_orders={"Expense": expense_order}
 )
 
 fig5.update_traces(width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside')
-fig5.update_layout(title_x=0, height=450, coloraxis_showscale=False, yaxis_title="Percentage (%)")
+fig5.update_layout(title_x=0, height=400, coloraxis_showscale=False, yaxis_title="Percentage (%)")
 
 st.plotly_chart(fig5, use_container_width=True)
 
