@@ -117,6 +117,7 @@ fig1 = px.pie(
     labels={'count': 'Total Participants'}
 )
 fig1.update_traces(textinfo='percent+label', hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}')
+st.plotly_chart(fig1, use_container_width=True)
 
 st.subheader("📝 Interpretation:")
 st.markdown(""" 
