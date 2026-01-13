@@ -135,69 +135,6 @@ st.info("""
     """)
 
 
-# 1. Configuration
-activity_labels = {
-    0: 'Very Active', 
-    1: 'Active', 
-    2: 'Sometimes Active', 
-    3: 'Inactive'
-}
-
-interpretations = {
-    "Instagram": "Instagram is a top-tier fashion hub, showing the most balanced high-engagement profile. With roughly 35 'Very Active' and 37 'Active' users, it serves as the consistent daily 'go-to' platform for broad fashion inspiration.",
-    "TikTok": "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends.",
-    "Facebook": "Facebook peaks at 42 'Sometimes Active' users. It has transitioned into a secondary platform where users check for community updates rather than daily trends.",
-    "Pinterest": "Pinterest is a 'Discovery' hub with 41 'Sometimes Active' users. It serves as a digital mood board for planning future purchases rather than immediate interaction.",
-    "Threads": "Threads has the highest 'Inactive' count (36). While linked to Instagram, many users have yet to integrate it into their daily fashion browsing habits.",
-    "YouTube": "YouTube maintains a steady 'Active' base. It remains the go-to for long-form content, such as deep-dive brand reviews and sustainable fashion documentaries."
-}
-
-# 2. Identify Columns
-ordinal_activity_cols = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
-
-st.header("Section C: Activity Level Distribution")
-
-# 3. Create Columns for Layout
-c1, c2 = st.columns(2)
-
-# 4. Loop for Charts and Insights
-for i, col in enumerate(ordinal_activity_cols):
-    p_name = col.replace('Active_', '').replace('_Ordinal', '')
-    
-    # Data aggregation
-    counts = df[col].value_counts().sort_index().reset_index()
-    counts.columns = [col, 'count']
-    counts['label'] = counts[col].map(activity_labels)
-    
-    # Chart Creation
-    fig = px.bar(
-        counts, 
-        x='label', 
-        y='count', 
-        text='count', 
-        title=f"Activity: {p_name}",
-        template="plotly_white"
-    )
-    fig.update_traces(textposition='outside', marker_color='#0068c9')
-    fig.update_layout(margin=dict(b=20), showlegend=False)
-    
-    # Alternate between columns
-    target = c1 if i % 2 == 0 else c2
-    
-    with target:
-        st.plotly_chart(fig, use_container_width=True)
-        with st.container(border=True):
-            st.markdown(f"**Quick Insight: {p_name}**")
-            st.write(interpretations.get(p_name, "TikTok dominates high-intensity engagement, with a massive 63 respondents identifying as 'Very Active.' It is the clear powerhouse for viral fashion content and fast-paced consumer trends."))
-        st.write("##")
-
-# 5. Final Key Findings (Bottom of Section C)
-st.info("""
-**Key Findings:**
-* **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
-* **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
-""")
-
 # ======================================================
 # SECTION C: ACTIVITY LEVEL DISTRIBUTION
 # ======================================================
@@ -284,83 +221,71 @@ st.info("""
 """)
         
 # ======================================================
-# SECTION D
+# SECTION D: DISTRIBUTION OF FREQUENCY LEVELS
 # ======================================================
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
+# 1. Prepare Data for Box Plot
+# Identify frequency columns (adjust keywords if your column names differ)
+freq_cols = [col for col in df.columns if col.startswith('Freq_') and col.endswith('_Ordinal')]
 
-# --- 1. SET PAGE CONFIG ---
-st.set_page_config(page_title="Social Media Analytics", layout="wide")
+# Melt the dataframe for categorical plotting
+df_melted_freq = df.melt(
+    value_vars=freq_cols,
+    var_name='Activity_Type',
+    value_name='Frequency_Level'
+)
 
-# --- 2. DEFINE DATA (df_melted_frequency) ---
-@st.cache_data
-def load_data():
-    activities = ['Likes', 'Shares', 'Comments', 'Posts', 'Direct Messages']
-    # Generating dummy data using Python's native random module
-    data = {
-        'Activity_Type': [random.choice(activities) for _ in range(500)],
-        'Frequency_Level': [random.randint(1, 100) for _ in range(500)]
-    }
-    df = pd.DataFrame(data)
-    # Ensuring Activity_Type is categorical
-    df['Activity_Type'] = pd.Categorical(df['Activity_Type'], categories=activities)
-    return df
+# Clean labels (e.g., 'Freq_Likes_Ordinal' -> 'Likes')
+df_melted_freq['Activity_Type'] = df_melted_freq['Activity_Type'].str.replace('Freq_', '').str.replace('_Ordinal', '')
 
-df_melted_frequency = load_data()
-
-# --- 3. UI STRUCTURE (In-Page Filtering) ---
-st.title("📊 Social Media Activity Dashboard")
+# 2. Interactive Filtering
 st.markdown("Filter the activity types below to update the box plot visualization.")
+all_activities = df_melted_freq['Activity_Type'].unique().tolist()
+selected_activities = st.multiselect(
+    'Select Activity Types:',
+    options=all_activities,
+    default=all_activities
+)
 
-# UI Container for filters
-filter_container = st.container()
+filtered_df = df_melted_freq[df_melted_freq['Activity_Type'].isin(selected_activities)]
 
-with filter_container:
-    # Use columns to keep the UI tight and professional
-    col1, _ = st.columns([2, 1])
-    with col1:
-        # Get list of categories
-        all_activities = df_melted_frequency['Activity_Type'].unique().tolist()
-        
-        selected_activities = st.multiselect(
-            'Select Activity Types:',
-            options=all_activities,
-            default=all_activities
-        )
-
-# --- 4. FILTERING LOGIC ---
-# Standard pandas filtering (no numpy needed)
-filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(selected_activities)]
-
-# --- 5. PLOTTING ---
+# 3. Create Plotly Box Plot
 if not filtered_df.empty:
-    sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 7))
-    
-    # Plotting using your logic
-    sns.boxplot(
-        data=filtered_df,
+    # We use plotly express for a cleaner, interactive boxplot
+    fig4 = px.box(
+        filtered_df,
         x='Activity_Type',
         y='Frequency_Level',
-        hue='Activity_Type',
-        palette='viridis',
-        legend=False,
-        # Dynamically adjust the order based on selection
-        order=[cat for cat in df_melted_frequency['Activity_Type'].cat.categories if cat in selected_activities],
-        ax=ax
+        color='Activity_Type',
+        color_discrete_sequence=px.colors.sequential.Viridis,
+        title='Distribution of Social Media Activity Frequencies (Box Plot)'
     )
 
-    plt.title('Distribution of Social Media Activity Frequencies', fontsize=16)
-    plt.xlabel('Social Media Activity Type', fontsize=12)
-    plt.ylabel('Frequency Level', fontsize=12)
-    plt.xticks(rotation=45, ha='right', fontsize=10)
-    plt.yticks(fontsize=10)
+    fig4.update_layout(
+        xaxis_title="Social Media Activity Type",
+        yaxis_title="Frequency Level (Lower = More Frequent)",
+        showlegend=False,
+        template="plotly_white"
+    )
     
-    # Render plot
-    st.pyplot(fig)
+    # Center the title using your helper function
+    fig4 = center_title(fig4)
+    
+    st.plotly_chart(fig4, use_container_width=True)
+    
+    st.info("""
+    **Understanding the Box Plot:**
+    The chart above displays the spread of engagement frequencies. 
+    * **The Box:** Represents the Interquartile Range (IQR) where the middle 50% of responses lie.
+    * **The Line:** The horizontal line inside the box represents the **Median** frequency.
+    * **Points:** Dots outside the whiskers indicate outliers or niche user behaviors.
+    """)
+    
 else:
-    st.warning("No data selected. Please pick at least one activity type from the filter above.")
+    st.warning("Please select at least one activity type to display the visualization.")
+    
 # ======================================================
 # SECTION E
 # ======================================================
