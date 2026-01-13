@@ -1,5 +1,5 @@
 # =========================================================
-# STREAMLIT APP: Interactive Fashion Analysis (Plotly)
+# DEMOGRAPHIC INFORMATION SECTION - IZZATI 
 # =========================================================
 
 import streamlit as st
@@ -45,62 +45,7 @@ education_order = [
 
 expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 
-# ---------------------------------------------------------
-# 3. REGIONAL DISTRIBUTION
-# ---------------------------------------------------------
-st.subheader("3. Regional Distribution of Respondents")
 
-# 1. Prepare Data
-region_counts = df["Region"].value_counts().reset_index()
-region_counts.columns = ["Region", "Count"]
-
-# Calculate percentages for the tooltip
-total_n = region_counts["Count"].sum()
-region_counts["Percentage"] = (region_counts["Count"] / total_n) * 100
-
-# e Bar Chart
-fig3 = px.bar(
-    region_counts,
-    x='Region',
-    y='Count',
-    color='Region',
-    color_discrete_map={'East Malaysia': '#E67E22', 'West Malaysia': '#C0392B'},
-    title="Geographic Representation: East vs. West Malaysia",
-    text_auto=True
-)
-
-# Hover and tooltip
-fig3.update_traces(
-    width=0.5,
-    textposition='outside',
-    hovertemplate="""
-    <b>Region:</b> %{x}<br>
-    <b>Respondents:</b> %{y}<br>
-    <b>Percentage:</b> %{customdata:.1f}%<br>
-    <extra></extra>
-    """,
-    customdata=region_counts["Percentage"] # Pass the percentage to the tooltip
-)
-
-fig3.update_layout(
-    height=400,
-    title_x=0,
-    xaxis_title=None,
-    yaxis_title="Total Respondents",
-    showlegend=False,
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(size=14)
-)
-
-st.plotly_chart(fig3, use_container_width=True)
-
-st.info("""
-📝 Interpretation:
-
-""")
-
-st.markdown("---")
 # ---------------------------------------------------------
 # Page Title & Description
 # ---------------------------------------------------------
@@ -159,7 +104,7 @@ st.markdown(
     "background information on the sample characteristics."
 )
 
-# 1️⃣ Gender and Age Distribution 
+# Gender and Age Distribution 
 st.subheader("1. Gender and Age Composition ")
 st.markdown(" 💡 Use the filters below to refine the demographic breakdown.")
 # 2 columns for the filters
@@ -190,7 +135,7 @@ df_filtered = df[
 df_filtered["Gender"] = df_filtered["Gender"].apply(lambda x: f"<b>{x}</b>")
 
 # Sunburst Chart for Gender and Age
-fig_sun = px.sunburst(
+fig1 = px.sunburst(
     df_filtered,
     path=["Gender", "Age"], 
     values=None,           
@@ -200,7 +145,7 @@ fig_sun = px.sunburst(
 )
 
 # hover and tooltip
-fig_sun.update_traces(
+fig1.update_traces(
     textinfo="label+percent entry", 
     marker=dict(line=dict(color='#FFFFFF', width=2)), # Appealing white border
     hovertemplate="""
@@ -211,13 +156,13 @@ fig_sun.update_traces(
     """
 )
 
-fig_sun.update_layout(
+fig1.update_layout(
     margin=dict(t=40, l=0, r=0, b=0),
     height=400,
     paper_bgcolor='rgba(0,0,0,0)', 
 )
 
-st.plotly_chart(fig_sun, use_container_width=True)
+st.plotly_chart(fig1, use_container_width=True)
 st.info("""
 📝 Interpretation:
 
@@ -226,9 +171,62 @@ st.info("""
 
 st.markdown("---") 
 
+# 2. Region Distribution
+st.subheader("3. Regional Distribution of Respondents")
 
+# 1. Prepare Data
+region_counts = df["Region"].value_counts().reset_index()
+region_counts.columns = ["Region", "Count"]
 
-# 4️⃣ Education Level Distribution
+# Calculate percentages for the tooltip
+total_n = region_counts["Count"].sum()
+region_counts["Percentage"] = (region_counts["Count"] / total_n) * 100
+
+# Bar Chart
+fig2 = px.bar(
+    region_counts,
+    x='Region',
+    y='Count',
+    color='Region',
+    color_discrete_map={'East Malaysia': '#E67E22', 'West Malaysia': '#C0392B'},
+    title="Geographic Representation: East vs. West Malaysia",
+    text_auto=True
+)
+
+# Hover and tooltip
+fig2.update_traces(
+    width=0.5,
+    textposition='outside',
+    hovertemplate="""
+    <b>Region:</b> %{x}<br>
+    <b>Respondents:</b> %{y}<br>
+    <b>Percentage:</b> %{customdata:.1f}%<br>
+    <extra></extra>
+    """,
+    customdata=region_counts["Percentage"] # Pass the percentage to the tooltip
+)
+
+fig2.update_layout(
+    height=450,
+    title_x=0,
+    xaxis_title=None,
+    yaxis_title="Total Respondents",
+    showlegend=False,
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(size=14)
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+
+""")
+
+st.markdown("---")
+
+# 3. Education Level Distribution
 st.subheader("4. Education Level Distribution of Respondents")
 
 edu_counts = (
