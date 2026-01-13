@@ -21,7 +21,7 @@ demographic_izzati = st.Page(
     "demographic.py",
     title="Demographic Information",
     icon="👥",
-    url_path="izzati"
+    url_path="Demographic_Information/Izzati"
 )
 
 consumer_behaviour_hanis = st.Page(
