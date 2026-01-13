@@ -316,44 +316,55 @@ st.info("""
 # 5. Monthly Fashion Expenditure
 st.subheader("5. Monthly Fashion Expenditure Distribution")
 
+
 expense_counts = df["Average Monthly Expenses (RM)"].value_counts().reindex(expense_order).reset_index()
 expense_counts.columns = ["Expense", "Count"]
 expense_counts['pct'] = (expense_counts['Count'] / expense_counts['Count'].sum()) * 100
 
+
+expense_rank_map = {val: i for i, val in enumerate(expense_order)}
+expense_counts['rank'] = expense_counts['Expense'].map(expense_rank_map)
+
 fig5 = px.bar(
     expense_counts,
     x='Expense',
-    y='pct',
-    color='pct',
-    color_continuous_scale=['#B2DFDB', '#4DB6AC', '#263238'],
-    title="Monthly Fashion Expenditure (%)",
+    y='Count',
+    color='rank', 
+    color_continuous_scale=['#B2DFDB', '#4DB6AC', '#00796B', '#004D40'], 
+    title="Monthly Fashion Expenditure (Respondents by Category)",
     category_orders={"Expense": expense_order}
 )
 
-
 fig5.update_traces(
-    texttemplate='<b>%{y:.1f}%</b>', 
+    texttemplate='<b>%{y}</b>', 
     textposition='outside',
-    cliponaxis=False
+    cliponaxis=False,
+    hovertemplate="""
+    <b>Spending Range:</b> RM %{x}<br>
+    <b>Total Respondents:</b> %{y}<br>
+    <b>Percentage:</b> %{customdata:.1f}%<br>
+    <extra></extra>
+    """,
+    customdata=expense_counts["pct"]
 )
 
 fig5.update_layout(
     bargap=0.4,
-    yaxis_range=[0, expense_counts["pct"].max() * 1.3], 
+    yaxis_range=[0, expense_counts["Count"].max() * 1.3], 
     title_x=0, 
     height=400, 
     coloraxis_showscale=False, 
-    yaxis_title="Percentage (%)",
+    xaxis_title="Average Monthly Expenses (RM)",
+    yaxis_title="Number of Respondents",
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)'
 )
 
 st.plotly_chart(fig5, use_container_width=True)
-
 st.info("""
 📝 Interpretation:
-
 """)
+
 
 # 6. Awareness of Fashion Trends
 st.subheader("6. Awareness of Fashion Trends")
