@@ -48,6 +48,21 @@ df, motivation_cols = load_motivation_data()
 # HEADER
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
+
+# Styled Summary Box
+st.markdown("""
+    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #6c5ce7;">
+        <h3 style="margin-top: 0;">📋 Executive Summary</h3>
+        <p>This analysis identifies why consumers follow fashion brands on social media. 
+        By evaluating <b>Agreement Scores</b> and <b>Demographic Gaps</b>, we can determine if your audience 
+        is driven by transactional value (discounts) or emotional connection (brand style).</p>
+        <ul style="margin-bottom: 0;">
+            <li><b>Primary Strategy:</b> Focus on top-performing drivers to maintain loyalty.</li>
+            <li><b>Growth Area:</b> Address motivations with high "Neutral" or "Disagree" responses.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.markdown("---")
 
 # ======================================================
