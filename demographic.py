@@ -875,29 +875,55 @@ if region_choice != "All":
 
 
 
-# 9. Fashion Awareness (Stacked)
-fig9_data = df_filtered.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+# 9. Fashion Awareness (Stacked Bar Chart)
+st.subheader("9. Fashion Awareness Level Intensity")
 
-fig9 = px.bar(
-    fig9_data,
-    x="Gender",
-    y="Count",
-    color="Gender", 
-    pattern_shape="Awareness of Fashion Trends", 
-    barmode="stack",
-    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
-    title="Fashion Awareness: Female (Pink) vs Male (Blue)"
-)
+# Create two columns: Left for Chart, Right for the "Color Key" Table
+col_chart, col_key = st.columns([3, 1])
 
-fig9.update_layout(
-    bargap=0.4, 
-    height=450,
-    yaxis_title="Number of Respondents",
-    xaxis_title="Gender",
-    showlegend=True
-)
+with col_chart:
+    # Define our specific 5-step color scales
+    # Level 1 (Lightest) -> Level 5 (Darkest)
+    pink_scale = ['#FFF0F5', '#FFB6C1', '#FF69B4', '#FF1493', '#C71585']
+    blue_scale = ['#E0F7FA', '#B3E5FC', '#4FC3F7', '#0288D1', '#01579B']
 
-st.plotly_chart(fig9, use_container_width=True)
+    # We map the colors based on Gender AND Awareness Level
+    def get_color(row):
+        level = int(row['Awareness of Fashion Trends']) - 1 # Levels 1-5 to Index 0-4
+        if row['Gender'] == 'Female':
+            return pink_scale[level]
+        else:
+            return blue_scale[level]
+
+    fig9_data = df_filtered.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+    fig9_data['Color'] = fig9_data.apply(get_color, axis=1)
+
+    fig9 = px.bar(
+        fig9_data,
+        x="Gender",
+        y="Count",
+        color="Awareness of Fashion Trends",
+        barmode="stack",
+        # This forces the chart to use our calculated colors
+        color_discrete_sequence=fig9_data['Color'].unique(),
+        title="Awareness Levels (Light = Low, Dark = High)"
+    )
+    fig9.update_layout(showlegend=False, height=500)
+    st.plotly_chart(fig9, use_container_width=True)
+
+with col_key:
+    st.write("**Color Indicator**")
+    # Create a small HTML table to act as your legend
+    st.markdown("""
+    | Level | Female (Pink) | Male (Blue) |
+    | :--- | :--- | :--- |
+    | **1** | ⚪ Lightest | ⚪ Lightest |
+    | **2** | 🌸 | 💧 |
+    | **3** | 💗 | 🔷 |
+    | **4** | 💓 | 🔵 |
+    | **5** | 🌺 Darkest | 🌌 Darkest |
+    """, unsafe_allow_html=True)
+    st.caption("Darker shade = Higher Awareness")
 
 # ---------------------------------------------------------
 # 10. Spending Heatmap
