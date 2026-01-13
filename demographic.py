@@ -403,7 +403,7 @@ st.info("""
 📝 Interpretation:
 """)
 
-# 7. Factors Influencing Shopping Decisions
+# 7. Factors Influencing Fashion Shopping Decisions
 st.subheader("7. Factors Influencing Fashion Shopping Decisions")
 
 influence_counts = df["Influence on Shopping"].value_counts().reset_index()
@@ -414,14 +414,15 @@ fig7 = px.bar(
     x='Count',
     y='Factor',
     orientation='h',
-    color_continuous_scale=['#F5E6DA', '#A68A78', '#4E342E'],
+    color='Count',
+    color_continuous_scale=['#FADBD8', '#E59866', '#7B241C'], 
     title="Ranking of Influence Sources"
 )
 
 fig7.update_traces(
     width=0.7, 
     texttemplate='<b>%{x}</b>', 
-    textposition='outside',
+    textposition='outside', 
     cliponaxis=False
 )
 
@@ -429,19 +430,20 @@ fig7.update_layout(
     yaxis={'categoryorder': 'total ascending'}, 
     title_x=0, 
     height=500,
-    coloraxis_showscale=False,
-    xaxis_range=[0, influence_counts["Count"].max() * 1.3],
+    coloraxis_showscale=False, # Hides the sidebar for a cleaner look
+    xaxis_range=[0, influence_counts["Count"].max() * 1.3], # Headroom for text
     margin=dict(l=0, r=100),
     xaxis_title="Total Respondents",
-    yaxis_title=None
+    yaxis_title=None,
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
-st.plotly_chart(fig7, use_container_width=True) 
+st.plotly_chart(fig7, use_container_width=True)
+
 st.info("""
 📝 Interpretation:
 """)
-
-
 
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
