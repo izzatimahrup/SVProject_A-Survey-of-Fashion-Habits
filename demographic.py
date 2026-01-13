@@ -623,22 +623,19 @@ st.markdown("---")
 
 st.header("📈 Part 2: Behavioural Analysis")
 
-# --- TWO SEPARATE FILTERS ---
-col_filter1, col_filter2 = st.columns(2)
+st.divider()
+st.header("📈 Part 2: Behavioural Analysis")
 
-with col_filter1:
-    gender_choice = st.selectbox("Filter Awareness & Influence (Fig 9, 11):", ["All", "Female", "Male"])
+# --- SECTION 1: GENDER FILTER ---
+st.markdown("💡 Use the filter below to refine gender of the participants.")
+gender_choice = st.selectbox("Select Gender:", ["All", "Female", "Male"], key="gender_filter_top")
 
-with col_filter2:
-    expense_choice = st.selectbox("Filter Spending Behavior (Fig 10, 12):", ["All"] + expense_order)
-
-# ---------------------------------------------------------
-# 9 & 11: GENDER-BASED ANALYSIS
-# ---------------------------------------------------------
+# Apply Gender Filter
 df_gender = df.copy()
 if gender_choice != "All":
     df_gender = df_gender[df_gender["Gender"] == gender_choice]
 
+# --- 9. Fashion Awareness (Gender Based) ---
 st.subheader("9. Fashion Awareness Level")
 c1, c2 = st.columns([3, 1])
 with c1:
@@ -653,33 +650,55 @@ with c1:
     st.plotly_chart(fig9, use_container_width=True)
 with c2:
     st.write("### 🔍 Key")
-    st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| ... | ... |\n| 1 | ⬜ Light |")
+    st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| 1 | ⬜ Light |")
 
+# 10. Shopping Influence - Gender 
 st.subheader("11. Shopping Influence Factors")
-fig11_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
-fig11 = px.bar(
-    fig11_data, x="Count", y="Influence on Shopping", color="Gender",
+fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+fig10 = px.bar(
+    fig10_data, x="Count", y="Influence on Shopping", color="Gender",
     orientation='h', barmode='group',
     color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
     title=f"Influence by Gender: {gender_choice}"
 )
-st.plotly_chart(fig11, use_container_width=True)
+st.plotly_chart(fig10, use_container_width=True)
 
-# ---------------------------------------------------------
-# 10 & 12: EXPENDITURE-BASED ANALYSIS
-# ---------------------------------------------------------
+st.divider()
+
+# --- SECTION 2: EXPENDITURE FILTER ---
+st.markdown("💡 Use the filter below to refine Monthly Expenditure Level")
+# "All Respondents" is used to avoid empty filter errors
+expense_choice = st.selectbox("Select Monthly Expenditure Level:", ["All"] + expense_order, key="expense_filter_mid")
+
+# Apply Expenditure Filter
 df_expense = df.copy()
 if expense_choice != "All":
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == expense_choice]
 
-st.subheader("10. Spending vs Employment")
-heatmap_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-fig10 = px.density_heatmap(
-    heatmap_data, x="Average Monthly Expenses (RM)", y="Employment Status", z="Count",
-    color_continuous_scale="Greens", title=f"Spending Power: {expense_choice}"
-)
-st.plotly_chart(fig10, use_container_width=True)
+# --- 11. Distribution of Spending by Employment (Treemap) ---
+st.subheader("10. Distribution of Spending by Employment")
+fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
+if not fig11_data.empty:
+    try:
+        path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
+        
+        fig10 = px.treemap(
+            fig11_data,
+            path=path_logic,
+            values="Count",
+            color="Average Monthly Expenses (RM)" if expense_choice == "All" else "Employment Status",
+            color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
+            title=f"Spending Power Distribution: {expense_choice}"
+        )
+        fig11.update_layout(height=500)
+        st.plotly_chart(fig11, use_container_width=True)
+    except Exception:
+        st.bar_chart(fig11_data.set_index("Employment Status")["Count"])
+else:
+    st.warning("No data found for this selection.")
+
+# --- 12. Influence by Spending Level ---
 st.subheader("12. Influence by Spending Level")
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig12 = px.bar(
@@ -690,31 +709,3 @@ fig12 = px.bar(
 )
 st.plotly_chart(fig12, use_container_width=True)
 
-
-# ---------------------------------------------------------
-# 10. Spending vs Employment (Robust Version)
-# ---------------------------------------------------------
-st.subheader("10. Distribution of Spending by Employment")
-
-# 1. Prepare Data
-fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-
-# 2. Safety Check: Only build the chart if we have data
-if not fig10_data.empty:
-    try:
-        fig10 = px.treemap(
-            fig10_data,
-            # We only use Employment Status as the path if we have already filtered by Expense
-            path=["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"],
-            values="Count",
-            color="Average Monthly Expenses (RM)" if expense_choice == "All" else "Employment Status",
-            color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-            title=f"Spending Power: {expense_choice}"
-        )
-        fig10.update_layout(height=500)
-        st.plotly_chart(fig10, use_container_width=True)
-    except Exception as e:
-        # If Treemap still fails, show a Bar Chart as a backup so the app doesn't crash
-        st.bar_chart(fig10_data.set_index("Employment Status")["Count"])
-else:
-    st.warning("No data found for this selection.")
