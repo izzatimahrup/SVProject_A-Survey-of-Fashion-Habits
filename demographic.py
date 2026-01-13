@@ -376,29 +376,25 @@ st.info("""
 📝 Interpretation:
 """)
 
-# 8️⃣ Factors Influencing Shopping Decisions
-st.subheader("8. Factors Influencing Fashion Shopping Decisions")
+# 7. Factors Influencing Shopping Decisions
+st.subheader("7. Factors Influencing Fashion Shopping Decisions")
 
 influence_counts = df["Influence on Shopping"].value_counts().reset_index()
-fig8 = px.bar(
-    influence_counts,
-    x='count',
-    y='Influence on Shopping',
-    orientation='h',
-    text_auto=True,
-    title="Factors Influencing Shopping Decisions"
-)
-fig8.update_layout(yaxis={'categoryorder': 'total ascending'})
-st.plotly_chart(fig8, use_container_width=True) 
-st.subheader("📝 Interpretation:")
-st.markdown("""
-This chart ranks the sources influencing respondents’ fashion shopping decisions.
+influence_counts.columns = ["Factor", "Count"]
 
-- Social influences such as influencers, peers, and online content emerge as dominant factors.
-- This highlights the interaction between demographic characteristics and external recommendation sources.
-- The result aligns with the study’s focus on understanding how demographics shape online fashion decision-making.
-""")
-st.markdown("---")
+fig7 = px.bar(
+    influence_counts,
+    x='Count',
+    y='Factor',
+    orientation='h',
+    color_discrete_sequence=['#6A1B9A'], 
+    title="Ranking of Influence Sources"
+)
+
+fig7.update_layout(yaxis={'categoryorder': 'total ascending'}, title_x=0, height=500)
+fig7.update_traces(width=0.7, texttemplate='<b>%{x}</b>', textposition='inside')
+
+st.plotly_chart(fig7, use_container_width=True) 
 
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
