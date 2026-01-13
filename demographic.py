@@ -775,3 +775,78 @@ fig10 = px.bar(
     category_orders={"Average Monthly Expenses (RM)": expense_order}
 )
 st.plotly_chart(fig10, use_container_width=True)
+
+
+# =========================================================
+# SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
+# =========================================================
+st.divider()
+st.header("📈 Part 2: Behavioural Analysis")
+
+# 1. THE SIMPLE FILTER
+# This allows the user to focus on one gender at a time
+gender_choice = st.selectbox("View Analysis for:", ["All Respondents", "Female", "Male"])
+
+# 2. FILTERING THE DATA
+if gender_choice == "All Respondents":
+    df_part2 = df
+else:
+    # This filters the data to only show the chosen gender
+    df_part2 = df[df["Gender"] == gender_choice]
+
+# ---------------------------------------------------------
+# 9. Awareness by Gender (Simple & Red)
+# ---------------------------------------------------------
+st.subheader(f"9. Fashion Awareness Level ({gender_choice})")
+
+fig9_data = df_part2.groupby("Awareness of Fashion Trends").size().reset_index(name="Count")
+
+fig9 = px.bar(
+    fig9_data,
+    x="Awareness of Fashion Trends",
+    y="Count",
+    color="Count",
+    color_continuous_scale=['#FFEBEE', '#B71C1C'], # Soft pink to Deep red
+    title=f"Awareness Distribution: {gender_choice}"
+)
+fig9.update_layout(height=400, coloraxis_showscale=False, bargap=0.4)
+st.plotly_chart(fig9, use_container_width=True)
+
+# ---------------------------------------------------------
+# 10. Spending Heatmap (Filtered)
+# ---------------------------------------------------------
+st.subheader(f"10. Spending by Employment ({gender_choice})")
+
+heatmap_data = df_part2.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+heatmap_pivot = heatmap_data.pivot(index="Employment Status", columns="Average Monthly Expenses (RM)", values="Count").fillna(0)
+
+# Make sure RM categories are in the right order
+existing_cols = [c for c in expense_order if c in heatmap_pivot.columns]
+heatmap_pivot = heatmap_pivot[existing_cols]
+
+fig10 = px.imshow(
+    heatmap_pivot,
+    text_auto=True,
+    color_continuous_scale="Blues",
+    title=f"Where {gender_choice} Spend Money"
+)
+st.plotly_chart(fig10, use_container_width=True)
+
+# ---------------------------------------------------------
+# 11. Influence Ranking (Filtered)
+# ---------------------------------------------------------
+st.subheader(f"11. Top Influence Factors ({gender_choice})")
+
+influence_data = df_part2.groupby("Influence on Shopping").size().reset_index(name="Count")
+
+fig11 = px.bar(
+    influence_data,
+    x="Count",
+    y="Influence on Shopping",
+    orientation='h',
+    color="Count",
+    color_continuous_scale=['#FADBD8', '#7B241C'], # Soft Rose to Wine
+    title=f"What Influences {gender_choice} Most?"
+)
+fig11.update_layout(yaxis={'categoryorder':'total ascending'}, height=450, coloraxis_showscale=False, bargap=0.4)
+st.plotly_chart(fig11, use_container_width=True)
