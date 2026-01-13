@@ -94,6 +94,50 @@ col3.metric(
     help=f"{top_region_pct:.1f}% of respondents"
 )
 
+
+st.header(" 🧍 Part 1 : Demographic Overview")
+
+# Create a container or columns for the filters on the main page
+st.markdown("### 🔍 Customise View")
+filter_col1, filter_col2 = st.columns(2)
+
+with filter_col1:
+    selected_gender = st.multiselect(
+        "Select Gender to Compare:",
+        options=df["Gender"].unique(),
+        default=df["Gender"].unique()
+    )
+
+with filter_col2:
+    selected_age = st.multiselect(
+        "Select Age Groups:",
+        options=age_order,
+        default=age_order
+    )
+
+# Filter the data based on these main-page selections
+df_filtered = df[
+    (df["Gender"].isin(selected_gender)) & 
+    (df["Age"].isin(selected_age))
+]
+st.subheader("📊 Interactive Demographic Breakdown")
+st.info("💡 Click on a sector (e.g., 'Female') to zoom into their specific age groups.")
+
+# Use the filtered data for the chart
+fig_sunburst = px.sunburst(
+    df_filtered,
+    path=["Gender", "Age"], # This creates the hierarchy
+    color="Gender",
+    title="Respondent Hierarchy: Gender and Age Group",
+    color_discrete_map={'Female': 'pink', 'Male': 'royalblue'} # Optional: Custom colours
+)
+
+# Customise the HOVER (Tooltip)
+fig_sunburst.update_traces(
+    hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percent of Parent: %{percentParent:.1f}%"
+)
+
+st.plotly_chart(fig_sunburst, use_container_width=True)
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
