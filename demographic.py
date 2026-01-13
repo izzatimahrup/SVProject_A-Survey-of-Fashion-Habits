@@ -266,7 +266,7 @@ fig3.update_layout(
     yaxis_title=None,
     margin=dict(l=0, r=100), 
     xaxis_range=[0, edu_counts["count"].max() * 1.3],
-    bargap=0.4, 
+    bargap=0.3,
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)'
 )
@@ -430,10 +430,10 @@ fig7.update_traces(
 )
 
 fig7.update_layout(
-    bargap=0.4,
+    bargap=0.3,
     yaxis={'categoryorder': 'total ascending'}, 
     title_x=0, 
-    height=500,
+    height=600,
     coloraxis_showscale=False, 
     xaxis_range=[0, influence_counts["Count"].max() * 1.3], # Headroom for text
     margin=dict(l=0, r=100),
