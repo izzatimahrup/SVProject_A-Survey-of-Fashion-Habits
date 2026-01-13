@@ -236,6 +236,7 @@ edu_counts = (
     .reindex(education_order, fill_value=0)
     .reset_index(name="count")
     .rename(columns={"index": "Education Level"})
+    .rename(columns={"Education Level": "Education Level"})
 )
 
 fig3 = px.bar(
@@ -250,17 +251,21 @@ fig3 = px.bar(
 )
 
 fig3.update_traces(
-    margin=dict(l=0, r=100), 
-    xaxis_range=[0, edu_counts["count"].max() * 1.2],
     texttemplate='<b>%{x}</b>', 
     textposition='outside',
+    cliponaxis=False, 
     hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>"
 )
 
 fig3.update_layout(
-    yaxis_range=[0, region_counts["Count"].max() * 1.2],
-    title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
-    margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
+    title_x=0, 
+    height=400, 
+    showlegend=False, 
+    coloraxis_showscale=False,
+    xaxis_title="Total Respondents", 
+    yaxis_title=None,
+    margin=dict(l=0, r=100), 
+    xaxis_range=[0, edu_counts["count"].max() * 1.3] 
 )
 
 st.plotly_chart(fig3, use_container_width=True)
@@ -398,8 +403,23 @@ fig7 = px.bar(
     title="Ranking of Influence Sources"
 )
 
-fig7.update_layout(yaxis={'categoryorder': 'total ascending'}, title_x=0, height=500)
-fig7.update_traces(width=0.7, texttemplate='<b>%{x}</b>', textposition='inside')
+fig7.update_traces(
+    width=0.7, 
+    texttemplate='<b>%{x}</b>', 
+    textposition='outside',
+    cliponaxis=False
+)
+
+fig7.update_layout(
+    yaxis={'categoryorder': 'total ascending'}, 
+    title_x=0, 
+    height=500,
+    coloraxis_showscale=False,
+    xaxis_range=[0, influence_counts["Count"].max() * 1.3],
+    margin=dict(l=0, r=100),
+    xaxis_title="Total Respondents",
+    yaxis_title=None
+)
 
 st.plotly_chart(fig7, use_container_width=True) 
 st.info("""
