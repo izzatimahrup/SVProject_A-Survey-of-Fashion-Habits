@@ -127,58 +127,81 @@ with st.expander("📝 Detailed Interpretation: Section A"):
     * **Gender Dynamics:** Look at the length of the grey lines in the dumbbell plot. A **long line** indicates a significant difference in motivation between genders, while **overlapping dots** show shared interests.
     * **Strategic Application:** If 'Discounts & Contests' shows a large gap, brand campaigns for that specific motivation should be targeted toward the high-scoring gender for better ROI.
     """)
+    
 # ======================================================
 # SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
 # ======================================================
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
-st.write("Analyzing the specific trends and trust factors for each motivation.")
+st.write("Analyzing the overall percentage distribution of agreement for each motivation.")
+
+# --- 1. Data Preparation for Stacked Bar ---
+# Map Likert numbers to labels
+likert_labels = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
+plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
+colors_list = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+
+pct_list = []
+for col in motivation_cols:
+    # Get normalized counts (percentages)
+    counts = df[col].value_counts(normalize=True).mul(100).reindex([1, 2, 3, 4, 5], fill_value=0)
+    pct_list.append(counts.values)
+
+# Create a DataFrame for Plotly
+df_pct = pd.DataFrame(pct_list, index=motivation_cols, columns=plot_columns).reset_index()
+df_pct = df_pct.rename(columns={'index': 'Motivation'})
+
+# --- 2. Create Plotly Stacked Bar Chart ---
+fig_stacked = px.bar(
+    df_pct, 
+    y="Motivation", 
+    x=plot_columns,
+    title="Percentage Distribution of Responses",
+    orientation='h',
+    color_discrete_sequence=colors_list,
+    text_auto='.1f'
+)
+
+fig_stacked.update_layout(
+    xaxis_title="Percentage of Respondents (%)",
+    yaxis_title="",
+    legend_title="Response",
+    barmode='stack',
+    height=500,
+    xaxis_range=[0, 100]
+)
+
+st.plotly_chart(center_title(fig_stacked), use_container_width=True)
 
 
 
-col1, col2 = st.columns(2)
+# --- 3. Dynamic Analysis Logic ---
+st.write("### 📝 Section B Analysis:")
 
-for i, col_name in enumerate(motivation_cols):
-    # Data Processing
-    counts = df[col_name].value_counts().sort_index().reset_index()
-    counts.columns = ['Score', 'Respondents']
-    avg_score = df[col_name].mean()
+# Identify the motivation with the highest "Positive" (Agree + Strongly Agree) sentiment
+df_pct['Positive'] = df_pct['Agree'] + df_pct['Strongly Agree']
+top_positive = df_pct.sort_values('Positive', ascending=False).iloc[0]
+
+col_left, col_right = st.columns(2)
+
+with col_left:
+    st.success(f"**Highest Agreement:** '{top_positive['Motivation']}' has the highest positive sentiment at **{top_positive['Positive']:.1f}%**.")
+    st.write("""
+        The high concentration of green segments suggests these factors are the core drivers of brand following. 
+        Marketing strategies should focus on reinforcing these established strengths.
+    """)
+
+with col_right:
+    # Logic for transactional vs aesthetic trends
+    if "Updates & Promotions" in top_positive['Motivation'] or "Discounts" in top_positive['Motivation']:
+        trend_type = "Transactional"
+        trend_desc = "Your audience follows brands primarily for immediate, tangible rewards and efficiency."
+    else:
+        trend_type = "Aesthetic/Loyalty"
+        trend_desc = "Your audience is driven by the visual 'vibe' and emotional connection to the brand identity."
     
-    # Create the Chart
-    fig_dist = px.bar(
-        counts, x='Score', y='Respondents', text='Respondents',
-        title=f"Distribution: {col_name}",
-        color='Score', color_continuous_scale='Plasma'
-    )
-    fig_dist.update_layout(showlegend=False, height=350, xaxis_title="1 (Disagree) to 5 (Agree)")
-    
-    target_col = col1 if i % 2 == 0 else col2
-    
-    with target_col:
-        st.plotly_chart(center_title(fig_dist), use_container_width=True)
-        
-        # 📝 DYNAMIC ANALYSIS LOGIC
-        st.write("### 📝 Analysis:")
-        
-        # 1. Determine the Driver Status
-        if avg_score >= 3.8:
-            status = f"**{col_name}** ranks as a **top driver** of interest among respondents."
-        elif avg_score >= 3.0:
-            status = f"**{col_name}** is a **moderate driver**, showing steady but not primary interest."
-        else:
-            status = f"**{col_name}** currently ranks as a **minor driver**, suggesting lower impact on this audience."
-        
-        # 2. Determine the Strategic Trend
-        if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
-            trend = "This confirms that modern consumers trust **social proof** and peer identity more than traditional direct marketing."
-        elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
-            trend = "This reflects a **transactional trend**, where consumers follow for immediate, tangible rewards and efficiency."
-        else:
-            trend = "This highlights a focus on **aesthetic alignment**, where the visual 'vibe' of the brand is the main anchor for the consumer."
-
-        st.write(status)
-        st.write(f"**Trend:** {trend}")
-        st.markdown("---")
+    st.info(f"**Dominant Trend:** {trend_type}")
+    st.write(trend_desc)
 
 # ======================================================
 # SECTION C: RELATIONSHIPS
