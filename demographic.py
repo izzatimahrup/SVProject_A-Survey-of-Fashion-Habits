@@ -736,3 +736,42 @@ fig12.update_traces(
 
 fig12.update_layout(bargap=0.3, height=500, title_x=0, margin=dict(l=150))
 st.plotly_chart(fig12, use_container_width=True)
+
+st.divider()
+st.header("📈 Part 2: Behavioural Analysis")
+
+# 1. THE DROPDOWN (The "Remote Control")
+choice = st.selectbox("Select Gender to view:", ["All", "Female", "Male"])
+
+# 2. THE LOGIC (If user picks Female, show only Female data)
+if choice == "All":
+    df_simple = df
+else:
+    df_simple = df[df["Gender"] == choice]
+
+# ---------------------------------------------------------
+# 9. Awareness Chart (Now it reacts to the choice above!)
+# ---------------------------------------------------------
+st.subheader(f"9. Fashion Awareness ({choice})")
+
+fig9 = px.bar(
+    df_simple.groupby("Awareness of Fashion Trends").size().reset_index(name="Count"),
+    x="Awareness of Fashion Trends",
+    y="Count",
+    title=f"Awareness Level for {choice}"
+)
+st.plotly_chart(fig9, use_container_width=True)
+
+# ---------------------------------------------------------
+# 10. Spending Chart (Also reacts to the choice!)
+# ---------------------------------------------------------
+st.subheader(f"10. Monthly Spending ({choice})")
+
+fig10 = px.bar(
+    df_simple.groupby("Average Monthly Expenses (RM)").size().reset_index(name="Count"),
+    x="Average Monthly Expenses (RM)",
+    y="Count",
+    title=f"Spending Distribution for {choice}",
+    category_orders={"Average Monthly Expenses (RM)": expense_order}
+)
+st.plotly_chart(fig10, use_container_width=True)
