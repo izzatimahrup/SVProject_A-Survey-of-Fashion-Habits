@@ -109,7 +109,6 @@ edu_counts = (
 )
 
 fig4 = px.bar(
-    Width=0.5,
     edu_counts,
     x="count",
     y="Education Level",
@@ -128,7 +127,7 @@ fig4.update_traces(
 )
 
 fig4.update_layout(
-    title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
+    title_x=0, height=400, width=0.5, showlegend=False, coloraxis_showscale=False,
     margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
 )
 
