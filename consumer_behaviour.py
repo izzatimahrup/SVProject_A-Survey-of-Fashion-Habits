@@ -194,17 +194,6 @@ fig_grouped = center_title(fig_grouped)
 # 4. Display the Chart
 st.plotly_chart(fig_grouped, use_container_width=True)
 
-# 5. Quick Insights Grid
-st.markdown("### Platform Insights")
-cols = st.columns(3)
-insight_list = [
-    ("Instagram", "Top-tier fashion hub with balanced high-engagement."),
-    ("TikTok", "The powerhouse for viral content (63 'Very Active' users)."),
-    ("Facebook", "Mainly 'Sometimes Active'; transitioned to a secondary platform."),
-    ("Pinterest", "A 'Discovery' hub for planning and mood boarding."),
-    ("Threads", "Highest 'Inactive' count; yet to be fully integrated by users."),
-    ("YouTube", "Steady base for long-form reviews and documentaries.")
-]
 
 for i, (p_name, insight) in enumerate(insight_list):
     with cols[i % 3]:
