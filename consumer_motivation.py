@@ -5,15 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # ==========================================
-# 1. SETTINGS & STYLING
-# ==========================================
-# It's better to let main.py handle set_page_config, 
-# but we define a custom style for our charts here.
-CHART_THEME = "RdYlGn" # Red-Yellow-Green for Likert scales
-BAR_COLOR = "#2E86C1"   # Professional blue
-
-# ==========================================
-# 2. DATA LOADING & MAPPING
+# 1. DATA LOADING & MAPPING
 # ==========================================
 @st.cache_data
 def load_motivation_data():
@@ -39,15 +31,17 @@ def load_motivation_data():
         
     return data, valid_cols
 
+# Initialize the dataset locally for this page
 df_raw, motivation_questions = load_motivation_data()
 
 # ==========================================
-# 3. CALCULATION HELPERS
+# 2. CALCULATION HELPERS
 # ==========================================
 def calculate_percentages(df_input, columns):
     label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
     pct_list = []
     for col in columns:
+        # Convert to numeric and remove NaNs to prevent calculation errors
         series = pd.to_numeric(df_input[col], errors='coerce').dropna()
         counts = series.value_counts(normalize=True).astype(float)
         counts.index = counts.index.astype(int)
@@ -58,128 +52,130 @@ def calculate_percentages(df_input, columns):
     return pd.DataFrame(pct_list)
 
 # ==========================================
-# 4. SIDEBAR & FILTERS
+# 3. PAGE-SPECIFIC SIDEBAR FILTERING
 # ==========================================
 with st.sidebar:
-    st.header("🎛️ Dashboard Controls")
+    st.header("🎯 Page Filters")
+    st.markdown("Filter values for this page only.")
+    
+    # Check if Gender exists and create a multiselect for more flexibility
     if 'Gender' in df_raw.columns:
-        gender_options = ["All Genders"] + sorted(list(df_raw['Gender'].unique()))
-        selected_gender = st.selectbox("Select Demographic", gender_options)
-        
-        if selected_gender != "All Genders":
-            df = df_raw[df_raw['Gender'] == selected_gender].copy()
-        else:
-            df = df_raw.copy()
+        gender_list = sorted(list(df_raw['Gender'].unique()))
+        selected_genders = st.multiselect(
+            "Filter by Gender", 
+            options=gender_list, 
+            default=gender_list
+        )
+        # Apply the local filter
+        df = df_raw[df_raw['Gender'].isin(selected_genders)].copy()
     else:
         df = df_raw.copy()
-        selected_gender = "Overall"
+        selected_genders = ["N/A"]
 
     st.divider()
-    st.caption("Data Source: GitHub / Cleaned_FashionHabitGF.csv")
+    if st.button("Reset Page Filters"):
+        st.rerun()
 
 # ==========================================
-# 5. HEADER & KPIS
+# 4. HEADER & METRICS
 # ==========================================
 st.title("📊 Consumer Motivation Analysis")
-st.markdown(f"Currently viewing analysis for: **{selected_gender}**")
+st.info(f"Currently filtering for: {', '.join(selected_genders)}")
 
-# Calculate metrics for the top row
-means_all = df[motivation_questions].mean()
-top_motivation = means_all.idxmax()
-top_score = means_all.max()
+# Calculate metrics based on the FILTERED dataframe
+if not df.empty:
+    means_all = df[motivation_questions].mean()
+    top_motivation = means_all.idxmax()
+    top_score = means_all.max()
 
-m1, m2, m3 = st.columns(3)
-m1.metric("Total Respondents", len(df))
-m2.metric("Primary Driver", top_motivation)
-m3.metric("Highest Avg Score", f"{top_score:.2f} / 5")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Respondents in View", len(df))
+    m2.metric("Primary Driver", top_motivation)
+    m3.metric("Avg Score", f"{top_score:.2f} / 5")
+else:
+    st.warning("No data found for the selected filters.")
+    st.stop()
 
 st.divider()
 
 # ==========================================
-# 6. STRUCTURED CONTENT (TABS)
+# 5. STRUCTURED TABS
 # ==========================================
-tab1, tab2, tab3 = st.tabs(["📈 Sentiment Distribution", "🔗 Relationships", "👥 Demographics"])
+tab1, tab2, tab3 = st.tabs(["📈 Sentiment Analysis", "🔗 Relationships", "👥 Comparative View"])
 
 with tab1:
-    st.subheader("How strongly do consumers agree with these drivers?")
+    # --- RANKING SECTION ---
+    st.subheader("Motivation Ranking")
+    col_chart, col_text = st.columns([2, 1])
     
-    # 1. Ranking Bar Chart
-    col_rank, col_desc = st.columns([2, 1])
-    with col_rank:
+    with col_chart:
         means_sorted = means_all.sort_values(ascending=True)
         fig1, ax1 = plt.subplots(figsize=(8, 5))
-        sns.barplot(x=means_sorted.values, y=means_sorted.index, color=BAR_COLOR, ax=ax1)
+        sns.barplot(x=means_sorted.values, y=means_sorted.index, palette="Blues_d", ax=ax1)
         ax1.set_xlim(0, 5)
-        ax1.set_xlabel("Mean Score (1-5)")
+        ax1.set_xlabel("Average Likert Score")
         st.pyplot(fig1)
-    
-    with col_desc:
-        st.write("### Quick Insights")
-        st.write(f"The most significant motivation is **{top_motivation}**.")
-        st.info("Scores above 3.0 indicate general agreement with the statement.")
+        
+    with col_text:
+        st.markdown("### Insights")
+        st.write(f"The motivation **{top_motivation}** shows the highest level of consumer alignment.")
+        st.caption("A score of 3.0 represents a neutral stance.")
 
     st.divider()
 
-    # 2. Likert Distribution
-    st.subheader("Detailed Response Spread")
+    # --- LIKERT DISTRIBUTION SECTION ---
+    st.subheader("Detailed Sentiment Distribution")
+    
     df_pct = calculate_percentages(df, motivation_questions)
-    likert_colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+    colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"] # Standard diverge scale
     
     fig2, ax2 = plt.subplots(figsize=(12, 6))
     df_pct[['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']].plot(
-        kind='barh', stacked=True, color=likert_colors, ax=ax2, width=0.8
+        kind='barh', stacked=True, color=colors, ax=ax2, width=0.75
     )
     ax2.set_xlim(0, 100)
-    ax2.set_xlabel("Percentage of Respondents (%)")
-    ax2.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+    ax2.set_xlabel("Percentage (%)")
+    ax2.legend(title="Response", bbox_to_anchor=(1.0, 1), loc='upper left')
     st.pyplot(fig2)
 
 with tab2:
-    st.subheader("Correlation & Regression")
+    st.subheader("Motivation Interconnectivity")
     
-    col_heat, col_reg = st.columns([1, 1])
     
-    with col_heat:
+    c_heat, c_reg = st.columns([1, 1.2])
+    
+    with c_heat:
         st.write("**Correlation Matrix**")
         corr = df[motivation_questions].corr()
         fig3, ax3 = plt.subplots(figsize=(8, 8))
-        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax3, cbar=False)
+        sns.heatmap(corr, annot=True, cmap='RdBu_r', center=0, fmt=".2f", ax=ax3, cbar=False)
         st.pyplot(fig3)
     
-    with col_reg:
-        st.write("**Trend Analysis**")
-        x_var = st.selectbox("Compare (X-Axis):", motivation_questions, index=0)
-        y_var = st.selectbox("Against (Y-Axis):", motivation_questions, index=1)
+    with c_reg:
+        st.write("**Exploratory Regression**")
+        x_col = st.selectbox("Predictor (X):", motivation_questions, index=0)
+        y_col = st.selectbox("Outcome (Y):", motivation_questions, index=1)
         
         fig4, ax4 = plt.subplots()
-        sns.regplot(data=df, x=x_var, y=y_var, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax4)
-        ax4.set_title(f"Correlation: {df[x_var].corr(df[y_var]):.2f}")
+        sns.regplot(data=df, x=x_col, y=y_col, scatter_kws={'alpha':0.3}, line_kws={'color':'#E74C3C'}, ax=ax4)
         st.pyplot(fig4)
 
 with tab3:
-    st.subheader("Gender-Based Motivation Gap")
+    st.subheader("Gender Comparison Analysis")
+    # Note: We use df_raw here to ensure we always see the comparison regardless of sidebar filters
     if 'Gender' in df_raw.columns and len(df_raw['Gender'].unique()) > 1:
-        # Prepare dumbbell data
         g_means = df_raw.groupby('Gender')[motivation_questions].mean().T.reset_index()
         df_melted = g_means.melt(id_vars='index', var_name='Gender', value_name='Score')
-        df_melted.rename(columns={'index': 'Motivation Question'}, inplace=True)
+        df_melted.rename(columns={'index': 'Question'}, inplace=True)
         
         fig5, ax5 = plt.subplots(figsize=(10, 6))
-        sns.pointplot(data=df_melted, x='Score', y='Motivation Question', hue='Gender', 
-                      join=True, palette='Set1', markers='D', ax=ax5)
+        sns.pointplot(data=df_melted, x='Score', y='Question', hue='Gender', 
+                      dodge=True, join=False, palette='coolwarm', markers='o', ax=ax5)
         ax5.set_xlim(1, 5)
-        ax5.grid(axis='x', linestyle='--', alpha=0.7)
+        ax5.set_title("Gender Disparity in Engagement Drivers")
         st.pyplot(fig5)
-        
-        st.expander("What does this tell us?").write("""
-            The dumbbell plot shows the distance between Male and Female mean scores. 
-            A wider gap indicates that gender significantly influences that specific motivation.
-        """)
     else:
-        st.warning("Insufficient data categories for gender comparison.")
+        st.warning("No gender data available for comparative analysis.")
 
-# ==========================================
-# 7. FOOTER
-# ==========================================
 st.divider()
-st.caption(f"Analysis generated for Fashion Habits Research Project • {pd.Timestamp.now().year}")
+st.caption(f"Consumer Motivation Analysis Module • Version 2.1 • {pd.Timestamp.now().strftime('%Y-%m-%d')}")
