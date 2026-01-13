@@ -702,7 +702,7 @@ st.subheader("10. Shopping Influence Factors")
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
 color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
-t
+
 fig10 = px.bar(
     fig10_data, 
     x="Influence on Shopping", 
@@ -713,7 +713,6 @@ fig10 = px.bar(
     title=f"Influence Factors: Comparison for {gender_choice}"
 )
 
-# 4. Improve Layout
 fig10.update_layout(
     height=500,
     xaxis_title="Influence Factor",
@@ -775,4 +774,54 @@ fig12 = px.bar(
     color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
     title=f"Influence for {expense_choice} Category"
 )
+st.plotly_chart(fig12, use_container_width=True)
+# --- SECTION B: Monthly Expenses Focus ---
+st.subheader("📍 Section B: Expenditure & Employment Trends")
+
+# 1. Colors Definition
+# From Lightest (Low Spend) to Darkest (High Spend)
+green_gradient = ['#E8F5E9', '#A5D6A7', '#66BB6A', '#43A047', '#1B5E20']
+solid_green = ["#2E7D32"]
+
+# 11. Distribution by Employment
+st.subheader("11. Spending Power by Employment")
+
+fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+
+if not fig11_data.empty:
+    path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
+    
+    fig11 = px.treemap(
+        fig11_data,
+        path=path_logic,
+        values="Count",
+        # Color by spending level if 'All', otherwise solid green
+        color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
+        color_discrete_sequence=green_gradient if expense_choice == "All" else solid_green,
+        title=f"Spending Power Distribution: {expense_choice}"
+    )
+    st.plotly_chart(fig11, use_container_width=True)
+
+# 12. Influence by Spending Level
+st.subheader("12. Influence by Spending Level")
+
+fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+
+# Logic: Stacked colors for 'All', Solid bar for specific filter
+fig12 = px.bar(
+    fig12_data, 
+    x="Count", 
+    y="Influence on Shopping", 
+    color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
+    orientation='h', 
+    barmode='stack',
+    color_discrete_sequence=green_gradient if expense_choice == "All" else solid_green,
+    title=f"Influence Factors for {expense_choice}"
+)
+
+# Sort by total influence
+fig12.update_layout(yaxis={'categoryorder':'total ascending'})
+
 st.plotly_chart(fig12, use_container_width=True)
