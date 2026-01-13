@@ -346,10 +346,10 @@ awareness_counts['Level'] = awareness_counts['Level'].map(awareness_map)
 
 fig6 = px.bar(
     awareness_counts,
-    x='Level',
+    x='Label',
     y='Count',
-    color='Count',
-    color_continuous_scale=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'],
+    color='Level', 
+    color_continuous_scale=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'], 
     title="Level of Awareness: Current Fashion Trends & Styles"
 )
 
