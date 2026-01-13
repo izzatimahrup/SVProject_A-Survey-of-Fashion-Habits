@@ -493,26 +493,6 @@ This chart examines how gender differences relate to levels of awareness of curr
 st.markdown("---")
 
 
-# 🔟 Monthly Fashion Expenditure by Employment Status
-#st.subheader("10. Monthly Fashion Expenditure by Employment Status")
-
-#fig10 = px.bar(
-    #df.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count"),
-    #x="Employment Status",
-    #y="Count",
-    #color="Average Monthly Expenses (RM)",
-    #barmode="group",
-    #title="Monthly Fashion Expenditure by Employment Status",
-    #category_orders={"Average Monthly Expenses (RM)": expense_order}
-#)
-#st.plotly_chart(fig10, use_container_width=True)
-
-#st.subheader("📝 Interpretation:")
-#st.markdown("""
-
-#""")
-#st.markdown("---") 
-# 🔟 Monthly Fashion Expenditure by Employment Status (Heatmap)
 st.subheader("10. Monthly Fashion Expenditure by Employment Status (Heatmap)")
 
 # Prepare data
@@ -608,20 +588,7 @@ This chart analyses how monthly fashion expenditure levels relate to shopping in
 """)
 st.markdown("---")
 
-# gender_expense = df.groupby(["Gender", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-# fig12 = px.bar(
-#     gender_expense,
-#     x="Gender",
-#     y="Count",
-#     color="Average Monthly Expenses (RM)",
-#     title="Average Monthly Fashion Expenses by Gender",
-#     barmode='group',
-#     category_orders={"Average Monthly Expenses (RM)": expense_order}
-# )
-# st.plotly_chart(fig12, use_container_width=True)
 
-
-st.header("📈 Part 2: Behavioural Analysis")
 
 
 # SECTION A: GENDER PERSPECTIVE
@@ -695,6 +662,9 @@ fig9 = px.bar(
 
 fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awareness)")
 st.plotly_chart(fig9, use_container_width=True)
+st.info("""
+📝 Interpretation:
+""")
 
 
 # 10. Shopping Influence by Gender
@@ -720,9 +690,14 @@ fig10.update_layout(
     xaxis={'categoryorder':'total descending'} 
 )
 st.plotly_chart(fig10, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+""")
+
 st.divider()
 
-# --- SECTION B: Monthly Expenses Focus
+# SECTION B: Monthly Expenses Focus
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 st.markdown("""
     This section investigates the link between professional status and monthly fashion spending, 
@@ -731,103 +706,10 @@ st.markdown("""
 
 st.markdown("💡 Use the filter below to refine Monthly Expenditure (RM):")
 
-# Rename to RM
-rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
-expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="expense_filter_mid")
-
-df_expense = df.copy()
-# Ensure we strip 'RM ' when filtering if the original data doesn't have it
-if expense_choice != "All":
-    actual_value = expense_choice.replace("RM ", "")
-    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_value]
-
-# 11. Distribution by Employment
-st.subheader("11. Distribution of Spending by Employment (RM)")
-fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-# Add RM to the data labels for the chart
-fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
-
-if not fig11_data.empty:
-    try:
-        path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
-        fig11 = px.treemap(
-            fig11_data,
-            path=path_logic,
-            values="Count",
-            color="Average Monthly Expenses (RM)" if expense_choice == "All" else "Employment Status",
-            # Green Scale
-            color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-            title=f"Spending Power Distribution: {expense_choice}"
-        )
-        st.plotly_chart(fig11, use_container_width=True)
-    except Exception:
-        st.warning("Could not render Treemap for this selection.")
-
-# 12. Influence by Spending Level (RM Labels) 
-st.subheader("12. Influence by Spending Level (RM)")
-fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
-fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
-
-fig12 = px.bar(
-    fig12_data, x="Count", y="Influence on Shopping", color="Average Monthly Expenses (RM)",
-    orientation='h', barmode='stack',
-    color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-    title=f"Influence for {expense_choice} Category"
-)
-st.plotly_chart(fig12, use_container_width=True)
-# --- SECTION B: Monthly Expenses Focus ---
-st.subheader("📍 Section B: Expenditure & Employment Trends")
-
-expenditure_colors = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
-solid_color = ["#FB8C00"]
-
-# 11. Distribution by Employment
-st.subheader("11. Spending Power by Employment")
-
-fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
-
-if not fig11_data.empty:
-    path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
-    
-    fig11 = px.treemap(
-        fig11_data,
-        path=path_logic,
-        values="Count",
-        # Color by spending level if 'All', otherwise solid gold
-        color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
-        color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_gold,
-        title=f"Spending Power Distribution: {expense_choice}"
-    )
-    st.plotly_chart(fig11, use_container_width=True)
-
-# 12. Influence by Spending Level
-st.subheader("12. Influence by Spending Level")
-
-fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
-fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
-
-fig12 = px.bar(
-    fig12_data, 
-    x="Count", 
-    y="Influence on Shopping", 
-    color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
-    orientation='h', 
-    barmode='stack',
-    color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_gold,
-    title=f"Influence Factors for {expense_choice}"
-)
-
-fig12.update_layout(yaxis={'categoryorder':'total ascending'})
-st.plotly_chart(fig12, use_container_width=True)
-
-
-st.subheader("📍 Section B: Expenditure & Employment Trends")
-
+# 1. DEFINE COLORS FIRST
 exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
 solid_orange = ["#F57C00"]
 
-# Filter setup
 rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
 expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_final_clean")
 
@@ -836,11 +718,11 @@ if expense_choice != "All":
     actual_val = expense_choice.replace("RM ", "")
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_val]
 
-# 11.reemap - Spending Power
+# 11. Treemap - Spending Power
 st.subheader("11. Spending Power by Employment")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
-# Sort color
+# Sort numerically for color intensity
 fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
 fig11_data["Display RM"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
@@ -856,12 +738,15 @@ if not fig11_data.empty:
     )
     fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
-
+    
+    st.info("""
+📝 Interpretation:
+""")
 
 # 12. Influence by Spending Level
 st.subheader("12. Influence by Spending Level")
-
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+# Ensure sorting for color logic
 fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
 fig12_data["Display RM"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
@@ -877,7 +762,6 @@ fig12 = px.bar(
 )
 
 totals = fig12_data.groupby("Influence on Shopping")["Count"].sum().reset_index()
-
 fig12.add_scatter(
     x=totals["Count"],
     y=totals["Influence on Shopping"],
@@ -887,11 +771,18 @@ fig12.add_scatter(
     showlegend=False,
     hoverinfo='skip' 
 )
+
 fig12.update_layout(
     yaxis={'categoryorder':'total ascending'}, 
     legend={'traceorder': 'normal'},
-    xaxis={'range': [0, totals["Count"].max() * 1.15]} 
+    xaxis={'range': [0, totals["Count"].max() * 1.15]} # Space for labels
 )
 
 fig12.update_traces(hovertemplate="Factor: %{y}<br>Count in Category: %{x}<extra></extra>")
 st.plotly_chart(fig12, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+""")
+st.divider()
+
