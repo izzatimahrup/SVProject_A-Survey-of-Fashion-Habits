@@ -194,13 +194,6 @@ fig_grouped = center_title(fig_grouped)
 # 4. Display the Chart
 st.plotly_chart(fig_grouped, use_container_width=True)
 
-
-for i, (p_name, insight) in enumerate(insight_list):
-    with cols[i % 3]:
-        with st.container(border=True):
-            st.markdown(f"**{p_name}**")
-            st.caption(insight)
-
 # 6. Final Key Findings
 st.info("""
 **Key Findings:**
