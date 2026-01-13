@@ -827,12 +827,10 @@ st.plotly_chart(fig12, use_container_width=True)
 # ==========================================
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 
-# 1. DEFINE COLORS FIRST (This fixes the NameError)
 exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
 solid_orange = ["#F57C00"]
 
-# 2. Set up the filter
-# (Make sure 'expense_order' is defined earlier in your script or replace it with a list)
+# Set up the filter
 rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
 expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_sec_b")
 
@@ -844,8 +842,7 @@ if expense_choice != "All":
 # 3. Figure 11: Treemap
 st.subheader("11. Spending Power by Employment")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-
-# Sort numerically so the gradient matches "Light = Low Spend, Dark = High Spend"
+#sort color
 fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
 fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
@@ -862,11 +859,10 @@ if not fig11_data.empty:
     fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
 
-# 4. Figure 12: Bar Chart
+#12. Horizontal Bar Chart for Influence vs Spending Level
 st.subheader("12. Influence by Spending Level")
-fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 
-# Sort numerically again for the bar chart colors
+fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
 fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
@@ -882,6 +878,11 @@ fig12 = px.bar(
     title=f"Influence for {expense_choice} Category"
 )
 
-fig12.update_layout(yaxis={'categoryorder':'total ascending'}, legend={'traceorder': 'normal'})
-fig12.update_traces(hovertemplate="Level: %{fullData.name}<br>Factor: %{y}<br>Total: %{x}<extra></extra>")
-st.plotly_chart(fig12, use_container_width=True)
+fig12.update_layout(
+    yaxis={'categoryorder':'total ascending'}, 
+    legend={'traceorder': 'normal'}
+)
+
+fig12.update_traces( hovertemplate="Factor: %{y}<br>Total Count: %{x}<extra></extra>")
+
+st.plotly_chart(fig12, use_container_width=True)True)
