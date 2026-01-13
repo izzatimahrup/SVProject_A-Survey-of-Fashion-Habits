@@ -5,19 +5,20 @@ import plotly.express as px
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Section C: Consumer Interests", layout="wide")
 
-# --- CSS FIX: BESARKAN TEXT & TURUN BAWAH ---
+# --- CSS TWEAKS: METRIC STYLING ---
+# Making the metric numbers bigger and allowing text to wrap
 st.markdown("""
 <style>
-/* Sasarkan nilai nombor/teks dalam st.metric */
+/* Target the value text in st.metric */
 [data-testid="stMetricValue"] {
-    font-size: 28px !important; /* Saiz besar (tapi muat 2 baris) */
-    word-wrap: break-word !important; /* Turunkan perkataan panjang */
-    white-space: normal !important; /* Benarkan text turun baris */
-    line-height: 1.1 !important; /* Rapatkan sikit jarak baris atas-bawah */
-    height: auto !important; /* Pastikan kotak tak potong tulisan */
+    font-size: 28px !important; /* Make it big */
+    word-wrap: break-word !important; /* Allow long words to break */
+    white-space: normal !important; /* Allow text to wrap to next line */
+    line-height: 1.1 !important; /* Tighten line height */
+    height: auto !important; /* Adjust height automatically */
 }
 
-/* Sasarkan label (tajuk kecil) supaya kemas */
+/* Target the label (small title) to look neat */
 [data-testid="stMetricLabel"] {
     font-size: 14px !important;
     width: 100% !important;
@@ -26,16 +27,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 1. DATA LOADING ---
+# --- 1. DATA LOADING & CLEANING ---
 @st.cache_data
 def load_data():
     file_path = "Cleaned_FashionHabitGF.csv"
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError:
-        st.error("File 'Cleaned_FashionHabitGF.csv' not found.")
+        st.error("Error: 'Cleaned_FashionHabitGF.csv' was not found.")
         return pd.DataFrame()
 
+    # Rename columns to make them easier to code with
     df = df.rename(columns={
         'Average Monthly Expenses (RM)': 'Budget',
         'Influence on Shopping': 'Influence',
@@ -47,7 +49,7 @@ def load_data():
         'Region': 'Region'
     })
     
-    # Cleaning Influence
+    # Clean up the 'Influence' column to group similar answers
     def clean_influence(val):
         val = str(val)
         if "Online community" in val: return "Online Community"
@@ -59,13 +61,17 @@ def load_data():
         return val
     df['Influence'] = df['Influence'].apply(clean_influence)
     
-    # --- FIX SUSUNAN SKALA ---
+    # --- ORDERING CATEGORIES ---
+    # Fix Budget order manually so it doesn't show up alphabetically
     budget_order_logic = ["<500", "500-1000", "1000-3000", ">3000"]
+    # Find which ones actually exist in the data
     found_budget = [x for x in budget_order_logic if x in df['Budget'].unique()]
+    # Add any others that might be in the data but not in my list
     other_budget = [x for x in df['Budget'].unique() if x not in found_budget]
     final_budget = found_budget + other_budget
     df['Budget'] = pd.Categorical(df['Budget'], categories=final_budget, ordered=True)
     
+    # Fix Frequency order
     freq_order_logic = [
         "Daily", "Every day", "Everyday", 
         "Weekly", "Once a week", "Every week",
@@ -78,9 +84,12 @@ def load_data():
     found_freq = [x for x in freq_order_logic if x in df['Frequency'].unique()]
     other_freq = [x for x in df['Frequency'].unique() if x not in found_freq]
     final_freq = found_freq + other_freq
+    
+    # Fallback if list is empty
     if not final_freq: final_freq = sorted(df['Frequency'].dropna().unique().tolist())
     df['Frequency'] = pd.Categorical(df['Frequency'], categories=final_freq, ordered=True)
 
+    # Fix Awareness order (ensure it treats numbers as categorical)
     df['Awareness_Str'] = df['Awareness'].astype(str)
     awareness_order = sorted(df['Awareness_Str'].unique().tolist())
     df['Awareness_Str'] = pd.Categorical(df['Awareness_Str'], categories=awareness_order, ordered=True)
@@ -88,16 +97,18 @@ def load_data():
     return df
 
 # --- MASTER COLOR PALETTE ---
+# Using a consistent color scheme for professionalism
 CONSISTENT_COLORS = ["#003f5c", "#d62728", "#2ca02c", "#bcbd22", "#9467bd", "#17becf"]
 CONSISTENT_SCALE = 'Blues'
 
-# --- 2. PLOTLY CHARTS FUNCTIONS ---
+# --- 2. PLOTLY CHART FUNCTIONS ---
 
 def chart_pie_budget(df):
     data = df['Budget'].value_counts().reset_index()
     data.columns = ['Budget', 'Count']
     fig = px.pie(data, values='Count', names='Budget', title="Distribution of Monthly Budget",
                  color_discrete_sequence=CONSISTENT_COLORS, hole=0)
+    # Put text inside to keep it clean
     fig.update_traces(textposition='inside', textinfo='percent+label', textfont_size=14)
     fig.update_layout(showlegend=True)
     return fig
@@ -144,20 +155,11 @@ def chart_stacked_influence_freq(df):
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
 
-def chart_stacked_influence_budget(df):
-    df_grouped = df.groupby(['Influence', 'Budget']).size().reset_index(name='Count')
-    fig = px.bar(df_grouped, x='Influence', y='Count', color='Budget',
-                 title="Does Influence Source Affect Spending Limits?",
-                 labels={'Influence': 'Influence Source', 'Count': 'Count', 'Budget': 'Budget Range'},
-                 color_discrete_sequence=CONSISTENT_COLORS)
-    fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
-    return fig
-
-# --- 3. MAIN APP ---
+# --- 3. MAIN APP LAYOUT ---
 def app():
     st.title("SECTION C : CONSUMER INTERESTS ABOUT FASHION")
     
-    # --- OBJEKTIF ---
+    # --- OBJECTIVE SECTION ---
     st.markdown("""
     <div style="background-color: #f0f2f6; padding: 15px; border-left: 5px solid #003f5c; margin-bottom: 20px;">
         <h4 style="color: #003f5c; margin-top: 0;">Objective</h4>
@@ -171,7 +173,7 @@ def app():
     df = load_data()
     if df.empty: return
 
-    # --- 1. FILTER (DI ATAS) ---
+    # --- 1. FILTERS (TOP SECTION) ---
     st.subheader("🔍 Filter Data Scope")
     f1, f2 = st.columns(2)
     with f1:
@@ -181,24 +183,25 @@ def app():
         gender_options = df['Gender'].unique().tolist()
         selected_genders = st.multiselect("Select Gender (Scope):", gender_options, default=gender_options)
     
-    # Proses Filter
+    # Apply the filters
     df_filtered = df[(df['Region'].isin(selected_regions)) & (df['Gender'].isin(selected_genders))]
     st.caption(f"Showing analysis for **{len(df_filtered)}** respondents.")
     st.markdown("---")
     
     if df_filtered.empty:
-        st.warning("⚠️ No data available.")
+        st.warning("⚠️ No data available. Please adjust your filters.")
         return
 
-    # --- 2. SCORECARD METRICS (DI BAWAH FILTER) ---
+    # --- 2. SCORECARD METRICS ---
     st.subheader("📊 Key Consumer Interest Summary")
     
-    # Kira Data
+    # Calculate stats
     total_respondents = len(df_filtered)
     
     if not df_filtered.empty:
         top_budget = df_filtered['Budget'].mode()[0]
         top_influence = df_filtered['Influence'].mode()[0]
+        # Calculate mean manually to avoid errors
         avg_awareness_val = pd.to_numeric(df_filtered['Awareness'], errors='coerce').mean()
         avg_awareness = f"{avg_awareness_val:.1f} / 5.0" if not pd.isna(avg_awareness_val) else "N/A"
     else:
@@ -206,16 +209,16 @@ def app():
         top_influence = "N/A"
         avg_awareness = "N/A"
 
-    # Papar Kad
+    # Display metrics in 4 columns
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Respondents", f"{total_respondents}", help="Total number of respondents based on current filters.")
-    m2.metric("Majority Budget", top_budget, help="The most common monthly budget range selected by respondents.")
+    m2.metric("Majority Budget", top_budget, help="The most common monthly budget range.")
     m3.metric("Top Influence", top_influence, help="The primary factor driving purchasing decisions.")
-    m4.metric("Avg. Awareness", avg_awareness, help="Average self-perceived fashion knowledge level (Scale 1-5).")
+    m4.metric("Avg. Awareness", avg_awareness, help="Average self-perceived fashion knowledge (Scale 1-5).")
     
     st.markdown("---")
 
-    # --- 3. VISUALIZATION (GRAF DI BAWAH) ---
+    # --- 3. VISUALIZATIONS (SECTION 1 to 6) ---
     
     # 1. DISTRIBUTION (PIE)
     st.header("1. Spending Preferences")
@@ -224,8 +227,8 @@ def app():
         st.plotly_chart(chart_pie_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **A significant majority of respondents allocate a low monthly budget (under RM500) for fashion.**
-        * **Trend:** This indicates that price sensitivity is a major factor, with a clear preference for affordable, value-for-money products over expensive luxury brands.
+        * **The Pie Chart shows that most respondents have a monthly budget under RM500.**
+        * **Trend:** This confirms the market is highly price sensitive. Although young people love fashion content on social media, they lack spending power, so brands must prioritize products that offer good value.
         """)
     st.markdown("---")
     
@@ -236,8 +239,8 @@ def app():
         st.plotly_chart(chart_bar_awareness(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **Most respondents rate their fashion knowledge at levels 3 or 4, showing they are quite updated with current trends.**
-        * **Insight:** This suggests that despite having limited budgets, they still care deeply about maintaining a stylish image and staying relevant.
+        * **Most people rated themselves at Level 3 and 4, indicating an educated audience.**
+        * **Insight:** Social media acts as an educational tool, transforming casual users into knowledgeable fans. This implies brands are dealing with consumers who are smart and selective.
         """)
     st.markdown("---")
     
@@ -248,8 +251,8 @@ def app():
         st.plotly_chart(chart_bar_influence(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **Online Communities and Social Media Influencers rank as the top drivers of interest, far surpassing traditional advertisements.**
-        * **Trend:** This confirms that modern consumers trust social proof and peer reviews more than direct marketing from brands.
+        * **Online Communities and Influencers score much higher than Brand Ads.**
+        * **Trend:** Modern consumers rely on Social Proof because they trust reviews from real people more than corporate messages. Traditional ads alone are no longer sufficient.
         """)
     st.markdown("---")
     
@@ -260,8 +263,8 @@ def app():
         st.plotly_chart(chart_heatmap_freq_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **A strong pattern emerges where consumers shop frequently (weekly or monthly) but maintain a low budget.**
-        * **Pattern:** This points towards a 'Fast Fashion' behavior, where the interest lies in buying affordable items often to constantly refresh their wardrobe.
+        * **A pattern of 'High Frequency, Low Budget' points to Fast Fashion behavior.**
+        * **Pattern:** Driven by rapid trends, consumers feel pressured to buy cheap items frequently to stay relevant rather than investing in expensive pieces.
         """)
     st.markdown("---")
 
@@ -272,8 +275,8 @@ def app():
         st.plotly_chart(chart_bubble_awareness_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **Interestingly, high fashion awareness (Level 5) does not strictly correlate with high spending.**
-        * **Insight:** This suggests that knowledgeable consumers are 'smart shoppers' who use their trend awareness to find cheaper alternatives or sales rather than overspending.
+        * **High fashion awareness often coincides with low budgets, identifying the Smart Shopper.**
+        * **Insight:** High knowledge does not always mean high spending. These digital natives use their knowledge to find cheaper alternatives and sales to stay stylish on a budget.
         """)
     st.markdown("---")
 
@@ -284,22 +287,10 @@ def app():
         st.plotly_chart(chart_stacked_influence_freq(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
-        * **Respondents influenced by Influencers tend to shop more frequently compared to those relying on family advice.**
-        * **Link:** This is likely because social media feeds constantly expose them to new trends, triggering a continuous desire to buy and stay updated.
+        * **Influencers drive frequent shopping, with followers shopping daily or weekly.**
+        * **Link:** This is likely due to the Fear of Missing Out from constant updates, creating a habit of constant browsing and buying.
         """)
-    st.markdown("---")
-
-    # 7. INFLUENCE vs BUDGET (STACKED BAR)
-    st.header("7. Impact of Drivers on Spending Power")
-    c1, c2, c3 = st.columns([1, 5, 1]) 
-    with c2:
-        st.plotly_chart(chart_stacked_influence_budget(df_filtered), use_container_width=True)
-        st.info("""
-        **📝 Analysis:**
-        * **While advice from Family and Friends usually leads to conservative spending, high-value purchases (>RM1000) are often driven by external media.**
-        * **Insight:** This suggests that stronger visual persuasion from Ads or Influencers is needed to justify larger financial commitments.
-        """)
-
+    
     st.markdown("---")
     st.success("✅ **Consumer Interest Analysis Complete**")
 
