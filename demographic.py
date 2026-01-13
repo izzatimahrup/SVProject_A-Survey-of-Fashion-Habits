@@ -1044,33 +1044,29 @@ st.plotly_chart(fig12, use_container_width=True)
 
 
 # ---------------------------------------------------------
-# 10. Spending vs Employment (Fixed Treemap)
+# 10. Spending vs Employment (Robust Version)
 # ---------------------------------------------------------
 st.subheader("10. Distribution of Spending by Employment")
 
-# ---------------------------------------------------------
-# 10. Spending vs Employment (Fixed Treemap)
-# ---------------------------------------------------------
-st.subheader("10. Distribution of Spending by Employment")
-
-# 1. Group the data
+# 1. Prepare Data
 fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
-# 2. Check if data exists after filtering to prevent errors
+# 2. Safety Check: Only build the chart if we have data
 if not fig10_data.empty:
-    fig10 = px.treemap(
-        fig10_data,
-        # Simplified path: Employment -> Spending
-        path=["Employment Status", "Average Monthly Expenses (RM)"],
-        values="Count",
-        color="Average Monthly Expenses (RM)",
-        # Your Green scale
-        color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-        category_orders={"Average Monthly Expenses (RM)": expense_order},
-        title=f"Spending Power: {expense_choice}"
-    )
-    
-    fig10.update_layout(height=500)
-    st.plotly_chart(fig10, use_container_width=True)
+    try:
+        fig10 = px.treemap(
+            fig10_data,
+            # We only use Employment Status as the path if we have already filtered by Expense
+            path=["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"],
+            values="Count",
+            color="Average Monthly Expenses (RM)" if expense_choice == "All" else "Employment Status",
+            color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
+            title=f"Spending Power: {expense_choice}"
+        )
+        fig10.update_layout(height=500)
+        st.plotly_chart(fig10, use_container_width=True)
+    except Exception as e:
+        # If Treemap still fails, show a Bar Chart as a backup so the app doesn't crash
+        st.bar_chart(fig10_data.set_index("Employment Status")["Count"])
 else:
-    st.warning(f"No data available for the spending level: {expense_choice}")
+    st.warning("No data found for this selection.")
