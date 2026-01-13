@@ -208,11 +208,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. SETUP & MAPPING
+# --- 1. CONFIGURATION & MAPPING ---
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
-# Define the order to match your image (Never at the top, Very Often at the bottom)
+# Define the categorical order to match your image (Never at the top)
 frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
 frequency_insights = {
@@ -223,96 +223,98 @@ frequency_insights = {
     "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
 }
 
-def show_consumer_behavior_page(df):
-    st.header("🛍️ Consumer Behavior Analysis")
+def show_consumer_behavior(df):
+    st.header("🛒 Consumer Behavior: Social Media Engagement")
+    st.markdown("Explore how users interact with different content types, from passive reading to active creation.")
 
-    # --- 2. DATA PREPARATION ---
-    # Identify the specific ordinal columns from your dataset
-    ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
-    
-    if not ordinal_cols:
-        st.error("Could not find columns starting with 'Freq_' and ending with '_Ordinal'. Please check your dataset.")
-        return
+    # Data Preparation: Identifying columns
+    ordinal_frequency_cols = [
+        col for col in df.columns 
+        if col.startswith('Freq_') and col.endswith('_Ordinal')
+    ]
 
-    # --- 3. STRUCTURED FILTER BAR ---
+    # --- 2. STRUCTURED FILTER BAR ---
     with st.container(border=True):
-        st.subheader("Dashboard Controls")
-        # Map clean names for the UI to the raw column names
-        activity_map = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
+        f_col1, f_col2 = st.columns([2, 1])
         
-        selected_names = st.multiselect(
-            "Select Activities to Compare",
-            options=list(activity_map.keys()),
-            default=list(activity_map.keys())
-        )
+        with f_col1:
+            activity_options = {col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): col 
+                               for col in ordinal_frequency_cols}
+            
+            selected_activity_names = st.multiselect(
+                "Filter Activities to Display",
+                options=list(activity_options.keys()),
+                default=list(activity_options.keys())[:2]
+            )
 
-    st.write("##")
+        with f_col2:
+            view_type = st.radio("Visualization Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
 
-    # --- 4. BOX PLOT GENERATION (Matching Image Style) ---
-    if not selected_names:
-        st.info("Please select activities from the filter above to generate the analysis.")
+    st.write("---")
+
+    # --- 3. DYNAMIC GRID LAYOUT ---
+    if not selected_activity_names:
+        st.info("Select at least one activity above to visualize the behavior data.")
     else:
-        # Create 2-column layout for the charts
         col1, col2 = st.columns(2)
         
-        for i, name in enumerate(selected_names):
-            orig_col = activity_map[name]
+        for i, activity_name in enumerate(selected_activity_names):
+            original_col = activity_options[activity_name]
             
-            # Filter and map labels for the specific activity
-            plot_df = df[[orig_col]].copy()
-            plot_df['Frequency_Level_Label'] = plot_df[orig_col].map(frequency_labels)
+            plot_data = df[[original_col]].copy()
+            plot_data['Label'] = plot_data[original_col].map(frequency_labels)
             
-            # Create the Plotly Box Plot to match the seaborn color/style
-            fig = px.box(
-                plot_df,
-                y='Frequency_Level_Label',
-                points="outliers",  # Shows individual dots only for outliers like your image
-                title=f"Distribution: {name}",
-                category_orders={"Frequency_Level_Label": frequency_order},
-                color='Frequency_Level_Label',
-                color_discrete_sequence=px.colors.sequential.Viridis,
-                labels={'Frequency_Level_Label': 'Frequency Level'}
-            )
+            # --- UPDATED BOX PLOT LOGIC TO MATCH IMAGE ---
+            if "Box Plot" in view_type:
+                fig = px.box(
+                    plot_data,
+                    y='Label',            # Vertical orientation to match your image
+                    points="outliers",    # Shows individual dots only for outliers
+                    title=f"Distribution: {activity_name}",
+                    category_orders={"Label": frequency_order},
+                    color='Label',        # Map color to the label for the Viridis effect
+                    color_discrete_sequence=px.colors.sequential.Viridis,
+                    labels={'Label': 'Frequency Level'}
+                )
+                # Invert axis so "Never" is at the top like the screenshot
+                fig.update_yaxes(autorange="reversed", showgrid=True, gridcolor='lightgrey')
+                fig.update_xaxes(showticklabels=False) # Hide X labels to focus on the box
+            else:
+                counts = plot_data['Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
+                counts.columns = ['Label', 'count']
+                fig = px.bar(
+                    counts, x='Label', y='count', text='count',
+                    title=f"Volume: {activity_name}",
+                    color='count', color_continuous_scale='Blues'
+                )
+                fig.update_traces(textposition='outside')
 
-            # Styling to match the 'whitegrid' look
+            # Clean styling to match 'whitegrid'
             fig.update_layout(
-                showlegend=False,
+                showlegend=False, 
                 plot_bgcolor='white',
-                height=450,
-                margin=dict(t=50, b=20, l=10, r=10)
+                margin=dict(t=50, b=20, l=10, r=10), 
+                height=450
             )
-            fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0', autorange="reversed")
-            fig.update_xaxes(showticklabels=False) # Hides X labels to keep it clean like individual boxes
-
-            # Logic to alternate between columns
-            target_col = col1 if i % 2 == 0 else col2
             
+            target_col = col1 if i % 2 == 0 else col2
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Insight Box matching the requested logic
                 with st.container(border=True):
-                    st.markdown(f"**Quick Insight: {name}**")
-                    st.write(frequency_insights.get(name, "No specific analysis available."))
+                    st.markdown(f"**Quick Insight: {activity_name}**")
+                    insight_text = frequency_insights.get(activity_name, "No specific analysis available.")
+                    st.write(insight_text)
                 st.write("##")
 
-    # --- 5. FOOTER SUMMARY ---
+    # --- 4. SUMMARY SECTION ---
     st.info("""
     **Key Findings:**
-    * **Video Dominance:** Video content sees the highest 'Very Often' engagement.
-    * **Passive vs Active:** High frequency in consumption (Reading/Watching) vs low frequency in creation (Uploading).
+    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement.
+    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload content.
     """)
 
-# --- EXECUTION ---
-# This ensures the function runs if you are testing this script alone
-if __name__ == "__main__":
-    # If 'df' exists in your environment, it will run. 
-    # If not, you need to load your data first: df = pd.read_csv("your_data.csv")
-    if 'df' in locals() or 'df' in globals():
-        show_consumer_behavior_page(df)
-    else:
-        st.warning("Dataframe 'df' not found. Please load your data before running the dashboard.")
-
+# show_consumer_behavior(df)
 # ======================================================
 # SECTION E
 # ======================================================
