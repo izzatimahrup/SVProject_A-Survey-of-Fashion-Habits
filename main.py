@@ -14,7 +14,8 @@ home = st.Page(
     "home.py",
     title="Home",
     icon="🏠",
-    default=True
+    default=True,
+    url_path="Home_Page"
 )
 
 demographic_izzati = st.Page(
