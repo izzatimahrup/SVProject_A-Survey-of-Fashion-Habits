@@ -662,17 +662,24 @@ st.plotly_chart(fig10, use_container_width=True)
 
 st.divider()
 
-# --- SECTION 2: EXPENDITURE FILTER ---
-st.markdown("💡 Use the filter below to refine **Expenditure** for Employment (Fig 11) and Spending Influence (Fig 12).")
-expense_choice = st.selectbox("Select Monthly Expenditure Level:", ["All"] + expense_order, key="expense_filter_mid")
+# --- SECTION 2: EXPENDITURE FILTER (Renamed to RM) ---
+st.markdown("💡 Use the filter below to refine **Monthly Expenditure (RM)**")
+
+# Renaming the filter options to include 'RM'
+rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
+expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="expense_filter_mid")
 
 df_expense = df.copy()
+# Ensure we strip 'RM ' when filtering if the original data doesn't have it
 if expense_choice != "All":
-    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == expense_choice]
+    actual_value = expense_choice.replace("RM ", "")
+    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_value]
 
-# --- 11. Distribution of Spending by Employment (Now Fig 11 - Treemap) ---
-st.subheader("11. Distribution of Spending by Employment")
+# --- 11. Distribution by Employment (RM Labels) ---
+st.subheader("11. Distribution of Spending by Employment (RM)")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+# Add RM to the data labels for the chart
+fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
 if not fig11_data.empty:
     try:
@@ -682,23 +689,23 @@ if not fig11_data.empty:
             path=path_logic,
             values="Count",
             color="Average Monthly Expenses (RM)" if expense_choice == "All" else "Employment Status",
+            # Green Scale
             color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
             title=f"Spending Power Distribution: {expense_choice}"
         )
-        fig11.update_layout(height=500)
         st.plotly_chart(fig11, use_container_width=True)
     except Exception:
-        st.bar_chart(fig11_data.set_index("Employment Status")["Count"])
-else:
-    st.warning("No data found for this selection.")
+        st.warning("Could not render Treemap for this selection.")
 
-# --- 12. Influence by Spending Level ---
-st.subheader("12. Influence by Spending Level")
+# --- 12. Influence by Spending Level (RM Labels) ---
+st.subheader("12. Influence by Spending Level (RM)")
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+
 fig12 = px.bar(
     fig12_data, x="Count", y="Influence on Shopping", color="Average Monthly Expenses (RM)",
     orientation='h', barmode='stack',
     color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-    title=f"Influence for {expense_choice} Spenders"
+    title=f"Influence for {expense_choice} Category"
 )
 st.plotly_chart(fig12, use_container_width=True)
