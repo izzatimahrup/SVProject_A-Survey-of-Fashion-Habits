@@ -204,78 +204,102 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
+# --- Configuration & Data Preparation ---
 frequency_labels = {
-    0: 'Never',
-    1: 'Rarely',
-    2: 'Sometimes',
-    3: 'Often',
-    4: 'Very often'
+    0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
 
-# Mapping specific column names to their unique insights based on survey data
 frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
-    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
-    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
+    "Read posts or articles": "Reading posts is a core activity, with high passive consumption of fashion information.",
+    "Watch videos": "Video consumption shows a heavy skew toward 'Very often', confirming video-first effectiveness.",
+    "Comment on posts": "Interaction via comments is moderate; many users remain 'lurkers'.",
+    "Share posts or photos": "Sharing is selective; users curate what they share occasionally.",
+    "Upload pictures or videos": "The least frequent behavior, identifying a small group of creators."
 }
 
-ordinal_frequency_cols = [
-    col for col in df.columns 
-    if col.startswith('Freq_') and col.endswith('_Ordinal')
-]
+# Categorize activities for a more "unique" filter experience
+activity_categories = {
+    "Passive Consumption": ["Read posts or articles", "Watch videos"],
+    "Active Engagement": ["Comment on posts", "Share posts or photos", "Upload pictures or videos"]
+}
 
-# 2. Create Layout Columns
-col1, col2 = st.columns(2)
+# --- Sidebar UI ---
+st.sidebar.header("Chart Configurations")
 
-if not ordinal_frequency_cols:
-    st.info("No frequency data found to visualize.")
+# 1. Filter by Interaction Level
+category_choice = st.sidebar.multiselect(
+    "Filter by Interaction Type",
+    options=list(activity_categories.keys()),
+    default=list(activity_categories.keys())
+)
+
+# Flatten list of activities based on category choice
+available_activities = []
+for cat in category_choice:
+    available_activities.extend(activity_categories[cat])
+
+# 2. Specific Activity Multi-select
+selected_activities = st.sidebar.multiselect(
+    "Select Specific Activities",
+    options=available_activities,
+    default=available_activities
+)
+
+# 3. Dynamic Visualization Toggle
+chart_type = st.sidebar.radio("Analysis View", ["Box Plot (Distribution)", "Bar Chart (Volume)"])
+
+# --- Main Dashboard ---
+st.title("📊 Social Media Behavior Deep-Dive")
+
+if not selected_activities:
+    st.warning("Please select at least one activity in the sidebar to view data.")
 else:
-    for i, col in enumerate(ordinal_frequency_cols):
-        # Clean the platform name/activity name for matching
-        platform_name = col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
-
-        # Prepare Chart Data
-        counts = df[col].value_counts().sort_index().reset_index()
-        counts.columns = [col, 'count']
-        counts['label'] = counts[col].map(frequency_labels)
-
-        # Create Chart
-        fig = px.bar(
-            counts,
-            x='label',
-            y='count',
-            text='count',
-            title=f"Frequency: '{platform_name}'",
-            labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
-            color_discrete_sequence=['#0068c9']
-        )
-
-        fig.update_traces(textposition='outside')
-        fig.update_layout(showlegend=False, margin=dict(b=20))
-        fig = center_title(fig)
+    col1, col2 = st.columns(2)
+    
+    for i, activity in enumerate(selected_activities):
+        # Filter Data
+        plot_data = df_melted_frequency[df_melted_frequency['Activity_Type'] == activity].copy()
+        plot_data['Frequency_Label'] = plot_data['Frequency_Level'].map(frequency_labels)
         
-        # 3. Logic to alternate and place Insight below Chart
+        # Determine target column (alternating)
         target_col = col1 if i % 2 == 0 else col2
         
         with target_col:
-            # Display Chart
+            if "Box Plot" in chart_type:
+                # Distribution View
+                fig = px.box(
+                    plot_data, x='Frequency_Label', y='Frequency_Level',
+                    points="all", notched=True,
+                    category_orders={"Frequency_Label": list(frequency_labels.values())},
+                    color_discrete_sequence=['#0068c9'],
+                    title=f"Distribution: {activity}"
+                )
+            else:
+                # Count View
+                counts = plot_data['Frequency_Label'].value_counts().reset_index()
+                counts.columns = ['Label', 'Count']
+                fig = px.bar(
+                    counts, x='Label', y='Count', text='Count',
+                    category_orders={"Label": list(frequency_labels.values())},
+                    color='Count', color_continuous_scale='Blues',
+                    title=f"Volume: {activity}"
+                )
+            
+            fig.update_layout(showlegend=False, margin=dict(t=40, b=0, l=10, r=10), height=400)
             st.plotly_chart(fig, use_container_width=True)
             
-            # Display Specific Quick Insight in a Box
+            # Insight Box with specific styling
             with st.container(border=True):
-                st.markdown(f"**Quick Insight: {platform_name}**")
-                # Pull insight from dictionary using the cleaned name
-                insight_text = frequency_insights.get(platform_name, "No specific analysis available for this activity.")
-                st.write(insight_text)
-            st.write("##")
+                st.caption(f"INSIGHT: {activity.upper()}")
+                st.write(frequency_insights.get(activity, "N/A"))
+            st.write("---")
 
-st.info("""
-**Key Findings:**
-* **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
-* **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment..
-""")
+# --- Global Key Findings ---
+with st.expander("See Executive Summary"):
+    st.info("""
+    * **Passive vs Active:** Passive consumption (Watch/Read) is 3x more frequent than active creation.
+    * **Video Dominance:** The 'Watch videos' metric is the only one showing a consistent 'Very Often' peak.
+    """)
             
 # ======================================================
 # SECTION E
