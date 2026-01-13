@@ -45,68 +45,11 @@ education_order = [
 
 expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 
-# 3️⃣ Regional Distribution
-st.subheader("3. Regional Distribution of Respondents")
-
-# 1. PREPARE DATA (Use df_filtered to make it interactive!)
-# We calculate counts AND percentages for better analysis
-region_counts = df_filtered["Region"].value_counts().reset_index()
-region_counts.columns = ["Region", "Count"] # Rename columns clearly
-total_filtered = region_counts["Count"].sum()
-region_counts["Percentage"] = (region_counts["Count"] / total_filtered) * 100
-
-# 2. CREATE ENHANCED BAR CHART
-fig3 = px.bar(
-    region_counts,
-    x='Region',
-    y='Count',
-    color='Region', # Gives each bar a distinct color
-    # Custom text: Shows "Count (Percentage%)" on top of the bar
-    text=region_counts.apply(lambda x: f"<b>{x['Count']}</b><br>({x['Percentage']:.1f}%)", axis=1),
-    title="Geographic Representation: East vs. West Malaysia",
-    color_discrete_sequence=px.colors.qualitative.Set2 # Professional color palette
-)
-
-# 3. PROFESSIONAL STYLING
-fig3.update_traces(
-    textposition='outside', # Puts the numbers above the bar
-    hovertemplate="<b>%{x}</b><br>Respondents: %{y}<br>Share: %{customdata:.1f}%<extra></extra>",
-    customdata=region_counts["Percentage"] # Passes percentage to hover tooltip
-)
-
-fig3.update_layout(
-    height=500,
-    margin=dict(t=50, b=50),
-    title_x=0.5, # Centers the title
-    xaxis_title=None, # Removes "Region" label (redundant)
-    yaxis_title="Number of Respondents",
-    showlegend=False, # Legend is not needed since x-axis labels are clear
-    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
-    plot_bgcolor='rgba(0,0,0,0)'
-)
-
-st.plotly_chart(fig3, use_container_width=True)
-
-# 4. BLUE INTERPRETATION BOX
-st.info("""
-### 📝 Interpretation:
-
-This chart compares respondents from East and West Malaysia to assess geographic representation.
-
-* **Respondents from East Malaysia slightly outnumber those from West Malaysia.**
-* This suggests that fashion engagement through social media is not confined to highly urbanised regions.
-* The result indicates that social media reduces geographic barriers in shaping fashion awareness and shopping behaviour.
-""")
-
-st.markdown("---") 
-
-
 
 # ---------------------------------------------------------
 # Page Title & Description
 # ---------------------------------------------------------
 st.title("📊👥 Demographic Analysis")
-# st.markdown("Interact with the charts by hovering over them or using the legend to filter data.")
 st.markdown(
     "This section summarises the demographic profile of the respondents, providing "
     "background information on the sample characteristics."
