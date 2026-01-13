@@ -300,32 +300,33 @@ st.info("""
 📝 Interpretation:
 
 """)
-# 6️⃣ Monthly Fashion Expenditure
-st.subheader("6. Monthly Fashion Expenditure Distribution")
+
+# 5. Monthly Fashion Expenditure
+st.subheader("5. Monthly Fashion Expenditure Distribution")
 
 expense_counts = df["Average Monthly Expenses (RM)"].value_counts().reindex(expense_order).reset_index()
-expense_counts['percentage'] = (expense_counts['count'] / expense_counts['count'].sum()) * 100
+expense_counts.columns = ["Expense", "Count"]
+expense_counts['pct'] = (expense_counts['Count'] / expense_counts['Count'].sum()) * 100
 
-fig6 = px.bar(
+fig5 = px.bar(
     expense_counts,
-    x='Average Monthly Expenses (RM)',
-    y='percentage',
-    text=expense_counts['percentage'].apply(lambda x: f'{x:.1f}%'),
-    title="Distribution of Monthly Fashion Expenses (%)",
-    category_orders={"Average Monthly Expenses (RM)": expense_order}
+    x='Expense',
+    y='pct',
+    color='pct',
+    color_continuous_scale=['#F3E5F5', '#AB47BC', '#4A148C'], 
+    title="Monthly Fashion Expenditure (%)",
+    category_orders={"Expense": expense_order}
 )
-st.plotly_chart(fig6, use_container_width=True)
 
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart examines respondents’ average monthly spending on fashion items.
+fig5.update_traces(width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside')
+fig5.update_layout(title_x=0, height=450, coloraxis_showscale=False, yaxis_title="Percentage (%)")
 
-- Most respondents fall within low to middle expenditure categories.
-- This indicates cautious but consistent fashion consumption behaviour.
-- The spending pattern suggests that affordability and perceived value influence online fashion purchasing decisions.
+st.plotly_chart(fig5, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+
 """)
-st.markdown("---")
-
 
 # 7️⃣ Awareness of Fashion Trends
 st.subheader("7. Awareness of Fashion Trends")
