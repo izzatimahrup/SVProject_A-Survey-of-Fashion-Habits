@@ -278,7 +278,7 @@ fig4 = px.pie(
     names='Status',
     hole=0.6,
     title="Employment Status Composition",
-    color_discrete_sequence=['#82ADA9', '#546E7A', '#B0BEC5', '#78909C']
+    color_discrete_sequence=['#D4A5A5', '#E9C46A', '#F4A261', '#E76F51']
 )
 
 fig4.update_traces(
