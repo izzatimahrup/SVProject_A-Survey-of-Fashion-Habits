@@ -95,77 +95,73 @@ with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
 # ======================================================
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
-st.write("Analyzing the specific trends and trust factors for each motivation.")
 
-# --- Page Config ---
-st.set_page_config(page_title="Motivation Survey Results", layout="wide")
+# 1. CALCULATE PERCENTAGES (Fixes the NameError)
+def calculate_percentages(df, columns):
+    # Mapping numeric scores back to labels for the chart
+    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
+    
+    pct_list = []
+    for col in columns:
+        # Get counts of each score (1-5), ensure all 1-5 are present even if 0
+        counts = df[col].value_counts(normalize=True).reindex([1, 2, 3, 4, 5], fillvalue=0) * 100
+        counts.index = counts.index.map(label_map)
+        counts.name = col
+        pct_list.append(counts)
+    
+    return pd.DataFrame(pct_list)
 
-st.title("Survey Data Visualization")
+# Generate the missing dataframe
+df_motivation_pct = calculate_percentages(df, motivation_cols)
 
-# --- Data Preparation (Assuming df_motivation_pct exists) ---
-# Note: If running this from scratch, ensure df_motivation_pct is defined here.
-# For this example, I'm assuming it's already in your environment.
-
+# 2. DATA PROCESSING FOR PLOT
 @st.cache_data
-def process_data(df):
-    df_pos = df.copy()
+def process_data(df_input):
+    df_pos = df_input.copy()
+    # We keep them positive for a standard stacked bar
     for col in ['Strongly Disagree', 'Disagree']:
         if col in df_pos.columns:
             df_pos[col] = df_pos[col].abs()
     return df_pos
 
-# Process your dataframe
 df_motivation_pct_positive = process_data(df_motivation_pct)
 
-# --- Sidebar / Controls ---
+# 3. SIDEBAR CONTROLS
 st.sidebar.header("Chart Options")
-show_labels = st.sidebar.checkbox("Show Percentage Labels", value=False)
+show_labels = st.sidebar.checkbox("Show Percentage Labels", value=True)
 
-# --- Plotting Logic ---
+# 4. PLOTTING
 sns.set_style("whitegrid")
-
-# Define categories and colors
 plot_columns_positive = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
 colors_positive = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
 
-# Create the figure
 fig, ax = plt.subplots(figsize=(12, 8))
-
 df_motivation_pct_positive[plot_columns_positive].plot(
-    kind='barh', 
-    stacked=True, 
-    color=colors_positive, 
-    ax=ax, 
-    width=0.8
+    kind='barh', stacked=True, color=colors_positive, ax=ax, width=0.8
 )
 
-# Customization
-ax.set_title('Percentage Distribution of Responses for Motivation Questions', fontsize=16)
+ax.set_title('Percentage Distribution of Responses', fontsize=16)
 ax.set_xlabel('Percentage of Respondents (%)', fontsize=12)
-ax.set_ylabel('Motivation Question', fontsize=12)
 ax.set_xlim(0, 100)
 
-# Optional Labels (Toggled by Streamlit Checkbox)
 if show_labels:
     for c in ax.containers:
-        labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c] # 5% threshold to prevent overlap
+        labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c]
         ax.bar_label(c, labels=labels, label_type='center', fontsize=9)
 
-# Legend placement
 ax.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
-
 plt.tight_layout()
 
-# --- Display in Streamlit ---
+# 5. DISPLAY
 st.pyplot(fig)
 
-# --- Interpretation Box ---
+# --- BLUE INTERPRETATION BOX ---
 st.info("""
 **Data Interpretation:**
-This chart shows a positive skew in employee motivation. The majority of respondents 
+This chart shows a positive skew in consumer motivation. The majority of respondents 
 fall into the **Agree** (light green) and **Strongly Agree** (dark green) categories. 
 The areas in red indicate specific questions where intervention may be needed to 
-address underlying dissatisfaction.
+address underlying dissatisfaction or lack of interest.
 """)
 
 # ======================================================
