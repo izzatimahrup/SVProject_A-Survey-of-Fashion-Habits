@@ -64,16 +64,15 @@ fig3 = px.bar(
     x='Region',
     y='Count',
     color='Region',
-    # Using Teal and Purple: Modern and distinct from Gender colors
     color_discrete_map={'East Malaysia': '#008080', 'West Malaysia': '#6A5ACD'},
     title="Geographic Representation: East vs. West Malaysia",
     text_auto=True
 )
 
-# 3. Custom Hover Tooltip and Styling
+# Hover and tooltip
 fig3.update_traces(
+    width=0.4,
     textposition='outside',
-    # This customizes what you see when you hover your mouse
     hovertemplate="""
     <b>Region:</b> %{x}<br>
     <b>Respondents:</b> %{y}<br>
@@ -85,7 +84,7 @@ fig3.update_traces(
 
 fig3.update_layout(
     height=300,
-    title_x=0.5,
+    title_x=0,
     xaxis_title=None,
     yaxis_title="Total Respondents",
     showlegend=False,
@@ -96,15 +95,9 @@ fig3.update_layout(
 
 st.plotly_chart(fig3, use_container_width=True)
 
-# 4. Blue Interpretation Box (Replaces the markdown text)
 st.info("""
-### 📝 Interpretation:
+📝 Interpretation:
 
-This chart compares respondents from East and West Malaysia to assess geographic representation.
-
-* **East Malaysia vs. West Malaysia:** Respondents from East Malaysia slightly outnumber those from West Malaysia.
-* **Urban vs. Rural Engagement:** This suggests that fashion engagement through social media is not confined to highly urbanised regions.
-* **Digital Inclusion:** The result indicates that social media effectively reduces geographic barriers in shaping fashion awareness and shopping behaviour.
 """)
 
 st.markdown("---")
