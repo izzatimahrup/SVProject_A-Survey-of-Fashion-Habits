@@ -100,6 +100,7 @@ col3.metric(
 st.header("🧍 Part 1: Demographic Overview")
 st.markdown("Use the filters below to refine the demographic breakdown.")
 
+# Create two columns for the filters
 col_filter1, col_filter2 = st.columns(2)
 
 with col_filter1:
@@ -116,59 +117,46 @@ with col_filter2:
         default=age_order
     )
 
-# Apply filter
+# Apply the filter to the dataframe
 df_filtered = df[
     (df["Gender"].isin(selected_gender)) & 
     (df["Age"].isin(selected_age))
-].copy()
+].copy() # Use .copy() to avoid SettingWithCopyWarning
 
-# --- BOLD FORMATTING ---
-# This makes the labels BOLD for the chart
+# --- BOLD FORMATTING FOR GENDER ---
+# This makes 'Female' and 'Male' bold specifically for the chart labels
 df_filtered["Gender"] = df_filtered["Gender"].apply(lambda x: f"<b>{x}</b>")
 
 # --- PART 2: SUNBURST VISUALIZATION ---
 st.subheader("📊 Interactive Gender & Age Hierarchy")
+st.info("💡 **Interactivity Tip:** Click on a inner sector to zoom into that group's specific age distribution.")
 
-# Define Solid Pink and Solid Blue
-# Female: #FF69B4 (Hot Pink) | Male: #0000FF (Solid Blue)
-color_map = {'<b>Female</b>': '#FF69B4', '<b>Male</b>': '#0000FF'}
-
+# We update the keys in color_discrete_map to match the new bold strings
 fig_sun = px.sunburst(
     df_filtered,
     path=["Gender", "Age"], 
     values=None,           
     color="Gender",
-    color_discrete_map=color_map,
+    color_discrete_map={'<b>Female</b>': '#FFB6C1', '<b>Male</b>': '#ADD8E6'},
     title="Demographic Proportions: Gender and Age"
 )
 
-# --- PART 3: SIZE, BOLD, AND TOOLTIP ENHANCEMENT ---
+# --- PART 3: HOVER & TOOLTIP ENHANCEMENT ---
 fig_sun.update_traces(
     textinfo="label+percent entry", 
-    # Adding white borders for a clean look
-    marker=dict(line=dict(color='#FFFFFF', width=2)),
+    marker=dict(line=dict(color='#FFFFFF', width=2)), # Appealing white border
     hovertemplate="""
     <b>Category:</b> %{label}<br>
     <b>Total Count:</b> %{value}<br>
+    <b>Share of Parent:</b> %{percentParent:.1f}%<br>
     <extra></extra>
     """
 )
 
 fig_sun.update_layout(
-    # --- RESIZE CHART HERE ---
-    height=700,  # Increase height
-    width=700,   # Increase width to make it a large square
-    margin=dict(t=50, l=10, r=10, b=10),
-    
-    # --- FONT SIZE ENHANCEMENT ---
-    # This makes all text inside the chart bigger and ensures it's readable
-    font=dict(size=16, family="Arial Black"), 
-    extendpiecolors=True
-)
-
-# This forces the text to be a minimum size even in small slices
-fig_sun.update_layout(
-    uniformtext=dict(minsize=14, mode='hide')
+    margin=dict(t=40, l=0, r=0, b=0),
+    height=450,
+    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
 )
 
 st.plotly_chart(fig_sun, use_container_width=True)
