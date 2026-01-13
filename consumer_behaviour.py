@@ -324,24 +324,25 @@ st.info("""
 st.divider()
 
 st.header("Section E: Cross Platform Connection")
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from scipy.stats import pearsonr
 
 # --- 1. DATA PREPARATION ---
-# Create specific lists for the X and Y selectors
+# Identify your ordinal columns automatically
 activity_options = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
 frequency_options = [col for col in df.columns if col.startswith('Freq_') and col.endswith('_Ordinal')]
 
-# --- 2. LAYOUT: SELECTORS & ANALYSIS ---
+# --- 2. MAIN LAYOUT (Columns for Left-Side Analysis) ---
 st.subheader("Relationship Scatters")
 
-# Primary split: Left for selectors/analysis, Right for the chart
-main_col1, main_col2 = st.columns([1, 2])
+# Create a 1:2 ratio to keep selectors and analysis on the left
+col_left, col_right = st.columns([1, 2])
 
-with main_col1:
-    # Selectors
+with col_left:
+    # Dropdowns for selection
     x_col = st.selectbox(
         "Select X-axis (Activity)", 
         options=activity_options, 
@@ -356,20 +357,19 @@ with main_col1:
         format_func=lambda x: x.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
     )
 
-    # --- CORRECTION LOGIC ---
-    # Create a plotting dataframe where we flip the values so high number = high activity
+    # --- FLIP LOGIC FOR POSITIVE TREND ---
+    # We create a copy to flip the scale: 0 (Very Active) becomes 3 (High)
     df_plot = df.copy()
-    # If 0 is "Very Active" and 3 is "Inactive", flipping (3 - val) makes 3 "Very Active"
-    df_plot[x_col] = 3 - df_plot[x_col] 
-    df_plot[y_col] = 4 - df_plot[y_col] # Assuming frequency is 0-4
+    df_plot[x_col] = 3 - df_plot[x_col]
+    df_plot[y_col] = 4 - df_plot[y_col] # Assuming frequency scale is 0-4
 
-    # Calculate correlation on the corrected positive scale
+    # Calculate actual correlation coefficient
     valid_df = df_plot[[x_col, y_col]].dropna()
     corr_coef, _ = pearsonr(valid_df[x_col], valid_df[y_col])
 
-    # Dynamic Analysis Box
-    st.write(f"**Correlation Coefficient:** {corr_coef:.2f}")
-    
+    st.markdown(f"**Correlation Coefficient:** {corr_coef:.2f}")
+
+    # Analysis Box (The Green Box from your image)
     if abs(corr_coef) > 0.7:
         st.success("**Analysis: Strong Relationship.** These two factors are deeply linked in the consumer's mind.")
     elif abs(corr_coef) > 0.4:
@@ -377,13 +377,17 @@ with main_col1:
     else:
         st.info("**Analysis: Weak Relationship.** These factors do not strongly influence each other.")
 
-with main_col2:
-    # --- 3. VISUALIZATION ---
+with col_right:
+    # --- 3. PLOTTING ---
     try:
         import statsmodels
         t_line = "ols"
     except ImportError:
         t_line = None
+
+    # Clean display names for title and axis
+    x_label = x_col.replace('Active_', '').replace('_Ordinal', '')
+    y_label = y_col.replace('Freq_', '').replace('_Ordinal', '')
 
     fig3 = px.scatter(
         df_plot, 
@@ -391,21 +395,23 @@ with main_col2:
         y=y_col, 
         trendline=t_line, 
         opacity=0.6, 
-        title=f'Relationship: {x_col.replace("_Ordinal", "")} vs {y_col.replace("_Ordinal", "")}',
+        title=f'Relationship: {x_label} vs {y_label}',
         labels={
-            x_col: 'Activity Level (Higher = More Active)',
-            y_col: 'Frequency Level (Higher = More Frequent)'
+            x_col: f'{x_label} (Higher = More Active)',
+            y_col: f'{y_label} (Higher = More Frequent)'
         },
         template="plotly_white" 
     )
 
+    # Styling the regression line and grid
     if t_line == "ols":
-        fig3.data[1].line.color = 'red' # Red line like your second screenshot
+        fig3.data[1].line.color = 'red' # Match the red line from your second screenshot
 
     fig3.update_layout(
         xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
         yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
-        margin=dict(t=50, b=50, l=50, r=50)
+        title_x=0.5, # Centers the title
+        margin=dict(l=20, r=20, t=50, b=20)
     )
 
     st.plotly_chart(fig3, use_container_width=True)
