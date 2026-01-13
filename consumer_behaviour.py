@@ -208,10 +208,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# --- 1. CONFIGURATION & MAPPING ---
+# --- 1. CONFIGURATION ---
+# Note: Ensure the order matches the Y-axis of your image
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
+frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
 frequency_insights = {
     "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
@@ -221,99 +223,80 @@ frequency_insights = {
     "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
 }
 
-def show_consumer_behavior():
-    st.header("🛒 Consumer Behavior: Social Media Engagement")
-    st.markdown("Explore how users interact with different content types, from passive reading to active creation.")
-
-    # Data Preparation: Identifying columns
-    ordinal_frequency_cols = [
-        col for col in df.columns 
-        if col.startswith('Freq_') and col.endswith('_Ordinal')
-    ]
-
-    # --- 2. STRUCTURED FILTER BAR ---
-    # We place filters inside a container at the top of the page
+def show_consumer_behavior_page(df):
+    st.header("🛍️ Consumer Behavior Analysis")
+    
+    # Pre-processing: Identify columns
+    ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
+    
+    # --- 2. STRUCTURED FILTER SECTION ---
     with st.container(border=True):
-        f_col1, f_col2 = st.columns([2, 1])
+        st.subheader("Filter Behavior Data")
+        # Clean names for the filter
+        activity_map = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
         
-        with f_col1:
-            # Multi-select for structured activity filtering
-            activity_options = {col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): col 
-                               for col in ordinal_frequency_cols}
-            
-            selected_activity_names = st.multiselect(
-                "Filter Activities to Display",
-                options=list(activity_options.keys()),
-                default=list(activity_options.keys())[:2]
-            )
+        selected_names = st.multiselect(
+            "Select Social Media Activities",
+            options=list(activity_map.keys()),
+            default=list(activity_map.keys())
+        )
 
-        with f_col2:
-            # Toggle between the original Box Plot and a Bar Chart view
-            view_type = st.radio("Visualization Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
+    st.write("##")
 
-    st.write("---")
-
-    # --- 3. DYNAMIC GRID LAYOUT ---
-    if not selected_activity_names:
-        st.info("Select at least one activity above to visualize the behavior data.")
+    # --- 3. CHART GENERATION ---
+    if not selected_names:
+        st.info("Please select activities to visualize.")
     else:
-        # Create columns for the 2-per-row layout
         col1, col2 = st.columns(2)
         
-        for i, activity_name in enumerate(selected_activity_names):
-            original_col = activity_options[activity_name]
+        for i, name in enumerate(selected_names):
+            orig_col = activity_map[name]
             
-            # Prepare Plotly Data
-            # For Box Plots, we use raw data; for Bar Charts, we use value counts
-            plot_data = df[[original_col]].copy()
-            plot_data['Label'] = plot_data[original_col].map(frequency_labels)
+            # Prepare data for Plotly
+            plot_df = df[[orig_col]].copy()
+            plot_df['Label'] = plot_df[orig_col].map(frequency_labels)
             
-            # Create Plotly Chart
-            if "Box Plot" in view_type:
-                fig = px.box(
-                    plot_data,
-                    x='Label',
-                    y=original_col,
-                    points="all", # Replaces the 'jitter' from Seaborn
-                    title=f"Distribution: {activity_name}",
-                    labels={'Label': 'Frequency', original_col: 'Scale (0-4)'},
-                    category_orders={"Label": list(frequency_labels.values())},
-                    color_discrete_sequence=['#0068c9']
-                )
-            else:
-                counts = plot_data['Label'].value_counts().reindex(list(frequency_labels.values()), fill_value=0).reset_index()
-                counts.columns = ['Label', 'count']
-                fig = px.bar(
-                    counts, x='Label', y='count', text='count',
-                    title=f"Volume: {activity_name}",
-                    color='count', color_continuous_scale='Blues'
-                )
-                fig.update_traces(textposition='outside')
+            # Create Box Plot to match the image style
+            fig = px.box(
+                plot_df,
+                y='Label', # Swapped to Y to match your image vertical orientation
+                points=False, # Set to False to match the clean look of the Seaborn image
+                title=f"Distribution: {name}",
+                category_orders={"Label": frequency_order},
+                color='Label', # This allows us to apply the Viridis palette per category
+                color_discrete_sequence=px.colors.sequential.Viridis,
+                labels={'Label': 'Frequency Level'}
+            )
 
-            fig.update_layout(showlegend=False, margin=dict(t=50, b=20, l=10, r=10), height=400)
-            
-            # Alternate placement
+            # Matching the image's clean whitegrid style
+            fig.update_layout(
+                showlegend=False,
+                plot_bgcolor='white',
+                height=450,
+                yaxis_title="Frequency Level",
+                xaxis_title="",
+                margin=dict(t=50, b=20, l=10, r=10)
+            )
+            fig.update_yaxes(showgrid=True, gridcolor='lightgrey', autorange="reversed") # Reverse to match Never at top
+
+            # Alternating columns
             target_col = col1 if i % 2 == 0 else col2
             
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Insight Box matching your requested format
+                # Insight Box
                 with st.container(border=True):
-                    st.markdown(f"**Quick Insight: {activity_name}**")
-                    insight_text = frequency_insights.get(activity_name, "No specific analysis available.")
-                    st.write(insight_text)
+                    st.markdown(f"**Quick Insight: {name}**")
+                    st.write(frequency_insights.get(name, "No specific analysis available."))
                 st.write("##")
 
-    # --- 4. SUMMARY SECTION ---
+    # --- 4. KEY FINDINGS ---
     st.info("""
     **Key Findings:**
-    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
-    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment.
+    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement.
+    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload content.
     """)
-
-# Call the function
-show_consumer_behavior()
 
 # ======================================================
 # SECTION E
