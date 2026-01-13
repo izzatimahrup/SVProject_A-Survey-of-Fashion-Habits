@@ -329,7 +329,7 @@ fig5 = px.bar(
     expense_counts,
     x='Expense',
     y='Count',
-    color='rank', 
+    color='rank',
     color_continuous_scale=['#B2DFDB', '#4DB6AC', '#00796B', '#004D40'], 
     title="Monthly Fashion Expenditure (Respondents by Category)",
     category_orders={"Expense": expense_order}
