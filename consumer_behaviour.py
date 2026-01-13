@@ -306,7 +306,7 @@ with col_select1:
     x_axis_label = st.selectbox("Select X-axis", options=activity_columns, index=0)
 
 with col_select2:
-    y_axis_label = st.selectbox("Select Y-axis", options=activity_columns, index=1)
+    y_axis_label = st.selectbox("Select Y-axis", options=frequency_columns, index=1)
 
 # --- 3. DYNAMIC ANALYSIS (Correlation) ---
 # Calculate correlation coefficient for the selected axes
@@ -367,12 +367,7 @@ with col_insight:
     st.write(f"**Correlation Coefficient:** {corr_value:.2f}")
     
     # Matching the green analysis box from your screenshot
-    st.success(f"""
+    st.info(f"""
     **Analysis: {strength}.** These two platforms are linked in the consumer's digital behavior.
     """)
 
-st.divider()
-st.info("""
-**Interpretation:**
-The scatter plot reveals the connection between different platforms. Users who are highly active on one platform often exhibit similar patterns on others, helping identify cross-platform "Power Users."
-""")
