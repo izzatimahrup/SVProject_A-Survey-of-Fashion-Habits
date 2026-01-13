@@ -857,14 +857,15 @@ if not fig11_data.empty:
     fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
 
-# 12. Influence by Spending
+# 12. Influence by Spending Level
 st.subheader("12. Influence by Spending Level")
-fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 
-# Sort color
+# 1. Prepare and Sort Data
+fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
 fig12_data["Display RM"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
+# 2. Build the Stacked Bar
 fig12 = px.bar(
     fig12_data, 
     x="Count", 
@@ -872,14 +873,27 @@ fig12 = px.bar(
     color="Display RM" if expense_choice == "All" else None,
     orientation='h', 
     barmode='stack',
-    text_auto=True,
     color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
     title=f"Influence Factors for {expense_choice}"
 )
+
+# 3. Add TOTALS outside the bars
+# We calculate the sum for each 'Influence on Shopping' category
+totals = fig12_data.groupby("Influence on Shopping")["Count"].sum().reset_index()
+
+fig12.add_scatter(
+    x=totals["Count"],
+    y=totals["Influence on Shopping"],
+    mode='text',
+    text=totals["Count"],
+    textposition='middle right',
+    showlegend=False,
+    hoverinfo='skip' 
+)
+
 fig12.update_layout(
     yaxis={'categoryorder':'total ascending'}, 
-    legend={'traceorder': 'normal'}
+    legend={'traceorder': 'normal'},
+    xaxis={'range': [0, totals["Count"].max() * 1.15]} 
 )
-fig12.update_traces(hovertemplate="Factor: %{y}<br>Total Count: %{x}<extra></extra>")
-st.plotly_chart(fig12, use_container_width=True)
-st.divider()
+fig12.update_traces(hovertemplate="Factor: %{y}<br>Count in Category: %{x}<extra></extra>")
