@@ -80,6 +80,11 @@ with col_kpi3:
 
 st.markdown("---")
 
+st.subheader("Objective")
+st.markdown(
+    "To analyze the driving factors behind why consumers follow fashion brands on social media."
+)
+
 # ======================================================
 # SECTION A: MOTIVATION RANKING & GENDER COMPARISON
 # ======================================================
