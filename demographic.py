@@ -64,7 +64,7 @@ fig3 = px.bar(
     x='Region',
     y='Count',
     color='Region',
-    color_discrete_map={'East Malaysia': '#2C3E50', 'West Malaysia': '#BDC3C7'},
+    color_discrete_map={'East Malaysia': '#E67E22', 'West Malaysia': '#C0392B'},
     title="Geographic Representation: East vs. West Malaysia",
     text_auto=True
 )
