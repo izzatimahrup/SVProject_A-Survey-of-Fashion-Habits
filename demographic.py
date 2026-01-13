@@ -95,12 +95,19 @@ col3.metric(
 )
 
 
+# =========================================================
+# SECTION A: DEMOGRAPHIC DATA VISUALISATION
+# =========================================================
+st.header(" 🧍 Part 1 : Demographic Overview")
+st.markdown(
+    "This section summarises the demographic profile of the respondents, providing "
+    "background information on the sample characteristics."
+)
 
-# --- PART 1: MAIN PAGE FILTERS ---
-st.header("🧍 Part 1: Demographic Overview")
-st.markdown("Use the filters below to refine the demographic breakdown.")
-
-# Create two columns for the filters
+# 1️⃣ Gender and Age Distribution 
+st.subheader("1. Gender and Age Composition ")
+st.markdown(" 💡 Use the filters below to refine the demographic breakdown.")
+# 2 columns for the filters
 col_filter1, col_filter2 = st.columns(2)
 
 with col_filter1:
@@ -117,21 +124,17 @@ with col_filter2:
         default=age_order
     )
 
-# Apply the filter to the dataframe
+# Apply filter
 df_filtered = df[
     (df["Gender"].isin(selected_gender)) & 
     (df["Age"].isin(selected_age))
-].copy() # Use .copy() to avoid SettingWithCopyWarning
+].copy() # to avoid SettingWithCopyWarning
 
-# --- BOLD FORMATTING FOR GENDER ---
-# This makes 'Female' and 'Male' bold specifically for the chart labels
+# Bold Formating
+# To makes 'Female' and 'Male' bold for chart labels 
 df_filtered["Gender"] = df_filtered["Gender"].apply(lambda x: f"<b>{x}</b>")
 
-# --- PART 2: SUNBURST VISUALIZATION ---
-st.subheader("📊 Interactive Gender & Age Hierarchy")
-st.info("💡 **Interactivity Tip:** Click on a inner sector to zoom into that group's specific age distribution.")
-
-# We update the keys in color_discrete_map to match the new bold strings
+# Sunburst Chart for Gender and Age
 fig_sun = px.sunburst(
     df_filtered,
     path=["Gender", "Age"], 
@@ -141,7 +144,7 @@ fig_sun = px.sunburst(
     title="Demographic Proportions: Gender and Age"
 )
 
-# --- PART 3: HOVER & TOOLTIP ENHANCEMENT ---
+# hover and tooltip
 fig_sun.update_traces(
     textinfo="label+percent entry", 
     marker=dict(line=dict(color='#FFFFFF', width=2)), # Appealing white border
@@ -156,7 +159,7 @@ fig_sun.update_traces(
 fig_sun.update_layout(
     margin=dict(t=40, l=0, r=0, b=0),
     height=400,
-    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+    paper_bgcolor='rgba(0,0,0,0)', 
 )
 
 st.plotly_chart(fig_sun, use_container_width=True)
@@ -166,73 +169,7 @@ st.info("""
 
 """)
 
-st.markdown("---")
-# =========================================================
-# SECTION A: DEMOGRAPHIC DATA VISUALISATION
-# =========================================================
-st.header(" 🧍 Part 1 : Demographic Overview")
-st.markdown(
-    "This section summarises the demographic profile of the respondents, providing "
-    "background information on the sample characteristics."
-)
-
-# 1️⃣ Gender Distribution
-st.subheader("1. Gender Distribution of Respondents")
-
-gender_counts = df["Gender"].value_counts().reset_index()
-fig1 = px.pie(
-    gender_counts,
-    values='count',
-    names='Gender',
-    hole=0.4,
-    title="Gender Distribution of Respondents",
-    # Add custom hover data
-    hover_data=['count'], 
-    labels={'count': 'Total Participants'}
-)
-fig1.update_traces(textinfo='percent+label', hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}')
-st.plotly_chart(fig1, use_container_width=True)
-
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart presents the gender composition of respondents to understand how gender may influence fashion behaviour on social media.
-
-- Female respondents form the majority of the sample.
-- This indicates stronger participation of females in fashion-related social media spaces.
-- The dominance of female respondents suggests that gender is a significant demographic factor influencing fashion awareness and online shopping decisions, aligning with the study’s objective.
-""")
-st.markdown("---")
-
-# 2️⃣ Age Group Distribution
-st.subheader("2. Age Group Distribution of Respondents")
-
-age_counts = (
-    df["Age"]
-    .value_counts()
-    .reindex(age_order, fill_value=0)
-    .reset_index(name="count")
-    .rename(columns={"index": "Age"})
-)
-
-fig2 = px.bar(
-    age_counts,
-    x="Age",
-    y="count",
-    text_auto=True,
-    title="Age Group Distribution",
-    category_orders={"Age": age_order}
-)
-st.plotly_chart(fig2, use_container_width=True)
-st.subheader("📝 Interpretation:")
-st.markdown("""  
-This chart illustrates the age distribution of respondents to identify which age groups are most represented.
-
-- Younger age groups, particularly those below 35 years old, dominate the sample.
-- This reflects higher engagement of young adults with social media platforms where fashion content is actively consumed.
-- The concentration of younger respondents highlights age as a key demographic variable shaping fashion awareness and spending behaviour online.
-""")
-st.markdown("---")
- 
+st.markdown("---") 
 
 # 3️⃣ Regional Distribution
 st.subheader("3. Regional Distribution of Respondents")
