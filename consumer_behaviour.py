@@ -328,7 +328,7 @@ def show_consumer_behavior(df):
     """)
 
 # To call the page:
-# show_consumer_behavior(df)
+show_consumer_behavior(df)
 # ======================================================
 # SECTION E
 # ======================================================
