@@ -270,50 +270,84 @@ else:
     st.warning("Please select at least one activity type to display the visualization.")
     
 # ======================================================
-# SECTION E
+# SECTION E: CROSS PLATFORM CONNECTION
 # ======================================================
 st.divider()
-st.header("Section E: Cross Platform Connection")
+st.header("Section E: Cross-Platform Connection Analysis")
 
-x_col = 'Active_Instagram_Ordinal'
-y_col = 'Active_Tiktok_Ordinal'
+# 1. Identify valid columns for analysis
+platform_analysis_cols = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
 
-try:
-    import statsmodels
-    t_line = "ols"
-except ImportError:
-    t_line = None
+if len(platform_analysis_cols) >= 2:
+    # 2. Layout: Sidebar-style selection using columns
+    c1, c2 = st.columns([1, 2])
+    
+    with c1:
+        st.subheader("Configuration")
+        st.markdown("Select two platforms to see how user activity correlates between them.")
+        
+        # User selection for X and Y axes
+        x_var = st.selectbox("Select Platform (X-axis):", platform_analysis_cols, index=2) # Default Instagram
+        y_var = st.selectbox("Select Platform (Y-axis):", platform_analysis_cols, index=1) # Default Tiktok
+        
+        # Calculate current correlation
+        current_corr = df[x_var].corr(df[y_var])
+        
+        # Display Dynamic Metric
+        st.metric(label="Correlation Coefficient", value=f"{current_corr:.2f}")
+        
+        # Dynamic Analysis Logic
+        if current_corr > 0.6:
+            st.success("### Analysis: **Strong Relationship**")
+            st.write("Users follow almost identical activity patterns on both platforms. This suggests a shared 'Power User' base.")
+        elif current_corr > 0.3:
+            st.warning("### Analysis: **Moderate Relationship**")
+            st.write("There is a visible trend, but users may use these platforms for different specific fashion habits.")
+        else:
+            st.error("### Analysis: **Weak/No Relationship**")
+            st.write("Engagement on these platforms is independent. Users active on one are not necessarily active on the other.")
 
-fig3 = px.scatter(
-    df, 
-    x=x_col, 
-    y=y_col, 
-    trendline=t_line, 
-    opacity=0.6, 
-    title='Relationship Between Instagram and TikTok Activity',
-    labels={
-        x_col: 'Instagram Activity (0=Very Active, 3=Inactive)',
-        y_col: 'TikTok Activity (0=Very Active, 3=Inactive)'
-    },
-    # FIX: Use "plotly_white" instead of "whitegrid"
-    template="plotly_white" 
-)
+    with c2:
+        # 3. Create Dynamic Scatter Plot
+        try:
+            import statsmodels
+            t_line = "ols"
+        except ImportError:
+            t_line = None
+            
+        fig_scatter = px.scatter(
+            df, 
+            x=x_var, 
+            y=y_var, 
+            trendline=t_line, 
+            opacity=0.5,
+            title=f"Relationship: {x_var.replace('Active_','').replace('_Ordinal','')} vs {y_var.replace('Active_','').replace('_Ordinal','')}",
+            labels={
+                x_var: "Activity Level (Lower = More Active)",
+                y_var: "Activity Level (Lower = More Active)"
+            },
+            template="plotly_white"
+        )
+        
+        # Style the regression line if it exists
+        if t_line == "ols":
+            fig_scatter.data[1].line.color = 'red'
+            
+        # Add grid lines for a professional look
+        fig_scatter.update_layout(
+            xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
+            yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
+        )
+        
+        st.plotly_chart(center_title(fig_scatter), use_container_width=True)
 
-# Apply red color to the regression line
-if t_line == "ols":
-    fig3.data[1].line.color = 'red'
+    # 4. Final Summary Note
+    st.info(f"""
+    **Interpretation Note:** Because the data is ordinal (0=Very Active, 3=Inactive), a **positive correlation** here actually indicates that as activity increases on {x_var.replace('Active_','').replace('_Ordinal','')}, it also tends to increase on {y_var.replace('Active_','').replace('_Ordinal','')}.
+    """)
+    
 
-# Style the layout and add the grid lines manually to match Seaborn
-fig3.update_layout(
-    xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
-    yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
-)
+[Image of a scatter plot with a regression line]
 
-fig3 = center_title(fig3)
-st.plotly_chart(fig3, use_container_width=True)
-
-st.divider()
-st.info("""
-**Interpretation:**
-The scatter plot reveals a positive correlation between Instagram and TikTok activity. Users who are highly active on one platform tend to be active on the other, indicating a segment of "Power Users" who dominate fashion engagement across the ecosystem.
-""")
+else:
+    st.error("Not enough platform columns found to perform cross-platform analysis.")
