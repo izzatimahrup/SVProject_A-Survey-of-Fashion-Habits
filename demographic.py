@@ -822,15 +822,6 @@ fig12.update_layout(yaxis={'categoryorder':'total ascending'})
 st.plotly_chart(fig12, use_container_width=True)
 
 
-The error you're seeing, NameError: name 'exp_palette' is not defined, happens because the computer is trying to use that color list before it knows what it is. In your last script, we renamed the variable to exp_palette, but it might be missing or defined after the chart code.
-
-🛠️ The Quick Fix
-To solve this, ensure your color variables are defined at the very top of Section B, before any chart code.
-
-Replace your Section B code block with this one:
-
-Python
-
 # ==========================================
 # SECTION B: EXPENDITURE FOCUS
 # ==========================================
