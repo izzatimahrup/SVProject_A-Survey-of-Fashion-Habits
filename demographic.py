@@ -697,36 +697,29 @@ fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awar
 st.plotly_chart(fig9, use_container_width=True)
 
 
-# 10. Shopping Influence - Vertical & Dynamic Colors
+# 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
-
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
-if gender_choice == "All":
-    c_map = None
-    c_seq = ["#4CAF50"] 
-else:
-    c_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'} 
-    c_seq = None
-
+color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
+t
 fig10 = px.bar(
     fig10_data, 
     x="Influence on Shopping", 
     y="Count", 
-    color="Gender" if gender_choice != "All" else None,
-    barmode='group',
-    color_discrete_map=c_map,
-    color_discrete_sequence=c_seq,
-    title=f"Top Influence Factors ({gender_choice})"
+    color="Gender",           
+    barmode='group',          
+    color_discrete_map=color_map,
+    title=f"Influence Factors: Comparison for {gender_choice}"
 )
 
+# 4. Improve Layout
 fig10.update_layout(
     height=500,
     xaxis_title="Influence Factor",
     yaxis_title="Count of Respondents",
     xaxis={'categoryorder':'total descending'} 
 )
-
 st.plotly_chart(fig10, use_container_width=True)
 st.divider()
 
