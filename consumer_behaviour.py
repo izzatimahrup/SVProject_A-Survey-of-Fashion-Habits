@@ -324,34 +324,31 @@ st.info("""
 st.divider()
 
 st.header("Section E: Cross Platform Connection")
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from scipy.stats import pearsonr
 
 # --- 1. DATA PREPARATION ---
-# Creating lists for the dropdowns based on your naming conventions
+# Create specific lists for the X and Y selectors
 activity_options = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
 frequency_options = [col for col in df.columns if col.startswith('Freq_') and col.endswith('_Ordinal')]
 
-# --- 2. UI LAYOUT: FILTERS ---
+# --- 2. LAYOUT: SELECTORS & ANALYSIS ---
 st.subheader("Relationship Scatters")
 
-# Creating columns for selectors to look structured like the image
-col_select1, col_select2 = st.columns(2)
+# Primary split: Left for selectors/analysis, Right for the chart
+main_col1, main_col2 = st.columns([1, 2])
 
-with col_select1:
-    # Logic for X-axis (e.g., Active_Tiktok_Ordinal)
+with main_col1:
+    # Selectors
     x_col = st.selectbox(
         "Select X-axis (Activity)", 
         options=activity_options, 
         index=0,
         format_func=lambda x: x.replace('Active_', '').replace('_Ordinal', '').replace('_', ' ')
     )
-
-with col_select2:
-    # Logic for Y-axis (e.g., Freq_Comment on posts_Ordinal)
+    
     y_col = st.selectbox(
         "Select Y-axis (Frequency)", 
         options=frequency_options, 
@@ -359,74 +356,58 @@ with col_select2:
         format_func=lambda x: x.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
     )
 
-# --- 3. DYNAMIC CORRELATION CALCULATION ---
-# Drop NaNs to ensure accurate calculation
-valid_df = df[[x_col, y_col]].dropna()
-corr_coef, _ = pearsonr(valid_df[x_col], valid_df[y_col])
+    # --- CORRECTION LOGIC ---
+    # Create a plotting dataframe where we flip the values so high number = high activity
+    df_plot = df.copy()
+    # If 0 is "Very Active" and 3 is "Inactive", flipping (3 - val) makes 3 "Very Active"
+    df_plot[x_col] = 3 - df_plot[x_col] 
+    df_plot[y_col] = 4 - df_plot[y_col] # Assuming frequency is 0-4
 
-# Determine relationship strength for the display box
-if abs(corr_coef) > 0.7:
-    status, color = "Strong Relationship", "green"
-elif abs(corr_coef) > 0.4:
-    status, color = "Moderate Relationship", "orange"
-else:
-    status, color = "Weak Relationship", "gray"
+    # Calculate correlation on the corrected positive scale
+    valid_df = df_plot[[x_col, y_col]].dropna()
+    corr_coef, _ = pearsonr(valid_df[x_col], valid_df[y_col])
 
-# --- 4. VISUALIZATION ---
-try:
-    import statsmodels
-    t_line = "ols"
-except ImportError:
-    t_line = None
-
-# Clean labels for the chart
-x_clean = x_col.replace('Active_', '').replace('_Ordinal', '')
-y_clean = y_col.replace('Freq_', '').replace('_Ordinal', '')
-
-fig3 = px.scatter(
-    df, 
-    x=x_col, 
-    y=y_col, 
-    trendline=t_line, 
-    opacity=0.6, 
-    title=f'Relationship: {x_clean} vs {y_clean}',
-    labels={
-        x_col: f'{x_clean} Activity',
-        y_col: f'{y_clean} Frequency'
-    },
-    template="plotly_white" 
-)
-
-# Customize the regression line color to red
-if t_line == "ols":
-    fig3.data[1].line.color = 'red'
-
-fig3.update_layout(
-    xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
-    yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
-)
-
-# Helper function check (assumes center_title is defined)
-if 'center_title' in globals():
-    fig3 = center_title(fig3)
-
-# --- 5. DISPLAY CHART AND DYNAMIC ANALYSIS ---
-chart_col, insight_col = st.columns([2, 1])
-
-with chart_col:
-    st.plotly_chart(fig3, use_container_width=True)
-
-with insight_col:
+    # Dynamic Analysis Box
     st.write(f"**Correlation Coefficient:** {corr_coef:.2f}")
     
-    # Matching the green "Analysis" box style from your screenshot
-    st.success(f"""
-    **Analysis: {status}.** These two factors are deeply linked in the consumer's mind.
-    """)
+    if abs(corr_coef) > 0.7:
+        st.success("**Analysis: Strong Relationship.** These two factors are deeply linked in the consumer's mind.")
+    elif abs(corr_coef) > 0.4:
+        st.warning("**Analysis: Moderate Relationship.** There is a noticeable link between these behaviors.")
+    else:
+        st.info("**Analysis: Weak Relationship.** These factors do not strongly influence each other.")
+
+with main_col2:
+    # --- 3. VISUALIZATION ---
+    try:
+        import statsmodels
+        t_line = "ols"
+    except ImportError:
+        t_line = None
+
+    fig3 = px.scatter(
+        df_plot, 
+        x=x_col, 
+        y=y_col, 
+        trendline=t_line, 
+        opacity=0.6, 
+        title=f'Relationship: {x_col.replace("_Ordinal", "")} vs {y_col.replace("_Ordinal", "")}',
+        labels={
+            x_col: 'Activity Level (Higher = More Active)',
+            y_col: 'Frequency Level (Higher = More Frequent)'
+        },
+        template="plotly_white" 
+    )
+
+    if t_line == "ols":
+        fig3.data[1].line.color = 'red' # Red line like your second screenshot
+
+    fig3.update_layout(
+        xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
+        yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
+        margin=dict(t=50, b=50, l=50, r=50)
+    )
+
+    st.plotly_chart(fig3, use_container_width=True)
 
 st.divider()
-st.info(f"""
-**Interpretation:**
-The scatter plot reveals the correlation between {x_clean} and {y_clean}. 
-A higher score on one usually corresponds with the other, identifying behavioral trends in your target segment.
-""")
