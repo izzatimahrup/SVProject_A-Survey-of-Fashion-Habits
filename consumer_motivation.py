@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 # ======================================================
 # PAGE CONFIG
@@ -94,51 +97,76 @@ st.divider()
 st.header("Section B: Deep Dive into Motivations")
 st.write("Analyzing the specific trends and trust factors for each motivation.")
 
+# --- Page Config ---
+st.set_page_config(page_title="Motivation Survey Results", layout="wide")
 
+st.title("Survey Data Visualization")
 
-col1, col2 = st.columns(2)
+# --- Data Preparation (Assuming df_motivation_pct exists) ---
+# Note: If running this from scratch, ensure df_motivation_pct is defined here.
+# For this example, I'm assuming it's already in your environment.
 
-for i, col_name in enumerate(motivation_cols):
-    # Data Processing
-    counts = df[col_name].value_counts().sort_index().reset_index()
-    counts.columns = ['Score', 'Respondents']
-    avg_score = df[col_name].mean()
-    
-    # Create the Chart
-    fig_dist = px.bar(
-        counts, x='Score', y='Respondents', text='Respondents',
-        title=f"Distribution: {col_name}",
-        color='Score', color_continuous_scale='Plasma'
-    )
-    fig_dist.update_layout(showlegend=False, height=350, xaxis_title="1 (Disagree) to 5 (Agree)")
-    
-    target_col = col1 if i % 2 == 0 else col2
-    
-    with target_col:
-        st.plotly_chart(center_title(fig_dist), use_container_width=True)
-        
-        # 📝 DYNAMIC ANALYSIS LOGIC
-        st.write("### 📝 Analysis:")
-        
-        # 1. Determine the Driver Status
-        if avg_score >= 3.8:
-            status = f"**{col_name}** ranks as a **top driver** of interest among respondents."
-        elif avg_score >= 3.0:
-            status = f"**{col_name}** is a **moderate driver**, showing steady but not primary interest."
-        else:
-            status = f"**{col_name}** currently ranks as a **minor driver**, suggesting lower impact on this audience."
-        
-        # 2. Determine the Strategic Trend
-        if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
-            trend = "This confirms that modern consumers trust **social proof** and peer identity more than traditional direct marketing."
-        elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
-            trend = "This reflects a **transactional trend**, where consumers follow for immediate, tangible rewards and efficiency."
-        else:
-            trend = "This highlights a focus on **aesthetic alignment**, where the visual 'vibe' of the brand is the main anchor for the consumer."
+@st.cache_data
+def process_data(df):
+    df_pos = df.copy()
+    for col in ['Strongly Disagree', 'Disagree']:
+        if col in df_pos.columns:
+            df_pos[col] = df_pos[col].abs()
+    return df_pos
 
-        st.write(status)
-        st.write(f"**Trend:** {trend}")
-        st.markdown("---")
+# Process your dataframe
+df_motivation_pct_positive = process_data(df_motivation_pct)
+
+# --- Sidebar / Controls ---
+st.sidebar.header("Chart Options")
+show_labels = st.sidebar.checkbox("Show Percentage Labels", value=False)
+
+# --- Plotting Logic ---
+sns.set_style("whitegrid")
+
+# Define categories and colors
+plot_columns_positive = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
+colors_positive = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+
+# Create the figure
+fig, ax = plt.subplots(figsize=(12, 8))
+
+df_motivation_pct_positive[plot_columns_positive].plot(
+    kind='barh', 
+    stacked=True, 
+    color=colors_positive, 
+    ax=ax, 
+    width=0.8
+)
+
+# Customization
+ax.set_title('Percentage Distribution of Responses for Motivation Questions', fontsize=16)
+ax.set_xlabel('Percentage of Respondents (%)', fontsize=12)
+ax.set_ylabel('Motivation Question', fontsize=12)
+ax.set_xlim(0, 100)
+
+# Optional Labels (Toggled by Streamlit Checkbox)
+if show_labels:
+    for c in ax.containers:
+        labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c] # 5% threshold to prevent overlap
+        ax.bar_label(c, labels=labels, label_type='center', fontsize=9)
+
+# Legend placement
+ax.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.tight_layout()
+
+# --- Display in Streamlit ---
+st.pyplot(fig)
+
+# --- Interpretation Box ---
+st.info("""
+**Data Interpretation:**
+This chart shows a positive skew in employee motivation. The majority of respondents 
+fall into the **Agree** (light green) and **Strongly Agree** (dark green) categories. 
+The areas in red indicate specific questions where intervention may be needed to 
+address underlying dissatisfaction.
+""")
 
 # ======================================================
 # SECTION C: RELATIONSHIPS
