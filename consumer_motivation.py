@@ -49,19 +49,34 @@ df, motivation_cols = load_motivation_data()
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
 
-# Styled Summary Box
-st.markdown("""
-    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #6c5ce7;">
-        <h3 style="margin-top: 0;">📋 Executive Summary</h3>
-        <p>This analysis identifies why consumers follow fashion brands on social media. 
-        By evaluating <b>Agreement Scores</b> and <b>Demographic Gaps</b>, we can determine if your audience 
-        is driven by transactional value (discounts) or emotional connection (brand style).</p>
-        <ul style="margin-bottom: 0;">
-            <li><b>Primary Strategy:</b> Focus on top-performing drivers to maintain loyalty.</li>
-            <li><b>Growth Area:</b> Address motivations with high "Neutral" or "Disagree" responses.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+# --- 1. KPI Metrics Row ---
+st.subheader("Key Performance Indicators")
+col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+
+# Calculations for KPIs
+motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
+motivation_means.columns = ['Motivation', 'Average Score']
+
+# KPI 1: Top Motivation
+top_val = motivation_means.iloc[-1]['Average Score']
+top_name = motivation_means.iloc[-1]['Motivation']
+
+# KPI 2: Overall Agreement Rate (% of 4s and 5s across all motivation questions)
+total_responses = df[motivation_cols].size
+positive_responses = (df[motivation_cols] >= 4).sum().sum()
+agreement_rate = (positive_responses / total_responses) * 100
+
+# KPI 3: Diversity of Interest (Count of motivations with mean > 3.5)
+strong_drivers_count = (df[motivation_cols].mean() > 3.5).sum()
+
+with col_kpi1:
+    st.metric("Highest Mean Score", f"{top_val:.2f}", help=f"Top Driver: {top_name}")
+
+with col_kpi2:
+    st.metric("Global Agreement Rate", f"{agreement_rate:.1f}%", help="Percentage of responses that are 'Agree' or 'Strongly Agree'")
+
+with col_kpi3:
+    st.metric("Strong Drivers", f"{strong_drivers_count} / {len(motivation_cols)}", help="Number of motivation categories scoring above 3.5 (Neutral)")
 
 st.markdown("---")
 
