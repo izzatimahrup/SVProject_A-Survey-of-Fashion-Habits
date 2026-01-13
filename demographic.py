@@ -624,15 +624,20 @@ st.markdown("---")
 st.header("📈 Part 2: Behavioural Analysis")
 st.header("📈 Part 2: Behavioural Analysis")
 
-# --- SECTION 1: GENDER FILTER ---
-st.markdown("💡 Use the filter below to refine **Gender** for Awareness (Fig 9) and Influence (Fig 10).")
+# --- SECTION 1: GENDER PERSPECTIVE ---
+st.subheader("📍 Section A: Gender-Based Trends")
+st.caption("""
+    This section examines how fashion awareness and external influences differ between Male and Female respondents.
+""")
+
+st.markdown("💡 Use the filter below to refine Gender:")
 gender_choice = st.selectbox("Select Gender:", ["All", "Female", "Male"], key="gender_filter_top")
 
 df_gender = df.copy()
 if gender_choice != "All":
     df_gender = df_gender[df_gender["Gender"] == gender_choice]
 
-# --- 9. Fashion Awareness (Gender Based) ---
+# 9. Fashion Awareness - Gender
 st.subheader("9. Fashion Awareness Level")
 c1, c2 = st.columns([3, 1])
 with c1:
@@ -649,7 +654,7 @@ with c2:
     st.write("### 🔍 Key")
     st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| 1 | ⬜ Light |")
 
-# --- 10. Shopping Influence (Now Fig 10 - Gender Based) ---
+# 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 fig10 = px.bar(
@@ -662,10 +667,16 @@ st.plotly_chart(fig10, use_container_width=True)
 
 st.divider()
 
-# --- SECTION 2: EXPENDITURE FILTER (Renamed to RM) ---
-st.markdown("💡 Use the filter below to refine **Monthly Expenditure (RM)**")
+# --- SECTION B: Monthly Expenses Focus
+st.subheader("📍 Section B: Expenditure & Employment Trends")
+st.caption("""
+    This section investigates the link between professional status and monthly fashion spending, 
+    and how high-spending groups are influenced differently.
+""")
 
-# Renaming the filter options to include 'RM'
+st.markdown("💡 Use the filter below to refine Monthly Expenditure (RM):")
+
+# Rename to RM
 rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
 expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="expense_filter_mid")
 
@@ -675,7 +686,7 @@ if expense_choice != "All":
     actual_value = expense_choice.replace("RM ", "")
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_value]
 
-# --- 11. Distribution by Employment (RM Labels) ---
+# 11. Distribution by Employment
 st.subheader("11. Distribution of Spending by Employment (RM)")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 # Add RM to the data labels for the chart
@@ -697,7 +708,7 @@ if not fig11_data.empty:
     except Exception:
         st.warning("Could not render Treemap for this selection.")
 
-# --- 12. Influence by Spending Level (RM Labels) ---
+# 12. Influence by Spending Level (RM Labels) 
 st.subheader("12. Influence by Spending Level (RM)")
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
