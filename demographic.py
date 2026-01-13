@@ -46,70 +46,68 @@ education_order = [
 expense_order = ["<500", "500-1000", "1000-3000", ">3000"]
 
 # ---------------------------------------------------------
-# 3. REGIONAL DISTRIBUTION (Enhanced)
+# 3. REGIONAL DISTRIBUTION
 # ---------------------------------------------------------
 st.subheader("3. Regional Distribution of Respondents")
 
 # 1. Prepare Data
-# Check for filter, otherwise use default
-data_source = df_filtered if 'df_filtered' in locals() else df
-region_counts = data_source["Region"].value_counts().reset_index()
+region_counts = df["Region"].value_counts().reset_index()
 region_counts.columns = ["Region", "Count"]
 
-# Calculate Percentage
-total_respondents = region_counts["Count"].sum()
-region_counts["Percentage"] = (region_counts["Count"] / total_respondents) * 100
+# Calculate percentages for the tooltip
+total_n = region_counts["Count"].sum()
+region_counts["Percentage"] = (region_counts["Count"] / total_n) * 100
 
-# 2. Create Horizontal Bar Chart
-# using 'orientation=h' makes it look more like a "Leaderboard"
+# 2. Create the Bar Chart
 fig3 = px.bar(
     region_counts,
-    x='Count',       # Note: X is now Count
-    y='Region',      # Note: Y is now Region
-    orientation='h', # Horizontal mode
+    x='Region',
+    y='Count',
     color='Region',
-    # DISTINCT COLORS: Teal and Purple (Different from Gender Pink/Blue)
-    color_discrete_map={
-        'East Malaysia': '#00CC96',  # Bright Teal
-        'West Malaysia': '#AB63FA'   # Soft Purple
-    },
-    title="Geographic Representation: East vs. West",
-    text=region_counts.apply(lambda x: f"<b>{x['Count']}</b> ({x['Percentage']:.1f}%)", axis=1)
+    # Using Teal and Purple: Modern and distinct from Gender colors
+    color_discrete_map={'East Malaysia': '#008080', 'West Malaysia': '#6A5ACD'},
+    title="Geographic Representation: East vs. West Malaysia",
+    text_auto=True
 )
 
-# 3. Styling
+# 3. Custom Hover Tooltip and Styling
 fig3.update_traces(
-    textposition='auto', # Automatically fits text inside or outside
-    marker=dict(line=dict(color='#FFFFFF', width=2), opacity=0.9),
-    width=0.6 # Makes the bars slightly thinner and more elegant
+    textposition='outside',
+    # This customizes what you see when you hover your mouse
+    hovertemplate="""
+    <b>Region:</b> %{x}<br>
+    <b>Respondents:</b> %{y}<br>
+    <b>Percentage:</b> %{customdata:.1f}%<br>
+    <extra></extra>
+    """,
+    customdata=region_counts["Percentage"] # Pass the percentage to the tooltip
 )
 
 fig3.update_layout(
-    height=400, # Shorter height fits horizontal bars better
-    margin=dict(t=50, b=20, l=0, r=0),
+    height=500,
     title_x=0.5,
-    xaxis_title="Number of Respondents",
-    yaxis_title=None,
+    xaxis_title=None,
+    yaxis_title="Total Respondents",
     showlegend=False,
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(size=14),
-    # Add a grid line to make it easier to read
-    xaxis=dict(showgrid=True, gridcolor='#eee') 
+    font=dict(size=14)
 )
 
 st.plotly_chart(fig3, use_container_width=True)
 
-# 4. Interpretation Box
+# 4. Blue Interpretation Box (Replaces the markdown text)
 st.info("""
 ### 📝 Interpretation:
 
-This chart compares respondents from East and West Malaysia.
+This chart compares respondents from East and West Malaysia to assess geographic representation.
 
-* **Balanced Representation:** The sample shows a relatively balanced split between East and West Malaysia, with a slight majority in East Malaysia.
-* **Geographic Reach:** This confirms that the survey successfully captured perspectives from across the country, reducing geographic bias in the findings.
+* **East Malaysia vs. West Malaysia:** Respondents from East Malaysia slightly outnumber those from West Malaysia.
+* **Urban vs. Rural Engagement:** This suggests that fashion engagement through social media is not confined to highly urbanised regions.
+* **Digital Inclusion:** The result indicates that social media effectively reduces geographic barriers in shaping fashion awareness and shopping behaviour.
 """)
-st.markdown("---") 
+
+st.markdown("---")
 # ---------------------------------------------------------
 # Page Title & Description
 # ---------------------------------------------------------
