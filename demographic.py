@@ -469,127 +469,6 @@ st.markdown(
     "This section examines how demographic factors are related to fashion awareness, "
     "spending behaviour, and shopping influences on social media."
 )
-# 9️⃣ Fashion Awareness by Gender
-st.subheader("9. Fashion Awareness by Gender")
-
-fig9 = px.bar(
-    df.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count"),
-    x="Gender",
-    y="Count",
-    color="Awareness of Fashion Trends",
-    barmode="stack",
-    title="Fashion Awareness by Gender"
-)
-st.plotly_chart(fig9, use_container_width=True)
-
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart examines how gender differences relate to levels of awareness of current fashion trends on social media.
-
-- Female respondents show higher concentrations at moderate to high awareness levels.
-- This suggests stronger exposure to and engagement with fashion-related content among females.
-- The pattern indicates that gender plays a meaningful role in shaping fashion awareness, supporting the study’s objective of examining demographic influence.
-""")
-st.markdown("---")
-
-
-st.subheader("10. Monthly Fashion Expenditure by Employment Status (Heatmap)")
-
-# Prepare data
-heatmap_data = (
-    df.groupby(["Employment Status", "Average Monthly Expenses (RM)"])
-      .size()
-      .reset_index(name="Count")
-)
-
-# Pivot for heatmap
-heatmap_pivot = heatmap_data.pivot(
-    index="Employment Status",
-    columns="Average Monthly Expenses (RM)",
-    values="Count"
-).fillna(0)
-
-# Ensure correct order of expense categories
-heatmap_pivot = heatmap_pivot[expense_order]
-
-# Plot heatmap
-fig_heatmap = px.imshow(
-    heatmap_pivot,
-    text_auto=True,
-    aspect="auto",
-    color_continuous_scale="Blues",
-    labels=dict(
-        x="Average Monthly Fashion Expenses (RM)",
-        y="Employment Status",
-        color="Number of Respondents"
-    ),
-    title="Monthly Fashion Expenditure by Employment Status"
-)
-
-st.plotly_chart(fig_heatmap, use_container_width=True)
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart explores how employment status relates to respondents’ monthly fashion expenditure.
-
-- Employed respondents, particularly full-time workers, appear more frequently in higher expenditure categories.
-- This reflects greater financial capacity among employed individuals to engage in fashion consumption.
-- The relationship highlights employment status as a key demographic factor influencing spending behaviour on fashion items.
-""")
-st.markdown("---")
- 
-
-# 1️⃣1️⃣ Shopping Influence by Gender
-st.subheader("11. Shopping Influence Factors by Gender")
-
-fig11 = px.bar(
-    df.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count"),
-    x="Count",
-    y="Influence on Shopping",
-    color="Gender",
-    orientation='h',
-    barmode='group',
-    title="Shopping Influence by Gender"
-)
-st.plotly_chart(fig11, use_container_width=True)
-
-st.subheader("📝 Interpretation:")
-st.markdown("""  
-This chart compares how different sources influence fashion shopping decisions across genders.
-
-- Female respondents show stronger influence from social sources such as influencers and online communities.
-- Male respondents display a more varied or neutral influence pattern.
-- This suggests that gender differences affect how social recommendations shape online fashion purchasing behaviour.
-""")
-st.markdown("---")
-
-
-# 1️⃣2️⃣ Shopping Influence by Monthly Expenditure Level
-st.subheader("12. Shopping Influence by Monthly Expenditure Level")
-
-fig13 = px.bar(
-    df.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count"),
-    x="Count",
-    y="Influence on Shopping",
-    color="Average Monthly Expenses (RM)",
-    orientation='h',
-    barmode='group',
-    title="Shopping Influence by Monthly Expenditure Level",
-    category_orders={"Average Monthly Expenses (RM)": expense_order}
-)
-st.plotly_chart(fig13, use_container_width=True)
-
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart analyses how monthly fashion expenditure levels relate to shopping influence sources.
-
-- Higher-spending respondents are more influenced by brand-driven and influencer-related recommendations.
-- Lower-spending respondents rely more on personal judgment or non-commercial sources.
-- This indicates that spending capacity interacts with external influence, reinforcing the link between economic demographics and shopping decisions.
-""")
-st.markdown("---")
-
-
-
 
 # SECTION A: GENDER PERSPECTIVE
 st.subheader("📍 Section A: Gender-Based Trends")
@@ -697,6 +576,45 @@ st.info("""
 
 st.divider()
 
+# 10. Shopping Influence by Gender
+st.subheader("10. Shopping Influence Factors")
+fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+
+color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
+
+fig10 = px.bar(
+    fig10_data, 
+    x="Influence on Shopping", 
+    y="Count", 
+    color="Gender",            
+    barmode='group',           
+    color_discrete_map=color_map,
+    title=f"Influence Factors: Comparison for {gender_choice}",
+    text_auto=True # Optional: adds values on top of bars
+)
+
+fig10.update_layout(
+    height=600, # Increased height to give space for labels
+    xaxis_title="Influence Factor",
+    yaxis_title="Count of Respondents",
+    # --- CENTERING LOGIC FOR LONG NAMES ---
+    xaxis={
+        'categoryorder': 'total descending',
+        'tickangle': -45, # Tilts them so long names don't overlap
+        'tickfont': {'size': 12},
+        'automargin': True # Prevents long names from being cut off at the bottom
+    },
+    # This centers the legend and title
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    margin=dict(b=150) # Extra bottom margin for very long names
+)
+
+# Optional: Add totals on top of bars
+fig10.update_traces(textposition='outside')
+
+st.plotly_chart(fig10, use_container_width=True
+
+
 # SECTION B: Monthly Expenses Focus
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 st.markdown("""
@@ -706,7 +624,7 @@ st.markdown("""
 
 st.markdown("💡 Use the filter below to refine Monthly Expenditure (RM):")
 
-# 1. DEFINE COLORS FIRST
+#Define Color
 exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
 solid_orange = ["#F57C00"]
 
@@ -785,4 +703,5 @@ st.info("""
 📝 Interpretation:
 """)
 st.divider()
+
 
