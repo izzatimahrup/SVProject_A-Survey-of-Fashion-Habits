@@ -172,7 +172,7 @@ st.info("""
 st.markdown("---") 
 
 # 2. Region Distribution
-st.subheader("3. Regional Distribution of Respondents")
+st.subheader("2. Regional Distribution of Respondents")
 
 # 1. Prepare Data
 region_counts = df["Region"].value_counts().reset_index()
@@ -188,7 +188,7 @@ fig2 = px.bar(
     x='Region',
     y='Count',
     color='Region',
-    color_discrete_map={'East Malaysia': '#E67E22', 'West Malaysia': '#C0392B'},
+    color_discrete_map={'East Malaysia': '#A5D6A7', 'West Malaysia': '#90CAF9'},
     title="Geographic Representation: East vs. West Malaysia",
     text_auto=True
 )
@@ -250,12 +250,15 @@ fig3 = px.bar(
 )
 
 fig3.update_traces(
+    margin=dict(l=0, r=100), 
+    xaxis_range=[0, edu_counts["count"].max() * 1.2],
     texttemplate='<b>%{x}</b>', 
     textposition='outside',
     hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>"
 )
 
 fig3.update_layout(
+    yaxis_range=[0, region_counts["Count"].max() * 1.2],
     title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
     margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
 )
@@ -319,7 +322,7 @@ fig5 = px.bar(
     category_orders={"Expense": expense_order}
 )
 
-fig5.update_traces(width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside',cliponaxis=False,)
+fig5.update_traces(yaxis_range=[0, expense_counts["pct"].max() * 1.2], width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside',cliponaxis=False,)
 fig5.update_layout(title_x=0, height=400, coloraxis_showscale=False, yaxis_title="Percentage (%)")
 
 st.plotly_chart(fig5, use_container_width=True)
