@@ -547,48 +547,16 @@ st.info("""
 
 # 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
+
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
-color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
-
-fig10 = px.bar(
-    fig10_data, 
-    x="Influence on Shopping", 
-    y="Count", 
-    color="Gender",           
-    barmode='group',          
-    color_discrete_map=color_map,
-    title=f"Influence Factors: Comparison for {gender_choice}"
-)
-
-fig10.update_layout(
-    height=500,
-    xaxis_title="Influence Factor",
-    yaxis_title="Count of Respondents",
-    xaxis={'categoryorder':'total descending'} 
-)
-st.plotly_chart(fig10, use_container_width=True)
-
-st.info("""
-📝 Interpretation:
-""")
-
-st.divider()
-
-# 10. Shopping Influence by Gender
-st.subheader("10. Shopping Influence Factors")
-
-# 1. Clean the labels to wrap long text (Adds a line break every 15-20 characters)
-fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
-
-# This logic adds a <br> (line break) to long names so they stay centered and compact
 fig10_data["Wrapped Label"] = fig10_data["Influence on Shopping"].str.wrap(15).apply(lambda x: x.replace('\n', '<br>'))
 
 color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
 
 fig10 = px.bar(
     fig10_data, 
-    x="Wrapped Label",  # Use the new wrapped label
+    x="Wrapped Label",
     y="Count", 
     color="Gender",            
     barmode='group',           
@@ -598,20 +566,25 @@ fig10 = px.bar(
 )
 
 fig10.update_layout(
-    height=600, # Increased height to account for wrapped text
+    height=600, 
     xaxis_title="Influence Factor",
     yaxis_title="Count of Respondents",
     xaxis={
         'categoryorder': 'total descending',
-        'tickangle': 0,          # Keeps text horizontal
+        'tickangle': 0,  
         'tickfont': {'size': 11},
-        'automargin': True       # Ensures the wrapped text doesn't fall off the screen
+        'automargin': True     
     },
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
-
 fig10.update_traces(textposition='outside')
 st.plotly_chart(fig10, use_container_width=True)
+st.info("""
+📝 Interpretation:
+""")
+
+st.divider()
+
 
 
 # SECTION B: Monthly Expenses Focus
