@@ -349,7 +349,7 @@ fig6 = px.bar(
     x='Level',
     y='Count',
     color='Count',
-    color_continuous_scale=['#FFF9C4', '#FFB74D', '#A1887F'], 
+    color_continuous_scale=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'],
     title="Level of Awareness: Current Fashion Trends & Styles"
 )
 
