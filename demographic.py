@@ -327,8 +327,23 @@ fig5 = px.bar(
     category_orders={"Expense": expense_order}
 )
 
-fig5.update_traces(yaxis_range=[0, expense_counts["pct"].max() * 1.2], width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside',cliponaxis=False,)
-fig5.update_layout(title_x=0, height=400, coloraxis_showscale=False, yaxis_title="Percentage (%)")
+
+fig5.update_traces(
+    width=0.5, 
+    texttemplate='<b>%{y:.1f}%</b>', 
+    textposition='outside',
+    cliponaxis=False
+)
+
+fig5.update_layout(
+    yaxis_range=[0, expense_counts["pct"].max() * 1.3], 
+    title_x=0, 
+    height=400, 
+    coloraxis_showscale=False, 
+    yaxis_title="Percentage (%)",
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
 
 st.plotly_chart(fig5, use_container_width=True)
 
