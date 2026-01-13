@@ -84,7 +84,7 @@ fig3.update_traces(
 )
 
 fig3.update_layout(
-    height=500,
+    height=300,
     title_x=0.5,
     xaxis_title=None,
     yaxis_title="Total Respondents",
