@@ -204,145 +204,82 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+# --- 1. SET PAGE CONFIG ---
+st.set_page_config(page_title="Social Media Analytics", layout="wide")
 
-# --- 1. DATA MAPPING & CONFIGURATION ---
-frequency_labels = {
-    0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
-}
-frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
+# --- 2. DEFINE DATA (df_melted_frequency) ---
+# Generating dummy data for demonstration
+@st.cache_data
+def load_data():
+    activities = ['Likes', 'Shares', 'Comments', 'Posts', 'Direct Messages']
+    data = {
+        'Activity_Type': np.random.choice(activities, 500),
+        'Frequency_Level': np.random.randint(1, 100, 500)
+    }
+    df = pd.DataFrame(data)
+    # Ensuring Activity_Type is categorical for the 'order' logic in your original code
+    df['Activity_Type'] = pd.Categorical(df['Activity_Type'], categories=activities)
+    return df
 
-def show_consumer_behavior_page(df):
-    st.header("📊 Consumer Behavior: Activity Distribution")
-    st.markdown("Analyze the statistical significance of user engagement and respondent volume.")
+df_melted_frequency = load_data()
 
-    # --- 2. DEFINE df_melted_frequency ---
-    # We identify columns that follow your naming convention: Freq_ActivityName_Ordinal
-    ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
+# --- 3. UI STRUCTURE (In-Page Filtering) ---
+st.title("📊 Social Media Activity Dashboard")
+st.markdown("Use the filters below to refine the distribution data shown in the box plot.")
+
+# Create a container for filters to keep it structured
+filter_container = st.container()
+
+with filter_container:
+    # Creating a 2-column layout for filters if you want to add more later
+    col1, col2 = st.columns([2, 1])
     
-    if not ordinal_cols:
-        st.error("Missing data: Please ensure your columns are named 'Freq_ActivityName_Ordinal'.")
-        return
+    with col1:
+        # Get unique activities for the filter
+        all_activities = df_melted_frequency['Activity_Type'].unique().tolist()
+        
+        selected_activities = st.multiselect(
+            'Select Activity Types to Display:',
+            options=all_activities,
+            default=all_activities
+        )
 
-    # Melting the dataframe from Wide to Long format
-    df_melted_frequency = df.melt(
-        id_vars=[c for c in df.columns if c not in ordinal_cols],
-        value_vars=ordinal_cols,
-        var_name='Activity_Type',
-        value_name='Frequency_Level'
+# --- 4. FILTERING LOGIC ---
+filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(selected_activities)]
+
+# --- 5. PLOTTING ---
+if not filtered_df.empty:
+    sns.set_style("whitegrid")
+    fig, ax = plt.subplots(figsize=(12, 7))
+    
+    # Using your original plotting logic
+    sns.boxplot(
+        data=filtered_df,
+        x='Activity_Type',
+        y='Frequency_Level',
+        hue='Activity_Type',
+        palette='viridis',
+        legend=False,
+        order=[cat for cat in filtered_df['Activity_Type'].cat.categories if cat in selected_activities] if hasattr(filtered_df['Activity_Type'], 'cat') else None,
+        ax=ax
     )
 
-    # Clean the activity names for better UI display
-    df_melted_frequency['Activity_Type'] = (
-        df_melted_frequency['Activity_Type']
-        .str.replace('Freq_', '', regex=False)
-        .str.replace('_Ordinal', '', regex=False)
-        .str.replace('_', ' ', regex=False)
-    )
+    # Styling
+    plt.title('Distribution of Social Media Activity Frequencies', fontsize=16)
+    plt.xlabel('Social Media Activity Type', fontsize=12)
+    plt.ylabel('Frequency Level', fontsize=12)
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.tight_layout()
 
-    # Map the numeric codes to their readable labels
-    df_melted_frequency['Frequency_Label'] = df_melted_frequency['Frequency_Level'].map(frequency_labels)
+    # Display the plot in Streamlit
+    st.pyplot(fig)
+else:
+    st.warning("Please select at least one Activity Type to view the visualization.")
 
-    # --- 3. STRUCTURED FILTRATION PANEL ---
-    with st.container(border=True):
-        st.subheader("🛠️ Analysis Controls")
-        f_col1, f_col2 = st.columns([2, 1])
-        
-        with f_col1:
-            all_activities = sorted(df_melted_frequency['Activity_Type'].unique())
-            selected_activities = st.multiselect(
-                "Select Activities to Compare:",
-                options=all_activities,
-                default=all_activities[:2]
-            )
-        
-        with f_col2:
-            view_mode = st.radio(
-                "Select Analysis Depth:",
-                ["Statistical (Notched Box)", "Volume (Respondent Count)"]
-            )
-
-    st.divider()
-
-    # --- 4. DYNAMIC VISUALIZATION GRID ---
-    if not selected_activities:
-        st.info("Please select at least one activity from the filters above.")
-    else:
-        # Create a 2-column layout for the charts
-        grid_col1, grid_col2 = st.columns(2)
-        
-        for i, activity in enumerate(selected_activities):
-            # Filter data for the specific loop item
-            plot_df = df_melted_frequency[df_melted_frequency['Activity_Type'] == activity].dropna()
-            total_n = len(plot_df)
-            
-            if "Statistical" in view_mode:
-                # 
-                fig = px.box(
-                    plot_df,
-                    y='Frequency_Label',
-                    points="outliers",
-                    notched=True, # Added for statistical significance
-                    title=f"Distribution: {activity} (n={total_n})",
-                    category_orders={"Frequency_Label": frequency_order},
-                    color='Frequency_Label',
-                    color_discrete_sequence=px.colors.sequential.Viridis,
-                    labels={'Frequency_Label': 'Respondent Frequency'}
-                )
-                # Keep 'Never' at the top for intuitive reading
-                fig.update_yaxes(autorange="reversed")
-            
-            else:
-                # 
-                counts = plot_df['Frequency_Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
-                counts.columns = ['Frequency', 'Respondents']
-                
-                fig = px.bar(
-                    counts,
-                    x='Frequency',
-                    y='Respondents',
-                    text='Respondents',
-                    title=f"Total Respondents: {activity}",
-                    color='Respondents',
-                    color_continuous_scale='Viridis',
-                    labels={'Respondents': 'Number of Respondents'}
-                )
-                fig.update_traces(textposition='outside')
-
-            # Clean styling to match 'whitegrid' look
-            fig.update_layout(
-                showlegend=False,
-                plot_bgcolor='white',
-                height=450,
-                margin=dict(t=50, b=20, l=10, r=10)
-            )
-            fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
-            fig.update_xaxes(showgrid=False)
-
-            # Alternate placement in the grid
-            target_col = grid_col1 if i % 2 == 0 else grid_col2
-            
-            with target_col:
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Insight Box for each chart
-                with st.container(border=True):
-                    st.markdown(f"**Quick Stats: {activity}**")
-                    st.write(f"This dataset contains **{total_n}** unique respondent entries.")
-                st.write("##")
-
-    # --- 5. SUMMARY SECTION ---
-    st.info("""
-    **Understanding the Significance:**
-    * **Notched Box Plots:** The 'notches' indicate the confidence interval around the median. If notches from different activities don't overlap, the difference is statistically significant.
-    * **Respondent Counts:** The bar charts show the exact volume of individuals in each category, helping identify the 'Lurker' vs 'Creator' gap.
-    """)
-
-# Call the function (assuming 'df' is your pre-loaded dataframe)
-show_consumer_behavior_page(df)
-
+# --- 6. OPTIONAL: DATA SUMMARY ---
+with st.expander("View Raw Data Summary"):
+    st.write(filtered_df.describe())
 # ======================================================
 # SECTION E
 # ======================================================
