@@ -622,11 +622,11 @@ st.markdown("---")
 
 
 st.header("📈 Part 2: Behavioural Analysis")
-st.header("📈 Part 2: Behavioural Analysis")
 
-# --- SECTION 1: GENDER PERSPECTIVE ---
+
+# SECTION A: GENDER PERSPECTIVE
 st.subheader("📍 Section A: Gender-Based Trends")
-st.caption("""
+st.markdown("""
     This section examines how fashion awareness and external influences differ between Male and Female respondents.
 """)
 
@@ -638,22 +638,58 @@ if gender_choice != "All":
     df_gender = df_gender[df_gender["Gender"] == gender_choice]
 
 # 9. Fashion Awareness - Gender
-st.subheader("9. Fashion Awareness Level")
-c1, c2 = st.columns([3, 1])
-with c1:
-    fig9_data = df_gender.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
-    fig9 = px.bar(
-        fig9_data, x="Gender", y="Count", color="Awareness of Fashion Trends",
-        barmode="stack",
-        color_discrete_sequence=['#E8EAF6', '#C5CAE9', '#7986CB', '#3F51B5', '#1A237E'],
-        title=f"Awareness for {gender_choice}"
-    )
-    fig9.update_layout(height=400, showlegend=False)
-    st.plotly_chart(fig9, use_container_width=True)
-with c2:
-    st.write("### 🔍 Key")
-    st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| 1 | ⬜ Light |")
 
+st.subheader("9. Fashion Awareness by Gender")
+
+#  Mapping for the Labels
+awareness_labels = {
+    5: "5 - Extremely aware",
+    4: "4 - Very aware",
+    3: "3 - Moderately aware",
+    2: "2 - Slightly aware",
+    1: "1 - Not aware at all"
+}
+
+fig9_df = df_gender.copy()
+fig9_df["Awareness Label"] = fig9_df["Awareness of Fashion Trends"].map(awareness_labels)
+
+fig9_data = fig9_df.groupby(["Gender", "Awareness Label"]).size().reset_index(name="Count")
+
+# Define the Custom Gender Gradient
+color_mapping = {
+    # Female Gradient (Pinks)
+    ("Female", "1 - Not aware at all"): "#FCE4EC", 
+    ("Female", "2 - Slightly aware"): "#F8BBD0", 
+    ("Female", "3 - Moderately aware"): "#F06292", 
+    ("Female", "4 - Very aware"): "#E91E63", 
+    ("Female", "5 - Extremely aware"): "#880E4F",
+    # Male Gradient (Blues)
+    ("Male", "1 - Not aware at all"): "#E3F2FD", 
+    ("Male", "2 - Slightly aware"): "#BBDEFB", 
+    ("Male", "3 - Moderately aware"): "#64B5F6", 
+    ("Male", "4 - Very aware"): "#2196F3", 
+    ("Male", "5 - Extremely aware"): "#0D47A1"
+}
+
+# Apply colors
+fig9_data["Color"] = fig9_data.apply(lambda x: color_mapping.get((x["Gender"], x["Awareness Label"]), "#grey"), axis=1)
+
+# Bar Chart
+fig9 = px.bar(
+    fig9_data, 
+    x="Gender", 
+    y="Count", 
+    color="Awareness Label",
+    color_discrete_map={row["Awareness Label"]: row["Color"] for _, row in fig9_data.iterrows()},
+    category_orders={"Awareness Label": [
+        "5 - Extremely aware", "4 - Very aware", "3 - Moderately aware", "2 - Slightly aware", "1 - Not aware at all"
+    ]},
+    barmode="stack",
+    title="How would you rate your level of awareness of current fashion trends?"
+)
+
+fig9.update_layout(height=500, bargap=0.5, legend_title="Awareness Level")
+st.plotly_chart(fig9, use_container_width=True)
 # 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
@@ -669,7 +705,7 @@ st.divider()
 
 # --- SECTION B: Monthly Expenses Focus
 st.subheader("📍 Section B: Expenditure & Employment Trends")
-st.caption("""
+st.markdown("""
     This section investigates the link between professional status and monthly fashion spending, 
     and how high-spending groups are influenced differently.
 """)
