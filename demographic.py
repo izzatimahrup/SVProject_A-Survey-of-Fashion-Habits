@@ -433,7 +433,7 @@ fig7.update_layout(
     bargap=0.3,
     yaxis={'categoryorder': 'total ascending'}, 
     title_x=0, 
-    height=600,
+    height=400,
     coloraxis_showscale=False, 
     xaxis_range=[0, influence_counts["Count"].max() * 1.3], # Headroom for text
     margin=dict(l=0, r=100),
