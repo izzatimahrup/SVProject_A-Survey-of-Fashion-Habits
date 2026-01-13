@@ -155,7 +155,7 @@ fig_sun.update_traces(
 
 fig_sun.update_layout(
     margin=dict(t=40, l=0, r=0, b=0),
-    height=450,
+    height=400,
     paper_bgcolor='rgba(0,0,0,0)', # Transparent background
 )
 
