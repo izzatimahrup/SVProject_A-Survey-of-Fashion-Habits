@@ -778,10 +778,8 @@ st.plotly_chart(fig12, use_container_width=True)
 # --- SECTION B: Monthly Expenses Focus ---
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 
-# 1. Colors Definition
-# From Lightest (Low Spend) to Darkest (High Spend)
-green_gradient = ['#E8F5E9', '#A5D6A7', '#66BB6A', '#43A047', '#1B5E20']
-solid_green = ["#2E7D32"]
+expenditure_colors = ['#FFF9C4', '#FFF176', '#FFD54F', '#FFB300', '#FF8F00']
+solid_gold = ["#FFC107"]
 
 # 11. Distribution by Employment
 st.subheader("11. Spending Power by Employment")
@@ -796,9 +794,9 @@ if not fig11_data.empty:
         fig11_data,
         path=path_logic,
         values="Count",
-        # Color by spending level if 'All', otherwise solid green
+        # Color by spending level if 'All', otherwise solid gold
         color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
-        color_discrete_sequence=green_gradient if expense_choice == "All" else solid_green,
+        color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_gold,
         title=f"Spending Power Distribution: {expense_choice}"
     )
     st.plotly_chart(fig11, use_container_width=True)
@@ -809,7 +807,6 @@ st.subheader("12. Influence by Spending Level")
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
-# Logic: Stacked colors for 'All', Solid bar for specific filter
 fig12 = px.bar(
     fig12_data, 
     x="Count", 
@@ -817,11 +814,10 @@ fig12 = px.bar(
     color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
     orientation='h', 
     barmode='stack',
-    color_discrete_sequence=green_gradient if expense_choice == "All" else solid_green,
+    color_discrete_sequence=expenditure_colors if expense_choice == "All" else solid_gold,
     title=f"Influence Factors for {expense_choice}"
 )
 
-# Sort by total influence
+# Keep the layout clean
 fig12.update_layout(yaxis={'categoryorder':'total ascending'})
-
 st.plotly_chart(fig12, use_container_width=True)
