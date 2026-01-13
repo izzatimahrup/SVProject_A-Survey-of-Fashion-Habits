@@ -30,29 +30,29 @@ def load_motivation_data():
     return data, valid_cols
 
 # ======================================================
-# 2. CALCULATION HELPERS
+# 2. CALCULATION HELPERS (The Fix is Here)
 # ======================================================
 def calculate_percentages(df_input, columns):
-    """Calculates Likert percentages and ensures type safety"""
-    label_map = {
-        1: 'Strongly Disagree', 
-        2: 'Disagree', 
-        3: 'Neutral', 
-        4: 'Agree', 
-        5: 'Strongly Agree'
-    }
+    """Calculates Likert percentages and ensures index type safety"""
+    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
     pct_list = []
     
     for col in columns:
-        # Force to numeric and drop NaNs
+        # Convert to numeric, handle errors, and drop NaNs
         series = pd.to_numeric(df_input[col], errors='coerce').dropna()
         
-        # Get percentages, ensure integer index
+        # Get raw frequencies
         counts = series.value_counts(normalize=True)
+        
+        # --- THE FIX ---
+        # Ensure index is integer so it matches [1,2,3,4,5] perfectly
         counts.index = counts.index.astype(int)
         
-        # Reindex, multiply by 100, and map labels
-        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0) * 100
+        # Reindex to ensure all levels 1-5 exist, then multiply
+        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0)
+        counts = counts * 100 
+        
+        # Map labels and name the series
         counts.index = counts.index.map(label_map)
         counts.name = col
         pct_list.append(counts)
@@ -67,7 +67,7 @@ st.title("📊 Fashion Brand Motivation Dashboard")
 # Load Data
 df_raw, motivation_cols = load_motivation_data()
 
-# --- DEMOGRAPHIC FILTER ---
+# --- SIDEBAR FILTER ---
 st.sidebar.header("Filter Results")
 if 'Gender' in df_raw.columns:
     gender_options = ["All"] + sorted(list(df_raw['Gender'].unique()))
@@ -79,7 +79,7 @@ if 'Gender' in df_raw.columns:
         df = df_raw.copy()
 else:
     df = df_raw.copy()
-    selected_gender = "Overall Scaling"
+    selected_gender = "Overall"
 
 # ------------------------------------------------------
 # SECTION A: RANKING
@@ -103,8 +103,26 @@ st.plotly_chart(fig_ranking, use_container_width=True)
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
 
-# Calculate Percentages
+# Calculate Percentages safely
 df_motivation_pct = calculate_percentages(df, motivation_cols)
 
-# Plotting with Matplotlib
-sns
+# Sidebar toggle
+show_labels = st.sidebar.checkbox("Show Percentage Labels", value=True)
+
+# Likert Plotting
+sns.set_style("whitegrid")
+plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
+colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+
+fig, ax = plt.subplots(figsize=(12, 8))
+df_motivation_pct[plot_columns].plot(
+    kind='barh', stacked=True, color=colors, ax=ax, width=0.8
+)
+
+ax.set_title('Percentage Distribution of Responses', fontsize=16, pad=20)
+ax.set_xlabel('Percentage (%)', fontsize=12)
+ax.set_xlim(0, 100)
+
+if show_labels:
+    for c in ax.containers:
+        # Only label
