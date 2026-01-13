@@ -328,30 +328,52 @@ st.info("""
 
 """)
 
-# 7️⃣ Awareness of Fashion Trends
-st.subheader("7. Awareness of Fashion Trends")
+# 6. Awareness of Fashion Trends
+st.subheader("6. Awareness of Fashion Trends")
 
 awareness_counts = df["Awareness of Fashion Trends"].value_counts().sort_index().reset_index()
-awareness_counts['percentage'] = (awareness_counts['count'] / awareness_counts['count'].sum()) * 100
+awareness_counts.columns = ["Level", "Count"]
 
-fig7 = px.bar(
+# Map the numbers to the actual labels from survet
+awareness_map = {
+    1: "1 - Not aware at all",
+    2: "2 - Slightly aware",
+    3: "3 - Moderately aware",
+    4: "4 - Very aware",
+    5: "5 - Extremely aware"
+}
+awareness_counts['Level'] = awareness_counts['Level'].map(awareness_map)
+
+fig6 = px.bar(
     awareness_counts,
-    x='Awareness of Fashion Trends',
-    y='percentage',
-    text=awareness_counts['percentage'].apply(lambda x: f'{x:.1f}%'),
-    title="Awareness of Current Fashion Trends (%)"
+    x='Level',
+    y='Count',
+    color='Count',
+    color_continuous_scale=['#FFF9C4', '#FFB74D', '#A1887F'], 
+    title="Level of Awareness: Current Fashion Trends & Styles"
 )
+
+fig6.update_traces(
+    texttemplate='<b>%{y}</b>', 
+    textposition='outside',
+    hovertemplate="<b>%{x}</b><br>Respondents: %{y}<extra></extra>"
+)
+
+fig6.update_layout(
+    title_x=0, 
+    height=450, 
+    coloraxis_showscale=False,
+    xaxis_title=None, 
+    yaxis_title="Number of Respondents",
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
+
 st.plotly_chart(fig7, use_container_width=True)
 
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart reflects respondents’ self-reported awareness of current fashion trends.
-
-- A majority of respondents report moderate to high awareness of fashion trends.
-- This indicates frequent exposure to fashion-related content on social media platforms.
-- The finding supports the study’s objective of examining how demographic characteristics relate to fashion awareness.
+st.info("""
+📝 Interpretation:
 """)
-st.markdown("---")
 
 # 8️⃣ Factors Influencing Shopping Decisions
 st.subheader("8. Factors Influencing Fashion Shopping Decisions")
