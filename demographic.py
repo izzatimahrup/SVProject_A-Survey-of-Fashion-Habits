@@ -822,23 +822,44 @@ fig12.update_layout(yaxis={'categoryorder':'total ascending'})
 st.plotly_chart(fig12, use_container_width=True)
 
 
+The error you're seeing, NameError: name 'exp_palette' is not defined, happens because the computer is trying to use that color list before it knows what it is. In your last script, we renamed the variable to exp_palette, but it might be missing or defined after the chart code.
+
+🛠️ The Quick Fix
+To solve this, ensure your color variables are defined at the very top of Section B, before any chart code.
+
+Replace your Section B code block with this one:
+
+Python
+
 # ==========================================
 # SECTION B: EXPENDITURE FOCUS
 # ==========================================
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 
-# 11. Spending Power by Employment
+# 1. DEFINE COLORS FIRST (This fixes the NameError)
+exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
+solid_orange = ["#F57C00"]
+
+# 2. Set up the filter
+# (Make sure 'expense_order' is defined earlier in your script or replace it with a list)
+rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
+expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_sec_b")
+
+df_expense = df.copy()
+if expense_choice != "All":
+    actual_val = expense_choice.replace("RM ", "")
+    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_val]
+
+# 3. Figure 11: Treemap
 st.subheader("11. Spending Power by Employment")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
-
+# Sort numerically so the gradient matches "Light = Low Spend, Dark = High Spend"
 fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
-
 fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
 if not fig11_data.empty:
     path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
-    
     fig11 = px.treemap(
         fig11_data,
         path=path_logic,
@@ -847,11 +868,15 @@ if not fig11_data.empty:
         color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
         title=f"Spending Power Distribution: {expense_choice}"
     )
-    fig11.update_traces(hovertemplate="<b>%{label}</b><br>Respondents: %{value}<extra></extra>")
+    fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
-# 12. Influence by Spending Level
+
+# 4. Figure 12: Bar Chart
 st.subheader("12. Influence by Spending Level")
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+
+# Sort numerically again for the bar chart colors
+fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
 fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
 fig12 = px.bar(
@@ -866,9 +891,6 @@ fig12 = px.bar(
     title=f"Influence for {expense_choice} Category"
 )
 
-fig12.update_layout(
-    yaxis={'categoryorder':'total ascending'},
-    legend={'traceorder': 'normal'}
-)
+fig12.update_layout(yaxis={'categoryorder':'total ascending'}, legend={'traceorder': 'normal'})
 fig12.update_traces(hovertemplate="Level: %{fullData.name}<br>Factor: %{y}<br>Total: %{x}<extra></extra>")
 st.plotly_chart(fig12, use_container_width=True)
