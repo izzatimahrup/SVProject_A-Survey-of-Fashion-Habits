@@ -122,8 +122,7 @@ fig4 = px.bar(
 fig4.update_traces(
     texttemplate='<b>%{x}</b>', 
     textposition='outside',
-    hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>",
-    width=0.5
+    hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>"
 )
 
 fig4.update_layout(
