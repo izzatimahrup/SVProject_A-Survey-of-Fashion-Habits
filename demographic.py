@@ -110,7 +110,7 @@ fig4 = px.bar(
     y="Education Level",
     orientation="h",
     color="count",
-    color_continuous_scale='Purples', # Professional academic feel
+    color_continuous_scale=['#D1C4E9', '#F48FB1'],, # Professional academic feel
     title="Highest Education Level of Respondents",
     category_orders={"Education Level": education_order}
 )
