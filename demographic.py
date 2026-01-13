@@ -233,47 +233,7 @@ st.info("""
 
 st.markdown("---") 
 
-# 3️⃣ Regional Distribution
-st.subheader("3. Regional Distribution of Respondents")
 
-region_counts = df["Region"].value_counts().reset_index()
-fig3 = px.bar(
-    region_counts,
-    x='Region',
-    y='Count',
-    color='Region',
-    # Using Teal and Purple: Modern and distinct from Gender colors
-    color_discrete_map={'East Malaysia': '#008080', 'West Malaysia': '#6A5ACD'},
-    title="Geographic Representation: East vs. West Malaysia",
-    text_auto=True
-)
-
-# 3. Custom Hover Tooltip and Styling
-fig3.update_traces(
-    textposition='outside',
-    # This customizes what you see when you hover your mouse
-    hovertemplate="""
-    <b>Region:</b> %{x}<br>
-    <b>Respondents:</b> %{y}<br>
-    <b>Percentage:</b> %{customdata:.1f}%<br>
-    <extra></extra>
-    """,
-    customdata=region_counts["Percentage"] # Pass the percentage to the tooltip
-)
-
-st.plotly_chart(fig3, use_container_width=True)
-
-st.subheader("📝 Interpretation:")
-st.markdown("""  
-This chart compares respondents from East and West Malaysia to assess geographic representation.
-
-- Respondents from East Malaysia slightly outnumber those from West Malaysia.
-- This suggests that fashion engagement through social media is not confined to highly urbanised regions.
-- The result indicates that social media reduces geographic barriers in shaping fashion awareness and shopping behaviour.
-""")
-st.markdown("---")
-
-st.markdown("---") 
 
 # 4️⃣ Education Level Distribution
 st.subheader("4. Education Level Distribution of Respondents")
