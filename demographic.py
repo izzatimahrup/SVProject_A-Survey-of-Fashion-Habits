@@ -97,6 +97,9 @@ col3.metric(
 import streamlit as st
 import plotly.express as px
 
+import streamlit as st
+import plotly.express as px
+
 # --- PART 1: MAIN PAGE FILTERS ---
 st.header("🧍 Part 1: Demographic Overview")
 st.markdown("Use the filters below to refine the demographic breakdown.")
@@ -114,7 +117,7 @@ with col_filter1:
 with col_filter2:
     selected_age = st.multiselect(
         "Select Age Groups:",
-        options=age_order, # Using your predefined age_order list
+        options=age_order, 
         default=age_order
     )
 
@@ -122,49 +125,30 @@ with col_filter2:
 df_filtered = df[
     (df["Gender"].isin(selected_gender)) & 
     (df["Age"].isin(selected_age))
-]
+].copy() # Use .copy() to avoid SettingWithCopyWarning
+
+# --- BOLD FORMATTING FOR GENDER ---
+# This makes 'Female' and 'Male' bold specifically for the chart labels
+df_filtered["Gender"] = df_filtered["Gender"].apply(lambda x: f"<b>{x}</b>")
 
 # --- PART 2: SUNBURST VISUALIZATION ---
-# --- APPEALING SUNBURST VISUALIZATION ---
-st.subheader("📊 Interactive Demographic Breakdown")
+st.subheader("📊 Interactive Gender & Age Hierarchy")
+st.info("💡 **Interactivity Tip:** Click on a inner sector to zoom into that group's specific age distribution.")
 
-# Using a professional color scale like 'Sunset' or 'Viridis'
-# We use 'color_continuous_scale' if using numbers, or 'color_discrete_sequence' for categories
+# We update the keys in color_discrete_map to match the new bold strings
 fig_sun = px.sunburst(
     df_filtered,
     path=["Gender", "Age"], 
+    values=None,           
     color="Gender",
-    # Option 1: Using a professional built-in palette
-    color_discrete_sequence=px.colors.qualitative.Pastel, 
+    color_discrete_map={'<b>Female</b>': '#FFB6C1', '<b>Male</b>': '#ADD8E6'},
     title="Demographic Proportions: Gender and Age"
 )
 
-# --- REFINING THE VISUAL DESIGN ---
-fig_sun.update_traces(
-    textinfo="label+percent entry",
-    # Adding a white border between slices makes it look much cleaner
-    marker=dict(line=dict(color='#FFFFFF', width=2)),
-    hovertemplate="""
-    <b>%{label}</b><br>
-    Respondents: %{value}<br>
-    Percentage: %{percentParent:.1f}%<br>
-    <extra></extra>
-    """
-)
-
-fig_sun.update_layout(
-    margin=dict(t=50, l=10, r=10, b=10),
-    height=600,
-    # This makes the background transparent to match the Streamlit UI
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(family="sans-serif", size=14)
-)
-
-st.plotly_chart(fig_sun, use_container_width=True)
 # --- PART 3: HOVER & TOOLTIP ENHANCEMENT ---
 fig_sun.update_traces(
-    textinfo="label+percent entry", # Shows the name and percentage inside the slice
+    textinfo="label+percent entry", 
+    marker=dict(line=dict(color='#FFFFFF', width=2)), # Appealing white border
     hovertemplate="""
     <b>Category:</b> %{label}<br>
     <b>Total Count:</b> %{value}<br>
@@ -175,7 +159,8 @@ fig_sun.update_traces(
 
 fig_sun.update_layout(
     margin=dict(t=40, l=0, r=0, b=0),
-    height=500
+    height=600,
+    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
 )
 
 st.plotly_chart(fig_sun, use_container_width=True)
