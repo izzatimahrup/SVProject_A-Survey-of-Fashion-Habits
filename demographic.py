@@ -94,49 +94,7 @@ col3.metric(
     help=f"{top_region_pct:.1f}% of respondents"
 )
 
-# 4. Education Level Distribution
-# ---------------------------------------------------------
-# 4. EDUCATION LEVEL DISTRIBUTION
-# ---------------------------------------------------------
-st.subheader("4. Education Level Distribution")
 
-edu_counts = (
-    df["Education Level"]
-    .value_counts()
-    .reindex(education_order, fill_value=0)
-    .reset_index(name="count")
-    .rename(columns={"index": "Education Level"})
-)
-
-fig4 = px.bar(
-    edu_counts,
-    x="count",
-    y="Education Level",
-    orientation="h",
-    color="count",
-    color_continuous_scale=['#E1BEE7', '#9C27B0', '#4A148C'],
-    title="Highest Education Level of Respondents",
-    category_orders={"Education Level": education_order}
-)
-
-fig4.update_traces(
-    texttemplate='<b>%{x}</b>', 
-    textposition='outside',
-    hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>"
-)
-
-fig4.update_layout(
-    title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
-    margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
-)
-
-st.plotly_chart(fig4, use_container_width=True)
-
-st.info("""
-### 📝 Interpretation:
-* **Higher Education Presence:** Most respondents possess post-secondary or tertiary education, associated with higher digital literacy.
-* **Information Processing:** This background likely influences how individuals interpret fashion trends and make informed shopping decisions online.
-""")
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
@@ -269,7 +227,7 @@ st.info("""
 st.markdown("---")
 
 # 3. Education Level Distribution
-st.subheader("4. Education Level Distribution of Respondents")
+st.subheader("3. Education Level Distribution")
 
 edu_counts = (
     df["Education Level"]
@@ -279,49 +237,68 @@ edu_counts = (
     .rename(columns={"index": "Education Level"})
 )
 
-fig4 = px.bar(
+fig3 = px.bar(
     edu_counts,
     x="count",
     y="Education Level",
     orientation="h",
-    text_auto=True,
-    title="Education Level of Respondents",
+    color="count",
+    color_continuous_scale=['#E1BEE7', '#9C27B0', '#4A148C'],
+    title="Highest Education Level of Respondents",
     category_orders={"Education Level": education_order}
 )
-st.plotly_chart(fig4, use_container_width=True)
 
-st.subheader("📝 Interpretation:")
-st.markdown(""" 
-This chart shows respondents’ highest education levels, which may influence information processing and decision-making.
+fig3.update_traces(
+    texttemplate='<b>%{x}</b>', 
+    textposition='outside',
+    hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>"
+)
 
-- Most respondents possess post-secondary or tertiary education.
-- Higher education levels are often associated with greater exposure to digital content and brand information.
-- This distribution suggests that educational background may influence how individuals interpret fashion trends and make informed shopping decisions online.
+fig3.update_layout(
+    title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
+    margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+
 """)
-st.markdown("---")
 
-
-# 5️⃣ Employment Status Distribution
-st.subheader("5. Employment Status Distribution")
+# 4. mployment Status Distribution
+st.subheader("4. Employment Status Distribution")
 
 employment_counts = df["Employment Status"].value_counts().reset_index()
-fig5 = px.pie(
+employment_counts.columns = ["Status", "Count"]
+
+fig4 = px.pie(
     employment_counts,
-    values='count',
-    names='Employment Status',
-    title="Employment Status Distribution"
+    values='Count',
+    names='Status',
+    hole=0.6,
+    title="Employment Status Composition",
+    color_discrete_sequence=['#82ADA9', '#546E7A', '#B0BEC5', '#78909C']
 )
-st.plotly_chart(fig5, use_container_width=True)
 
-st.subheader("📝 Interpretation:")
-st.markdown("""
-This chart presents respondents’ employment status to understand their economic positioning.
+fig4.update_traces(
+    textinfo='percent+label', 
+    marker=dict(line=dict(color='#FFFFFF', width=2)),
+    hovertemplate="<b>%{label}</b><br>Total: %{value} respondents<br>Percentage: %{percent}<extra></extra>"
+)
 
-- A large proportion of respondents are employed either full-time or part-time.
-- Employment status reflects financial stability, which directly affects purchasing capacity.
-- This highlights employment as a relevant demographic factor influencing fashion spending behaviour on social media.
-""")
-st.markdown("---")
+fig4.update_layout(
+    title_x=0, 
+    height=400,
+    showlegend=True,
+    margin=dict(t=80, b=20, l=20, r=20)
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+st.info("""
+📝 Interpretation:
+"""))
  
 # 6️⃣ Monthly Fashion Expenditure
 st.subheader("6. Monthly Fashion Expenditure Distribution")
