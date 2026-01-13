@@ -697,16 +697,41 @@ fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awar
 st.plotly_chart(fig9, use_container_width=True)
 # 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
-fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
-fig10 = px.bar(
-    fig10_data, x="Count", y="Influence on Shopping", color="Gender",
-    orientation='h', barmode='group',
-    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
-    title=f"Influence by Gender: {gender_choice}"
-)
-st.plotly_chart(fig10, use_container_width=True)
 
-st.divider()
+# 1. Prepare Data
+fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+
+# 2. Dynamic Color Logic
+if gender_choice == "All":
+    color_set = None
+    # A single consistent green for the "All" view
+    color_seq = ["#4CAF50"] 
+else:
+    # Pink for Female, Blue for Male
+    color_set = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
+    color_seq = None
+
+# 3. Build Vertical Bar Chart
+fig10 = px.bar(
+    fig10_data, 
+    x="Influence on Shopping",   # Category on X-axis for Vertical
+    y="Count",                   # Numbers on Y-axis
+    color="Gender" if gender_choice != "All" else None,
+    barmode='group',
+    color_discrete_map=color_set,
+    color_discrete_sequence=color_seq,
+    title=f"What Influences {gender_choice} Participants?"
+)
+
+# 4. Improve Layout for Vertical Labels
+fig10.update_layout(
+    height=500,
+    xaxis_title="Influence Factor",
+    yaxis_title="Number of Respondents",
+    xaxis={'categoryorder':'total descending'} # Shows most popular factor first
+)
+
+st.plotly_chart(fig10, use_container_width=True
 
 # --- SECTION B: Monthly Expenses Focus
 st.subheader("📍 Section B: Expenditure & Employment Trends")
