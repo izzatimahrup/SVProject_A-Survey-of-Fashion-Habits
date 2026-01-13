@@ -39,15 +39,12 @@ def load_data():
     df['Influence'] = df['Influence'].apply(clean_influence)
     
     # --- FIX SUSUNAN SKALA ---
-    
-    # 1. BUDGET ORDER
     budget_order_logic = ["<500", "500-1000", "1000-3000", ">3000"]
     found_budget = [x for x in budget_order_logic if x in df['Budget'].unique()]
     other_budget = [x for x in df['Budget'].unique() if x not in found_budget]
     final_budget = found_budget + other_budget
     df['Budget'] = pd.Categorical(df['Budget'], categories=final_budget, ordered=True)
     
-    # 2. FREQUENCY ORDER
     freq_order_logic = [
         "Daily", "Every day", "Everyday", 
         "Weekly", "Once a week", "Every week",
@@ -63,28 +60,31 @@ def load_data():
     if not final_freq: final_freq = sorted(df['Frequency'].dropna().unique().tolist())
     df['Frequency'] = pd.Categorical(df['Frequency'], categories=final_freq, ordered=True)
 
-    # 3. AWARENESS
     df['Awareness_Str'] = df['Awareness'].astype(str)
     awareness_order = sorted(df['Awareness_Str'].unique().tolist())
     df['Awareness_Str'] = pd.Categorical(df['Awareness_Str'], categories=awareness_order, ordered=True)
     
     return df
 
-# --- HIGH CONTRAST PROFESSIONAL PALETTE ---
-# Warna pekat & jelas. Tak ada warna pudar.
-# Navy, Teal, Deep Red, Gold, Purple, Forest Green
-THEME_BOLD = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
+# --- MASTER COLOR PALETTE (CONSISTENT & PROFESSIONAL) ---
+# Kita tetapkan warna spesifik. Semua graf AKAN guna list ini.
+# Warna: Navy Blue, Deep Red, Forest Green, Dark Gold, Purple, Dark Teal
+# Tiada warna putih/pastel.
+CONSISTENT_COLORS = ["#003f5c", "#d62728", "#2ca02c", "#bcbd22", "#9467bd", "#17becf"]
+
+# Untuk Heatmap/Bubble, kita guna skala Biru sahaja (Consistency)
+CONSISTENT_SCALE = 'Blues'
 
 # --- 2. PLOTLY CHARTS FUNCTIONS ---
 
-# 1. PIE CHART (Budget)
+# 1. PIE CHART
 def chart_pie_budget(df):
     data = df['Budget'].value_counts().reset_index()
     data.columns = ['Budget', 'Count']
     
     fig = px.pie(data, values='Count', names='Budget', 
                  title="Distribution of Monthly Budget",
-                 color_discrete_sequence=THEME_BOLD, # Warna Pekat
+                 color_discrete_sequence=CONSISTENT_COLORS, # Guna Master Colors
                  hole=0)
     
     fig.update_traces(textposition='inside', textinfo='percent+label', textfont_size=14)
@@ -100,7 +100,7 @@ def chart_bar_awareness(df):
                  title="Self-Perceived Fashion Awareness Level",
                  labels={'Awareness': 'Awareness Level (1-5)', 'Count': 'Number of Respondents'},
                  color='Count', 
-                 color_continuous_scale='Viridis') # Viridis (Sangat Jelas, Kuning ke Biru Gelap)
+                 color_continuous_scale=CONSISTENT_SCALE) # Guna Skala Biru
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Total Count")
     return fig
@@ -114,18 +114,17 @@ def chart_bar_influence(df):
                  title="Top Influencing Factors Ranking",
                  labels={'Influence': 'Source of Influence', 'Count': 'Number of Respondents'},
                  color='Influence',
-                 color_discrete_sequence=THEME_BOLD) # Warna Pekat
+                 color_discrete_sequence=CONSISTENT_COLORS) # Guna Master Colors
     
     fig.update_layout(xaxis_title="Influence Source", yaxis_title="Count", showlegend=False)
     return fig
 
 # 4. HEATMAP (Frequency vs Budget)
 def chart_heatmap_freq_budget(df):
-    # Guna 'Hot' atau 'YlOrRd' untuk nampak sangat kontras (Merah Api)
     fig = px.density_heatmap(df, x='Frequency', y='Budget',
                              title="Matrix: Frequency vs. Budget",
                              labels={'Frequency': 'Shopping Frequency', 'Budget': 'Monthly Budget'},
-                             color_continuous_scale='YlOrRd') 
+                             color_continuous_scale=CONSISTENT_SCALE) # Guna Skala Biru
     return fig
 
 # 5. BUBBLE CHART (Awareness vs Budget)
@@ -138,7 +137,7 @@ def chart_bubble_awareness_budget(df):
                      title="Correlation: Awareness vs. Budget",
                      labels={'Awareness_Str': 'Fashion Awareness (1-5)', 'Budget': 'Budget Range'},
                      size_max=50,
-                     color_continuous_scale='Portland') # Skala warna pekat & professional
+                     color_continuous_scale=CONSISTENT_SCALE) # Guna Skala Biru
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Budget Range")
     return fig
@@ -150,7 +149,7 @@ def chart_stacked_influence_freq(df):
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Frequency',
                  title="Impact of Influences on Shopping Frequency",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Frequency': 'Frequency'},
-                 color_discrete_sequence=px.colors.qualitative.Bold) # Bold Palette
+                 color_discrete_sequence=CONSISTENT_COLORS) # Guna Master Colors
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -162,7 +161,7 @@ def chart_stacked_influence_budget(df):
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Budget',
                  title="Does Influence Source Affect Spending Limits?",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Budget': 'Budget Range'},
-                 color_discrete_sequence=px.colors.qualitative.Set1) # Set1 (Warna Kontras Tinggi)
+                 color_discrete_sequence=CONSISTENT_COLORS) # Guna Master Colors
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -173,8 +172,8 @@ def app():
     
     # --- OBJECTIVE ---
     st.markdown("""
-    <div style="background-color: #e3f2fd; padding: 15px; border-left: 5px solid #1565c0; margin-bottom: 20px;">
-        <h4 style="color: #1565c0; margin-top: 0;">Objective</h4>
+    <div style="background-color: #f0f2f6; padding: 15px; border-left: 5px solid #003f5c; margin-bottom: 20px;">
+        <h4 style="color: #003f5c; margin-top: 0;">Objective</h4>
         <p style="margin-bottom: 0; color: #333;">
             To analyze consumer interests in fashion by examining their spending habits, trend awareness, 
             and the key external drivers that influence their purchasing decisions.
