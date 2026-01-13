@@ -1044,22 +1044,31 @@ st.plotly_chart(fig12, use_container_width=True)
 
 
 # ---------------------------------------------------------
-# 10. Spending vs Employment (Treemap)
+# 10. Spending vs Employment (Fixed Treemap)
 # ---------------------------------------------------------
 st.subheader("10. Distribution of Spending by Employment")
 
-# We group by both variables to create the hierarchy
+# 1. Group the data
 fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
-fig10 = px.treemap(
-    fig10_data,
-    path=[px.Constant("All Respondents"), "Employment Status", "Average Monthly Expenses (RM)"],
-    values="Count",
-    color="Average Monthly Expenses (RM)",
-    color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
-    category_orders={"Average Monthly Expenses (RM)": expense_order},
-    title=f"Spending Power Hierarchy: {expense_choice}"
-)
+# 2. Check if data exists after filtering to prevent errors
+if not fig10_data.empty:
+    fig10 = px.treemap(
+        fig10_data,
+        # Simplified path: Employment -> Spending
+        path=["Employment Status", "Average Monthly Expenses (RM)"],
+        values="Count",
+        color="Average Monthly Expenses (RM)",
+        # Your Green scale
+        color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
+        category_orders={"Average Monthly Expenses (RM)": expense_order},
+        title=f"Spending Power: {expense_choice}"
+    )
+    
+    fig10.update_layout(height=500)
+    st.plotly_chart(fig10, use_container_width=True)
+else:
+    st.warning(f"No data available for the spending level: {expense_choice}")
 
 fig10.update_layout(height=500)
 st.plotly_chart(fig10, use_container_width=True)
