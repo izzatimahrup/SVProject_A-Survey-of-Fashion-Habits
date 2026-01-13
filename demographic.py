@@ -58,20 +58,20 @@ region_counts.columns = ["Region", "Count"]
 total_n = region_counts["Count"].sum()
 region_counts["Percentage"] = (region_counts["Count"] / total_n) * 100
 
-# 2. Create the Bar Chart
+# e Bar Chart
 fig3 = px.bar(
     region_counts,
     x='Region',
     y='Count',
     color='Region',
-    color_discrete_map={'East Malaysia': '#008080', 'West Malaysia': '#6A5ACD'},
+    color_discrete_map={'East Malaysia': '#2C3E50', 'West Malaysia': '#BDC3C7'},
     title="Geographic Representation: East vs. West Malaysia",
     text_auto=True
 )
 
 # Hover and tooltip
 fig3.update_traces(
-    width=0.4,
+    width=0.5,
     textposition='outside',
     hovertemplate="""
     <b>Region:</b> %{x}<br>
@@ -83,7 +83,7 @@ fig3.update_traces(
 )
 
 fig3.update_layout(
-    height=300,
+    height=400,
     title_x=0,
     xaxis_title=None,
     yaxis_title="Total Respondents",
