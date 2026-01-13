@@ -5,23 +5,23 @@ import plotly.express as px
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Section C: Consumer Interests", layout="wide")
 
-# --- CSS FIX UNTUK TEXT METRIC TERPOTONG ---
-# Ini kod tambahan untuk paksa tulisan metric supaya tak jadi "..."
+# --- CSS FIX: BESARKAN TEXT & TURUN BAWAH ---
 st.markdown("""
 <style>
-/* Sasarkan nilai dalam st.metric */
+/* Sasarkan nilai nombor/teks dalam st.metric */
 [data-testid="stMetricValue"] {
-    font-size: 20px !important; /* Kecilkan sikit font (asalnya 30px+) supaya muat */
-    word-wrap: break-word !important; /* Paksa patah perkataan jika panjang */
-    white-space: normal !important; /* Benarkan text turun ke baris bawah */
-    line-height: 1.2 !important; /* Jarak antara baris */
+    font-size: 28px !important; /* Saiz besar (tapi muat 2 baris) */
+    word-wrap: break-word !important; /* Turunkan perkataan panjang */
+    white-space: normal !important; /* Benarkan text turun baris */
+    line-height: 1.1 !important; /* Rapatkan sikit jarak baris atas-bawah */
+    height: auto !important; /* Pastikan kotak tak potong tulisan */
 }
 
-/* Sasarkan label (tajuk kecil) dalam st.metric */
+/* Sasarkan label (tajuk kecil) supaya kemas */
 [data-testid="stMetricLabel"] {
     font-size: 14px !important;
-    white-space: normal !important;
     width: 100% !important;
+    white-space: normal !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -87,7 +87,7 @@ def load_data():
     
     return df
 
-# --- MASTER COLOR PALETTE (CONSISTENT & PROFESSIONAL) ---
+# --- MASTER COLOR PALETTE ---
 CONSISTENT_COLORS = ["#003f5c", "#d62728", "#2ca02c", "#bcbd22", "#9467bd", "#17becf"]
 CONSISTENT_SCALE = 'Blues'
 
@@ -206,7 +206,7 @@ def app():
         top_influence = "N/A"
         avg_awareness = "N/A"
 
-    # Papar Kad (Columns)
+    # Papar Kad
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Respondents", f"{total_respondents}", help="Total number of respondents based on current filters.")
     m2.metric("Majority Budget", top_budget, help="The most common monthly budget range selected by respondents.")
