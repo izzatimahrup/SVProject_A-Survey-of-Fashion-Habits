@@ -134,7 +134,6 @@ st.info("""
     3. **Negative correlations** are observed between activities on different platforms, indicating that high activity on one platform might correlate with lower activity on others such as active Facebook usage negatively correlates with activity on other platforms like TikTok or Pinterest)
     """)
 
-
 # ======================================================
 # SECTION C: ACTIVITY LEVEL DISTRIBUTION
 # ======================================================
@@ -191,6 +190,34 @@ fig_grouped.update_layout(
 )
 
 fig_grouped = center_title(fig_grouped)
+
+# 4. Display the Chart
+st.plotly_chart(fig_grouped, use_container_width=True)
+
+# 5. Quick Insights Grid
+st.markdown("### Platform Insights")
+cols = st.columns(3)
+insight_list = [
+    ("Instagram", "Top-tier fashion hub with balanced high-engagement."),
+    ("TikTok", "The powerhouse for viral content (63 'Very Active' users)."),
+    ("Facebook", "Mainly 'Sometimes Active'; transitioned to a secondary platform."),
+    ("Pinterest", "A 'Discovery' hub for planning and mood boarding."),
+    ("Threads", "Highest 'Inactive' count; yet to be fully integrated by users."),
+    ("YouTube", "Steady base for long-form reviews and documentaries.")
+]
+
+for i, (p_name, insight) in enumerate(insight_list):
+    with cols[i % 3]:
+        with st.container(border=True):
+            st.markdown(f"**{p_name}**")
+            st.caption(insight)
+
+# 6. Final Key Findings
+st.info("""
+**Key Findings:**
+* **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding the majority of high-activity responses.
+* **Activity Patterns:** While TikTok drives high-intensity 'Very Active' usage, Pinterest and Facebook serve more as occasional or utility-based platforms.
+""")
 
 
         
