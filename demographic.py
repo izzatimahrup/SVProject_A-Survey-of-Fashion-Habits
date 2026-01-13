@@ -622,15 +622,12 @@ st.markdown("---")
 
 
 st.header("📈 Part 2: Behavioural Analysis")
-
-st.divider()
 st.header("📈 Part 2: Behavioural Analysis")
 
 # --- SECTION 1: GENDER FILTER ---
-st.markdown("💡 Use the filter below to refine gender of the participants.")
+st.markdown("💡 Use the filter below to refine **Gender** for Awareness (Fig 9) and Influence (Fig 10).")
 gender_choice = st.selectbox("Select Gender:", ["All", "Female", "Male"], key="gender_filter_top")
 
-# Apply Gender Filter
 df_gender = df.copy()
 if gender_choice != "All":
     df_gender = df_gender[df_gender["Gender"] == gender_choice]
@@ -652,8 +649,8 @@ with c2:
     st.write("### 🔍 Key")
     st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| 1 | ⬜ Light |")
 
-# 10. Shopping Influence - Gender 
-st.subheader("11. Shopping Influence Factors")
+# --- 10. Shopping Influence (Now Fig 10 - Gender Based) ---
+st.subheader("10. Shopping Influence Factors")
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 fig10 = px.bar(
     fig10_data, x="Count", y="Influence on Shopping", color="Gender",
@@ -666,24 +663,21 @@ st.plotly_chart(fig10, use_container_width=True)
 st.divider()
 
 # --- SECTION 2: EXPENDITURE FILTER ---
-st.markdown("💡 Use the filter below to refine Monthly Expenditure Level")
-# "All Respondents" is used to avoid empty filter errors
+st.markdown("💡 Use the filter below to refine **Expenditure** for Employment (Fig 11) and Spending Influence (Fig 12).")
 expense_choice = st.selectbox("Select Monthly Expenditure Level:", ["All"] + expense_order, key="expense_filter_mid")
 
-# Apply Expenditure Filter
 df_expense = df.copy()
 if expense_choice != "All":
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == expense_choice]
 
-# --- 11. Distribution of Spending by Employment (Treemap) ---
-st.subheader("10. Distribution of Spending by Employment")
-fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+# --- 11. Distribution of Spending by Employment (Now Fig 11 - Treemap) ---
+st.subheader("11. Distribution of Spending by Employment")
+fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
 if not fig11_data.empty:
     try:
         path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
-        
-        fig10 = px.treemap(
+        fig11 = px.treemap(
             fig11_data,
             path=path_logic,
             values="Count",
@@ -708,4 +702,3 @@ fig12 = px.bar(
     title=f"Influence for {expense_choice} Spenders"
 )
 st.plotly_chart(fig12, use_container_width=True)
-
