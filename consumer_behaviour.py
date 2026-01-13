@@ -204,137 +204,71 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+# --- 1. SET UP PAGE ---
+st.set_page_config(page_title="Activity Analysis", layout="wide")
 
-# --- 1. CONFIGURATION & MAPPING ---
-# We define these globally so they are accessible to all functions
-frequency_labels = {
-    0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
-}
-frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
+# --- 2. DATA CHECK ---
+# (I am assuming df_melted_frequency is already defined in your script)
+# If not, ensure your "melt" logic runs before this section.
 
-frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
-    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
-    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
-}
+# --- 3. STRUCTURED FILTRATION SECTION ---
+st.title("📊 Social Media Activity Analysis")
+st.markdown("Use the filters below to refine the distribution analysis.")
 
-def show_consumer_behavior(df, activity_counts):
-    st.header("🛒 Consumer Behavior: Social Media Engagement")
-    st.markdown("Analyze platform-wide activity levels followed by detailed behavioral distributions.")
-
-    # --- 2. STRUCTURED FILTER BAR ---
-    # Placing filters in a bordered container at the top of the page
-    with st.container(border=True):
-        st.subheader("📊 Dashboard Controls")
-        f_col1, f_col2 = st.columns([2, 1])
-        
-        with f_col1:
-            # Identify columns and create clean names for the multiselect
-            ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
-            activity_options = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
-            
-            selected_activities = st.multiselect(
-                "Filter Activities for Detailed Analysis",
-                options=list(activity_options.keys()),
-                default=list(activity_options.keys())[:2]
-            )
-
-        with f_col2:
-            view_type = st.radio("Chart Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
-
-    # --- 3. GLOBAL TREEMAP VIEW ---
-    st.write("### Platform Activity Proportion")
+with st.container(border=True):
+    col1, col2 = st.columns([2, 1])
     
-    # Pre-processing to avoid Categorical/FutureWarnings
-    activity_counts_for_plot = activity_counts.copy()
-    activity_counts_for_plot['Platform'] = activity_counts_for_plot['Platform'].astype(str)
-    activity_counts_for_plot['Activity_Level'] = activity_counts_for_plot['Activity_Level'].astype(str)
-
+    with col1:
+        # Filter for Activity Types
+        all_activities = df_melted_frequency['Activity_Type'].unique().tolist()
+        selected_activities = st.multiselect(
+            "Select Activity Types:",
+            options=all_activities,
+            default=all_activities
+        )
     
-    fig_tree = px.treemap(
-        activity_counts_for_plot,
-        path=[px.Constant("All Platforms"), 'Platform', 'Activity_Level'],
-        values='Percentage',
-        color='Activity_Level',
-        color_discrete_map={
-            '(?)': 'lightgrey',
-            'very active': '#1a9850', 
-            'active': '#91cf60', 
-            'sometimes active': '#ffffbf', 
-            'inactive': '#fc8d59'
-        },
-        labels={'Platform': 'Social Media Platform', 'Activity_Level': 'Activity Level', 'Percentage': 'Percentage of Users'},
-        hover_data={'Count': True, 'Percentage': ':.2f'}
+    with col2:
+        # Visual preference toggle
+        show_points = st.checkbox("Show Individual Data Points", value=True)
+
+# --- 4. DATA PROCESSING ---
+# Filter dataframe based on selection
+filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(selected_activities)]
+
+# --- 5. VISUALIZATION ---
+if filtered_df.empty:
+    st.warning("Please select at least one activity to display the chart.")
+else:
+    # Create the Plotly Box Plot
+    fig = px.box(
+        filtered_df,
+        x='Activity_Type',
+        y='Frequency_Level',
+        color='Activity_Type',
+        points="all" if show_points else "outliers",
+        color_discrete_sequence=px.colors.sequential.Viridis,
+        title='Distribution of Social Media Activity Frequencies',
+        template="plotly_white"  # Mimics Seaborn's whitegrid
     )
-    fig_tree.update_layout(margin=dict(t=30, l=10, r=10, b=10))
-    st.plotly_chart(fig_tree, use_container_width=True)
-    
-    st.divider()
 
-    # --- 4. DYNAMIC GRID (BOX PLOTS / BAR CHARTS) ---
-    if not selected_activities:
-        st.info("Please select activities in the control panel to see detailed data.")
-    else:
-        col1, col2 = st.columns(2)
-        
-        for i, activity_name in enumerate(selected_activities):
-            original_col = activity_options[activity_name]
-            
-            # Data Preparation: Handle missing values to avoid mapping errors
-            plot_data = df[[original_col]].copy().dropna()
-            plot_data['Label'] = plot_data[original_col].map(frequency_labels)
-            
-            target_col = col1 if i % 2 == 0 else col2
-            
-            with target_col:
-                if "Box Plot" in view_type:
-                    
-                    fig = px.box(
-                        plot_data,
-                        y='Label', # Vertical orientation
-                        points="outliers", 
-                        title=f"Distribution: {activity_name}",
-                        category_orders={"Label": frequency_order},
-                        color='Label',
-                        color_discrete_sequence=px.colors.sequential.Viridis,
-                        labels={'Label': 'Frequency Level'}
-                    )
-                    # Styling for the requested design (Never at the top)
-                    fig.update_yaxes(autorange="reversed", showgrid=True, gridcolor='lightgrey')
-                    fig.update_xaxes(showticklabels=False)
-                else:
-                    counts = plot_data['Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
-                    counts.columns = ['Label', 'count']
-                    fig = px.bar(
-                        counts, x='Label', y='count', text='count',
-                        title=f"Volume: {activity_name}",
-                        color='count', color_continuous_scale='Blues'
-                    )
-                    fig.update_traces(textposition='outside')
+    # Styling to match your Seaborn layout
+    fig.update_layout(
+        xaxis_title="Social Media Activity Type",
+        yaxis_title="Frequency Level",
+        showlegend=False,
+        height=600,
+        xaxis={'categoryorder':'total descending'} # Optional: sorts by highest median
+    )
 
-                fig.update_layout(showlegend=False, plot_bgcolor='white', margin=dict(t=50, b=20), height=450)
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Structured Insight Box
-                with st.container(border=True):
-                    st.markdown(f"**Quick Insight: {activity_name}**")
-                    st.write(frequency_insights.get(activity_name, "Analysis pending."))
-                st.write("##")
+    # Display the chart
+    st.plotly_chart(fig, use_container_width=True)
 
-    # --- 5. SUMMARY ---
-    st.info("""
-    **Key Findings:**
-    * **Passive Dominance:** The Treemap indicates that high-frequency 'Reading' and 'Watching' are significantly more common than active 'Uploading'.
-    * **Creator Gap:** A very small segment of the user base reaches 'Very often' status for content creation.
-    """)
+# --- 6. STRUCTURED SUMMARY ---
+with st.expander("📝 View Statistical Summary"):
+    stats_df = filtered_df.groupby('Activity_Type')['Frequency_Level'].describe()
+    st.dataframe(stats_df, use_container_width=True)
 
-# Call the function with your dataframes
-# show_consumer_behavior(df, activity_counts)
+st.info("**Tip:** You can hover over the boxes to see the Median, Quartiles, and Outliers. Use the box zoom tool to focus on specific sections.")
 # ======================================================
 # SECTION E
 # ======================================================
