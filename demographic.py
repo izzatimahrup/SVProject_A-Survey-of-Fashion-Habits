@@ -872,27 +872,31 @@ if gender_choice != "All":
 if region_choice != "All":
     df_filtered = df_filtered[df_filtered["Region"] == region_choice]
 
-# Show a small counter of how many people are in this group
-st.info(f"Showing data for **{len(df_filtered)}** respondents matching these filters.")
 
-# ---------------------------------------------------------
-# 9. Fashion Awareness (Stacked Bar Chart)
-# ---------------------------------------------------------
-st.subheader("9. Fashion Awareness Level")
 
-# We group by Gender AND Awareness to make it stacked
+
+# 9. Fashion Awareness (Stacked)
 fig9_data = df_filtered.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
 
 fig9 = px.bar(
     fig9_data,
     x="Gender",
     y="Count",
-    color="Awareness of Fashion Trends",
-    barmode="stack", # This keeps it stacked
-    color_discrete_sequence=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'],
-    title="Awareness Distribution by Gender"
+    color="Gender", 
+    pattern_shape="Awareness of Fashion Trends", 
+    barmode="stack",
+    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
+    title="Fashion Awareness: Female (Pink) vs Male (Blue)"
 )
-fig9.update_layout(height=450, bargap=0.4, title_x=0)
+
+fig9.update_layout(
+    bargap=0.4, 
+    height=450,
+    yaxis_title="Number of Respondents",
+    xaxis_title="Gender",
+    showlegend=True
+)
+
 st.plotly_chart(fig9, use_container_width=True)
 
 # ---------------------------------------------------------
