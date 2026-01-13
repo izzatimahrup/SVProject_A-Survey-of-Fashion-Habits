@@ -1,150 +1,176 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import io
+import plotly.express as px
+import plotly.graph_objects as go
 
-# --- CONFIGURATION ---
-st.set_page_config(page_title="Motivation Analytics", layout="wide")
+# ======================================================
+# PAGE CONFIGURATION
+# ======================================================
+st.set_page_config(
+    page_title="Fashion Brand Motivation Analysis",
+    page_icon="📊",
+    layout="wide"
+)
 
-class MotivationAnalyzer:
-    """Class to handle data processing and visualization logic."""
+# ======================================================
+# DATA ENGINE CLASS
+# ======================================================
+class FashionMotivationEngine:
+    """Handles data loading, cleaning, and metric calculations."""
     
-    def __init__(self, dataframe):
-        self.df = dataframe
-        self.questions = [col for col in dataframe.columns if col.startswith('follow_')]
-        self.likert_labels = {
-            1: 'Strongly Disagree', 2: 'Disagree', 
-            3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'
+    def __init__(self, url):
+        self.url = url
+        self.column_mapping = {
+            "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
+            "I follow fashion brands on social media because  I like their products and style": "Product & Style",
+            "I follow fashion brands on social media because it is entertaining.": "Entertainment",
+            "I follow fashion brands on social media because I want to receive discounts or participate in contests.": "Discounts & Contests",
+            "I follow fashion brands on social media because it helps me express my personality": "Express Personality",
+            "I follow fashion brands on social media because I want to feel part of an online community.": "Online Community",
+            "I follow fashion brands on social media because I want to support or show loyalty to the brand.": "Brand Loyalty"
         }
-        self.likert_colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+        self.df, self.motivation_cols = self._load_and_process()
 
-    def get_mean_scores(self):
-        return self.df[self.questions].mean().sort_values(ascending=False)
+    def _load_and_process(self):
+        try:
+            data = pd.read_csv(self.url)
+            data.columns = data.columns.str.strip()
+            data = data.rename(columns=self.column_mapping)
+            valid_cols = [v for v in self.column_mapping.values() if v in data.columns]
+            return data, valid_cols
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
+            return pd.DataFrame(), []
 
-    def get_distribution_data(self):
-        dist_list = []
-        for col in self.questions:
-            counts = self.df[col].value_counts(normalize=True).mul(100).reindex(range(1, 6), fill_value=0)
-            counts.index = counts.index.map(self.likert_labels)
-            counts.name = col
-            dist_list.append(counts)
-        return pd.DataFrame(dist_list)
+    def get_rankings(self):
+        means = self.df[self.motivation_cols].mean().sort_values(ascending=True).reset_index()
+        means.columns = ['Motivation', 'Average Score']
+        return means
 
-    def get_gender_data(self):
-        if 'Gender' not in self.df.columns:
-            return None
-        gender_means = self.df.groupby('Gender')[self.questions].mean().T.reset_index()
-        melted = gender_means.melt(id_vars='index', var_name='Gender', value_name='Mean Score')
-        melted.rename(columns={'index': 'Motivation Question'}, inplace=True)
-        return melted
+# ======================================================
+# HELPER FUNCTIONS
+# ======================================================
+def center_title(fig):
+    fig.update_layout(title={'x': 0.5, 'xanchor': 'center'})
+    return fig
 
-# --- UI COMPONENTS ---
-
-def sidebar_setup():
-    st.sidebar.header("📁 Data Management")
-    uploaded_file = st.sidebar.file_uploader("Upload Survey CSV", type=["csv"])
+# ======================================================
+# MAIN APPLICATION
+# ======================================================
+def main():
+    # 1. Header & Objective Section
+    st.title("📊 Fashion Brand Motivation Dashboard")
     
-    st.sidebar.header("🎨 Visual Settings")
-    palette = st.sidebar.selectbox("Theme Palette", ['viridis', 'magma', 'coolwarm', 'rocket'])
-    
-    return uploaded_file, palette
+    with st.container():
+        col_obj, col_stat = st.columns([2, 1])
+        with col_obj:
+            st.subheader("Objective")
+            st.info("To analyze the driving factors behind why consumers follow fashion brands on social media, identifying whether trends are transactional, aesthetic, or community-based.")
+        
+        # 2. Load Data
+        data_url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
+        engine = FashionMotivationEngine(data_url)
+        
+        if engine.df.empty:
+            st.stop()
 
-def render_header():
-    st.title("📊 Motivation Survey Analysis Dashboard")
-    st.markdown("""
-        Analyze user engagement drivers. This tool processes Likert-scale responses 
-        to provide insights into **why** users follow and interact with your brand.
-    """)
+        with col_stat:
+            st.metric("Total Respondents", len(engine.df))
+            top_val = engine.get_rankings().iloc[-1]
+            st.metric("Top Motivation", top_val['Motivation'], f"{top_val['Average Score']:.2f} Avg")
+
     st.divider()
 
-def main():
-    uploaded_file, palette = sidebar_setup()
-    render_header()
+    # 3. Sidebar Configuration
+    st.sidebar.header("🎨 Visual Settings")
+    color_theme = st.sidebar.selectbox("Color Theme", ["Viridis", "Plasma", "Cividis", "Magma"])
+    
+    # 4. Analysis Tabs
+    tab1, tab2, tab3 = st.tabs(["📈 Ranking & Distribution", "🔗 Correlation Analysis", "👥 Detailed Trends"])
 
-    # Load Data
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-    else:
-        # Generate high-quality dummy data for demonstration
-        questions = [
-            'follow_for_updates_promotions', 'follow_because_like_products',
-            'follow_because_entertaining', 'follow_because_discounts_contests',
-            'follow_because_express_personality', 'follow_because_online_community',
-            'follow_because_support_loyalty'
-        ]
-        df = pd.DataFrame(np.random.randint(1, 6, size=(300, len(questions))), columns=questions)
-        df['Gender'] = np.random.choice(['Male', 'Female'], size=300)
-        st.info("💡 Showing sample data. Upload a CSV via the sidebar to analyze your specific results.")
-
-    analyzer = MotivationAnalyzer(df)
-
-    # --- Metrics Row ---
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Total Responses", len(df))
-    m2.metric("Motivations Tracked", len(analyzer.questions))
-    m3.metric("Highest Mean Score", f"{analyzer.get_mean_scores().max():.2f}")
-
-    # --- Tabs Interface ---
-    tab1, tab2, tab3 = st.tabs(["📈 Sentiment Analysis", "🔗 Correlations", "👥 Demographic Split"])
-
+    # --- Tab 1: Ranking & Distribution ---
     with tab1:
-        col1, col2 = st.columns([1, 1])
+        st.header("Section A: Motivation Ranking")
+        rank_df = engine.get_rankings()
         
-        with col1:
-            st.subheader("Ranking by Mean Score")
-            means = analyzer.get_mean_scores()
-            fig, ax = plt.subplots()
-            sns.barplot(x=means.values, y=means.index, palette=palette, ax=ax)
-            ax.set_xlim(0, 5)
-            st.pyplot(fig)
+        fig_ranking = px.bar(
+            rank_df, x='Average Score', y='Motivation',
+            orientation='h', text_auto='.2f',
+            color='Average Score', color_continuous_scale=color_theme,
+            title="Global Motivation Leaderboard"
+        )
+        fig_ranking.update_layout(xaxis_range=[1, 5])
+        st.plotly_chart(center_title(fig_ranking), use_container_width=True)
 
-        with col2:
-            st.subheader("Response Distribution")
-            dist_df = analyzer.get_distribution_data()
-            fig, ax = plt.subplots()
-            dist_df[list(analyzer.likert_labels.values())].plot(
-                kind='barh', stacked=True, color=analyzer.likert_colors, ax=ax
-            )
-            ax.legend(bbox_to_anchor=(1.0, 1.0))
-            st.pyplot(fig)
+        st.subheader("Frequency Distribution")
+        selected_col = st.selectbox("Select Motivation to View Distribution", engine.motivation_cols)
+        
+        counts = engine.df[selected_col].value_counts().sort_index().reset_index()
+        counts.columns = ['Likert Score', 'Respondents']
+        
+        fig_dist = px.bar(
+            counts, x='Likert Score', y='Respondents', 
+            text='Respondents', color='Likert Score',
+            color_continuous_scale=color_theme,
+            title=f"Distribution Analysis: {selected_col}"
+        )
+        st.plotly_chart(center_title(fig_dist), use_container_width=True)
 
+    # --- Tab 2: Correlation ---
     with tab2:
-        col_a, col_b = st.columns([2, 1])
-        with col_a:
-            st.subheader("Global Correlation Matrix")
-            fig, ax = plt.subplots(figsize=(10, 8))
-            sns.heatmap(df[analyzer.questions].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
-            st.pyplot(fig)
+        st.header("Section B: Engagement Relationships")
         
-        with col_b:
-            st.subheader("Deep Dive")
-            x_var = st.selectbox("Motivation A", analyzer.questions, index=0)
-            y_var = st.selectbox("Motivation B", analyzer.questions, index=1)
-            fig, ax = plt.subplots()
-            sns.regplot(data=df, x=x_var, y=y_var, scatter_kws={'alpha':0.3}, ax=ax)
-            st.pyplot(fig)
+        col_heat, col_scatter = st.columns([1, 1])
+        
+        with col_heat:
+            st.write("### Motivation Heatmap")
+            corr = engine.df[engine.motivation_cols].corr()
+            fig_heat = px.imshow(corr, text_auto=".2f", color_continuous_scale='RdBu_r')
+            st.plotly_chart(center_title(fig_heat), use_container_width=True)
+            
+        with col_scatter:
+            st.write("### Relationship Deep-Dive")
+            x_var = st.selectbox("Motivation X", engine.motivation_cols, index=0)
+            y_var = st.selectbox("Motivation Y", engine.motivation_cols, index=1)
+            
+            fig_rel = px.scatter(engine.df, x=x_var, y=y_var, trendline="ols", opacity=0.5)
+            st.plotly_chart(center_title(fig_rel), use_container_width=True)
 
+    # --- Tab 3: Detailed Trends ---
     with tab3:
-        st.subheader("Gender Behavioral Comparison")
-        gender_data = analyzer.get_gender_data()
-        if gender_data is not None:
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.pointplot(
-                data=gender_data, x='Mean Score', y='Motivation Question', 
-                hue='Gender', join=True, palette='Set1', markers='o', ax=ax
-            )
-            ax.set_xlim(1, 5)
-            st.pyplot(fig)
-        else:
-            st.warning("No 'Gender' column found for comparison.")
+        st.header("Section C: Strategic Categorization")
+        
+        # Grid layout for dynamic logic
+        cols = st.columns(2)
+        for i, col_name in enumerate(engine.motivation_cols):
+            avg_score = engine.df[col_name].mean()
+            
+            # Category Logic
+            if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
+                cat = "Social Proof & Identity"
+                icon = "👥"
+            elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
+                cat = "Transactional Value"
+                icon = "💰"
+            else:
+                cat = "Aesthetic Alignment"
+                icon = "🎨"
 
-    # --- Export Section ---
-    st.sidebar.divider()
-    if st.sidebar.button("Generate CSV Summary"):
-        summary = analyzer.get_mean_scores().to_csv().encode('utf-8')
-        st.sidebar.download_button("📥 Download Summary", summary, "motivation_summary.csv", "text/csv")
+            with cols[i % 2]:
+                with st.expander(f"{icon} {col_name}", expanded=True):
+                    st.write(f"**Average Score:** {avg_score:.2f}")
+                    st.write(f"**Strategic Category:** {cat}")
+                    
+                    if avg_score >= 3.8:
+                        st.success("Status: **Primary Driver**")
+                    elif avg_score >= 3.0:
+                        st.warning("Status: **Moderate Driver**")
+                    else:
+                        st.error("Status: **Minor Driver**")
+
+    st.divider()
+    st.markdown("<center>✔ <b>Consumer Motivation Analysis Framework Complete</b></center>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
