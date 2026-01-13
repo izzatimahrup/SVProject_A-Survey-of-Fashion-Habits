@@ -24,50 +24,6 @@ def load_data():
 
 df = load_data()
 
-# ---------------------------------------------------------
-# SIDEBAR FILTERS (Add this at the top of your script)
-# ---------------------------------------------------------
-st.sidebar.header("🔍 Global Filters")
-
-# Gender Filter
-gender_list = df["Gender"].unique().tolist()
-selected_gender = st.sidebar.multiselect("Select Gender:", gender_list, default=gender_list)
-
-# Filter the data
-df_filtered = df[df["Gender"].isin(selected_gender)]
-
-# ---------------------------------------------------------
-# VISUALIZATION: Age Group by Gender
-# ---------------------------------------------------------
-st.subheader("📊 Age Group Distribution by Gender")
-
-# Prepare the data
-age_gender_df = (
-    df_filtered.groupby(["Age", "Gender"])
-    .size()
-    .reset_index(name="Count")
-)
-
-# Create the grouped bar chart
-fig_age_gender = px.bar(
-    age_gender_df,
-    x="Age",
-    y="Count",
-    color="Gender",
-    barmode="group", # Use "stack" if you want them on top of each other
-    category_orders={"Age": age_order},
-    title="Comparison of Age Groups Across Genders",
-    # Enhanced Tooltip (Hover)
-    hover_data={"Age": True, "Gender": True, "Count": True},
-    text_auto=True
-)
-
-# Professional styling for the hover box
-fig_age_gender.update_traces(
-    hovertemplate="<b>Gender:</b> %{fullData.name}<br><b>Age:</b> %{x}<br><b>Respondents:</b> %{y}<extra></extra>"
-)
-
-st.plotly_chart(fig_age_gender, use_container_width=True)
 
 # Updated Sort Orders to match Google Form standards
 age_order = [
