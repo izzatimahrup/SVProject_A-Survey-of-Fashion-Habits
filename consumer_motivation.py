@@ -6,26 +6,15 @@ import seaborn as sns
 import numpy as np
 
 # ======================================================
-# PAGE CONFIG (Only one allowed per page)
+# 1. DATA LOADING & MAPPING
 # ======================================================
-# If this is a multi-page app, this may be redundant but kept for safety
-if 'already_configured' not in st.session_state:
-    st.set_page_config(page_title="Fashion Brand Motivation Analysis", layout="wide")
-    st.session_state.already_configured = True
-
-# ======================================================
-# HELPER FUNCTIONS
-# ======================================================
-def center_title(fig):
-    fig.update_layout(title={'x': 0.5, 'xanchor': 'center'})
-    return fig
-
 @st.cache_data
 def load_motivation_data():
     url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
     data = pd.read_csv(url)
     data.columns = data.columns.str.strip()
     
+    # Mapping dictionary to shorten long survey questions
     column_mapping = {
         "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
         "I follow fashion brands on social media because  I like their products and style": "Product & Style",
@@ -40,38 +29,54 @@ def load_motivation_data():
     valid_cols = [v for v in column_mapping.values() if v in data.columns]
     return data, valid_cols
 
-def calculate_percentages(df, columns):
-    """Calculates Likert percentages and handles potential TypeErrors"""
+# ======================================================
+# 2. CALCULATION HELPERS
+# ======================================================
+def calculate_percentages(df_input, columns):
+    """Calculates Likert percentages and ensures type safety for Python 3.13"""
     label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
     pct_list = []
     
     for col in columns:
-        # Ensure numeric to avoid TypeErrors with value_counts or multiplication
-        series = pd.to_numeric(df[col], errors='coerce').dropna()
-        counts = series.value_counts(normalize=True).reindex([1, 2, 3, 4, 5], fillvalue=0) * 100
+        # Force to numeric and drop NaNs
+        series = pd.to_numeric(df_input[col], errors='coerce').dropna()
+        
+        # Get percentages, ensure integer index for reindexing
+        counts = series.value_counts(normalize=True)
+        counts.index = counts.index.astype(int)
+        
+        # Reindex to [1,2,3,4,5], multiply by 100, and map text labels
+        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0) * 100
         counts.index = counts.index.map(label_map)
         counts.name = col
         pct_list.append(counts)
     
     return pd.DataFrame(pct_list)
 
-@st.cache_data
-def process_positive_data(df_input):
-    return df_input.copy()
-
 # ======================================================
-# MAIN EXECUTION
+# 3. MAIN DASHBOARD EXECUTION
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
 
-df, motivation_cols = load_motivation_data()
+# Load Data
+df_raw, motivation_cols = load_motivation_data()
 
-if not motivation_cols:
-    st.error("Could not find the motivation columns in the CSV.")
-    st.stop()
+# --- DEMOGRAPHIC FILTER ---
+st.sidebar.header("Filter Results")
+# Adjust 'Gender' to match your actual CSV column name if different
+if 'Gender' in df_raw.columns:
+    gender_options = ["All"] + list(df_raw['Gender'].unique())
+    selected_gender = st.sidebar.selectbox("Filter by Gender", gender_options)
+    
+    if selected_gender != "All":
+        df = df_raw[df_raw['Gender'] == selected_gender].copy()
+    else:
+        df = df_raw.copy()
+else:
+    df = df_raw.copy()
 
 # ------------------------------------------------------
-# SECTION A: RANKING
+# SECTION A: RANKING (PLOTLY)
 # ------------------------------------------------------
 st.header("Section A: Motivation Ranking")
 motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
@@ -81,60 +86,62 @@ fig_ranking = px.bar(
     motivation_means, x='Average Score', y='Motivation',
     orientation='h', text_auto='.2f',
     color='Average Score', color_continuous_scale='Viridis',
-    title="Average Agreement Score (Likert 1-5)"
+    title=f"Average Agreement Score ({selected_gender if 'Gender' in df_raw.columns else 'Overall'})"
 )
-fig_ranking.update_layout(xaxis_range=[1, 5])
-st.plotly_chart(center_title(fig_ranking), use_container_width=True)
+fig_ranking.update_layout(xaxis_range=[1, 5], title={'x': 0.5, 'xanchor': 'center'})
+st.plotly_chart(fig_ranking, use_container_width=True)
 
 # ------------------------------------------------------
-# SECTION B: CONSUMER SENTIMENT (LIKERT CHART)
+# SECTION B: CONSUMER SENTIMENT (MATPLOTLIB/SEABORN)
 # ------------------------------------------------------
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
 
-# Generate the percentage dataframe
+# Calculate the percentages for the Likert chart
 df_motivation_pct = calculate_percentages(df, motivation_cols)
-df_motivation_pct_positive = process_positive_data(df_motivation_pct)
 
-# Sidebar Control
-st.sidebar.header("Chart Options")
+# Sidebar toggle for labels
 show_labels = st.sidebar.checkbox("Show Percentage Labels", value=True)
 
-# Plotting with Matplotlib/Seaborn
+# Plotting Logic
 sns.set_style("whitegrid")
 plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
 colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
 
-fig, ax = plt.subplots(figsize=(12, 7))
-df_motivation_pct_positive[plot_columns].plot(
-    kind='barh', stacked=True, color=colors, ax=ax, width=0.75
+fig, ax = plt.subplots(figsize=(12, 8))
+df_motivation_pct[plot_columns].plot(
+    kind='barh', stacked=True, color=colors, ax=ax, width=0.8
 )
 
+# Customizing the visual
 ax.set_title('Percentage Distribution of Responses', fontsize=16, pad=20)
 ax.set_xlabel('Percentage of Respondents (%)', fontsize=12)
-ax.set_ylabel('Motivation Category', fontsize=12)
+ax.set_ylabel('Motivation Question', fontsize=12)
 ax.set_xlim(0, 100)
 
 if show_labels:
     for c in ax.containers:
+        # Only show label if segment is large enough (>5%) to prevent clutter
         labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c]
         ax.bar_label(c, labels=labels, label_type='center', fontsize=9)
 
-ax.legend(title='Response', bbox_to_anchor=(1.02, 1), loc='upper left')
+ax.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
+
+# Display in Streamlit
 st.pyplot(fig)
 
-# Blue Interpretation Box
-st.info("""
-**Data Interpretation:**
-This chart shows a positive skew in consumer motivation. The majority of respondents 
-fall into the **Agree** (light green) and **Strongly Agree** (dark green) categories. 
-The areas in red indicate specific questions where intervention may be needed to 
-address underlying dissatisfaction or lack of interest.
+# --- BLUE INTERPRETATION BOX ---
+st.info(f"""
+**Data Interpretation ({selected_gender if 'Gender' in df_raw.columns else 'Overall'}):**
+The chart shows a strong positive sentiment across most motivations. 
+The **Agree** (light green) and **Strongly Agree** (dark green) categories dominate, 
+suggesting that respondents are generally well-aligned with the brand's social media goals. 
+Watch for red or orange segments which indicate potential friction points.
 """)
 
 # ------------------------------------------------------
-# SECTION C: RELATIONSHIPS
+# SECTION C: RELATIONSHIPS (CORRELATION)
 # ------------------------------------------------------
 st.divider()
 st.header("Section C: Engagement Relationships")
@@ -145,22 +152,20 @@ with tab_corr:
     fig_heatmap = px.imshow(
         corr_matrix, text_auto=".2f",
         color_continuous_scale='RdBu_r',
-        title="Correlation Heatmap"
+        title="How Motivations Move Together"
     )
-    st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
+    fig_heatmap.update_layout(title={'x': 0.5, 'xanchor': 'center'})
+    st.plotly_chart(fig_heatmap, use_container_width=True)
 
 with tab_rel:
-    c1, c2 = st.columns([1, 2])
-    with c1:
+    col_x, col_y = st.columns([1, 2])
+    with col_x:
         x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
         y_var = st.selectbox("Select Y-axis", motivation_cols, index=1)
-        current_corr = df[x_var].corr(df[y_var])
-        st.metric("Correlation Coefficient", f"{current_corr:.2f}")
-    
-    with c2:
-        fig_scatter = px.scatter(df, x=x_var, y=y_var, opacity=0.4, trendline="ols",
-                                 title=f"Relationship: {x_var} vs {y_var}")
-        st.plotly_chart(center_title(fig_scatter), use_container_width=True)
+        st.metric("Correlation", f"{df[x_var].corr(df[y_var]):.2f}")
+    with col_y:
+        fig_scatter = px.scatter(df, x=x_var, y=y_var, opacity=0.4, trendline="ols")
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.divider()
 st.markdown("✔ **Consumer Motivation Analysis Complete**")
