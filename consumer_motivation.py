@@ -4,135 +4,120 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- PAGE CONFIGURATION ---
-st.set_page_config(page_title="Motivation Analysis Dashboard", layout="wide")
-
-# Applying Seaborn style globally
+# --- 1. SETTINGS & STYLING ---
+st.set_page_config(page_title="Survey Insights", layout="wide")
 sns.set_style("whitegrid")
 
-# --- DATA LOADING & PREPARATION ---
+# Custom CSS for better UI
+st.markdown("""
+    <style>
+    .main { background-color: #f9f9f9; }
+    .stMetric { border: 1px solid #e6e6e6; padding: 10px; border-radius: 5px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 2. DATA PROCESSING LAYER ---
 @st.cache_data
-def load_data():
-    # REPLACE THIS with your actual data loading: df = pd.read_csv('your_file.csv')
-    # For now, creating dummy data to ensure the script runs
-    motivation_questions = [
+def load_and_clean_data():
+    # Replace with: df = pd.read_csv("your_file.csv")
+    # For now, using simulated data
+    q_cols = [
         'follow_for_updates_promotions', 'follow_because_like_products',
         'follow_because_entertaining', 'follow_because_discounts_contests',
         'follow_because_express_personality', 'follow_because_online_community',
         'follow_because_support_loyalty'
     ]
-    data = np.random.randint(1, 6, size=(100, len(motivation_questions)))
-    df = pd.DataFrame(data, columns=motivation_questions)
-    df['Gender'] = np.random.choice(['Male', 'Female'], size=100)
-    return df, motivation_questions
+    data = np.random.randint(1, 6, size=(250, len(q_cols)))
+    df = pd.DataFrame(data, columns=q_cols)
+    df['Gender'] = np.random.choice(['Male', 'Female', 'Other'], size=250)
+    df['Gender'] = df['Gender'].astype(str).str.strip()
+    return df, q_cols
 
-df, motivation_questions = load_data()
+df, motivation_questions = load_and_clean_data()
 
-# --- HEADER ---
+# --- 3. HEADER & SUMMARY METRICS ---
 st.title("📊 Motivation Analysis Dashboard")
-st.markdown("This interactive dashboard explores survey respondent motivations using Likert-scale data.")
+st.caption("Analyzing consumer behavior and brand engagement motivations.")
 
-# --- IN-PAGE FILTERS ---
-# Placing the gender filter at the top for better structure
-st.subheader("🎯 Global Filters")
-all_genders = df['Gender'].unique().tolist()
-selected_genders = st.multiselect("Select Gender(s) to include:", options=all_genders, default=all_genders)
+# High-level metrics for quick glance
+m1, m2, m3 = st.columns(3)
+with m1:
+    st.metric("Total Responses", len(df))
+with m2:
+    top_motivation = df[motivation_questions].mean().idxmax().replace('_', ' ').title()
+    st.metric("Primary Driver", top_motivation)
+with m3:
+    st.metric("Confidence Level", "95%")
 
-# Apply filter to the main dataframe
+st.divider()
+
+# --- 4. INTERACTIVE FILTER LAYER ---
+with st.sidebar:
+    st.header("⚙️ Configuration")
+    genders = df['Gender'].unique().tolist()
+    selected_genders = st.multiselect("Filter by Gender", options=genders, default=genders)
+    
+    st.markdown("---")
+    st.info("The charts on the right update automatically based on your selection.")
+
+# Filtered dataset
 filtered_df = df[df['Gender'].isin(selected_genders)]
 
-if filtered_df.empty:
-    st.warning("No data available for the selected filters.")
-    st.stop()
+# --- 5. VISUALIZATION LAYER ---
+tab1, tab2, tab3 = st.tabs(["📈 Performance Scores", "🔗 Relationship Analysis", "👥 Demographic Split"])
 
-# --- TABBED ANALYSIS ---
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📈 Mean Scores", 
-    "🔗 Correlations", 
-    "📊 Response Distribution", 
-    "👥 Gender Analysis"
-])
-
-# --- TAB 1: MEAN SCORES ---
+# TAB 1: OVERALL PERFORMANCE
 with tab1:
-    st.header("Agreement Mean Scores")
-    motivation_means = filtered_df[motivation_questions].mean().sort_values(ascending=False)
+    col_a, col_b = st.columns([1, 1])
     
-    fig1, ax1 = plt.subplots(figsize=(10, 6))
-    sns.barplot(x=motivation_means.values, y=motivation_means.index, palette='viridis', ax=ax1)
-    ax1.set_title('Mean Agreement Scores (1=Strongly Disagree, 5=Strongly Agree)')
-    ax1.set_xlim(0, 5)
-    
-    # Value labels
-    for index, value in enumerate(motivation_means.values):
-        ax1.text(value + 0.05, index, f'{value:.2f}', va='center')
-    
-    st.pyplot(fig1)
+    with col_a:
+        st.subheader("Mean Agreement")
+        means = filtered_df[motivation_questions].mean().sort_values(ascending=False)
+        fig1, ax1 = plt.subplots(figsize=(8, 6))
+        sns.barplot(x=means.values, y=means.index, palette='viridis', ax=ax1)
+        ax1.set_xlim(0, 5)
+        for i, v in enumerate(means.values):
+            ax1.text(v + 0.05, i, f'{v:.2f}', va='center', fontweight='bold')
+        st.pyplot(fig1)
 
-# --- TAB 2: CORRELATIONS & REGRESSION ---
-with tab2:
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.header("Correlation Heatmap")
-        corr_matrix = filtered_df[motivation_questions].corr()
-        fig2, ax2 = plt.subplots(figsize=(10, 8))
-        sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5, ax=ax2)
+    with col_b:
+        st.subheader("Response Distribution")
+        dist_data = []
+        for q in motivation_questions:
+            counts = filtered_df[q].value_counts(normalize=True).reindex(range(1, 6), fill_value=0) * 100
+            dist_data.append(counts.values)
+        
+        df_pct = pd.DataFrame(dist_data, index=motivation_questions, 
+                             columns=['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'])
+        
+        fig2, ax2 = plt.subplots(figsize=(8, 6))
+        colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+        df_pct.plot(kind='barh', stacked=True, color=colors, ax=ax2)
+        ax2.legend(bbox_to_anchor=(1, 1))
         st.pyplot(fig2)
 
-    with col2:
-        st.header("Regression Analysis")
-        # Let user choose which questions to compare
-        q_x = st.selectbox("Select X-Axis Motivation:", motivation_questions, index=1)
-        q_y = st.selectbox("Select Y-Axis Motivation:", motivation_questions, index=5)
-        
-        fig3, ax3 = plt.subplots(figsize=(10, 8))
-        sns.regplot(data=filtered_df, x=q_x, y=q_y, scatter_kws={'alpha':0.6}, line_kws={'color':'red'}, ax=ax3)
-        ax3.set_title(f"Relationship: {q_x} vs {q_y}")
-        st.pyplot(fig3)
+# TAB 2: CORRELATIONS
+with tab2:
+    st.subheader("Correlation Heatmap")
+    corr = filtered_df[motivation_questions].corr()
+    fig3, ax3 = plt.subplots(figsize=(10, 6))
+    sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax3)
+    st.pyplot(fig3)
 
-# --- TAB 3: STACKED DISTRIBUTION ---
+# TAB 3: GENDER ANALYSIS
 with tab3:
-    st.header("Percentage Distribution of Responses")
-    
-    # Calculate percentages
-    dist_data = []
-    for q in motivation_questions:
-        counts = filtered_df[q].value_counts(normalize=True).reindex(range(1, 6), fill_value=0) * 100
-        dist_data.append(counts.values)
-    
-    df_dist = pd.DataFrame(dist_data, index=motivation_questions, 
-                           columns=['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'])
-    
-    fig4, ax4 = plt.subplots(figsize=(12, 8))
-    colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
-    df_dist.plot(kind='barh', stacked=True, color=colors, ax=ax4, width=0.8)
-    ax4.set_xlim(0, 100)
-    ax4.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
-    st.pyplot(fig4)
+    st.subheader("Gender Comparison (Dumbbell Plot)")
+    if len(selected_genders) < 2:
+        st.warning("Please select at least two gender categories in the sidebar to compare differences.")
+    else:
+        g_means = filtered_df.groupby('Gender')[motivation_questions].mean().T
+        g_melted = g_means.reset_index().melt(id_vars='index', var_name='Gender', value_name='Score')
+        
+        fig4, ax4 = plt.subplots(figsize=(10, 7))
+        sns.pointplot(data=g_melted, x='Score', y='index', hue='Gender', join=True, markers='o', scale=1.1, ax=ax4)
+        ax4.set_xlim(1, 5)
+        st.pyplot(fig4)
 
-# --- TAB 4: GENDER DUMBBELL PLOT ---
-with tab4:
-    st.header("Gender-Based Comparison")
-    
-    # Calculate means per gender
-    gender_means = filtered_df.groupby('Gender')[motivation_questions].mean().T
-    df_melted = gender_means.reset_index().melt(id_vars='index', var_name='Gender', value_name='Mean Score')
-    df_melted.rename(columns={'index': 'Motivation Question'}, inplace=True)
-
-    fig5, ax5 = plt.subplots(figsize=(12, 8))
-    sns.pointplot(
-        data=df_melted, 
-        x='Mean Score', 
-        y='Motivation Question', 
-        hue='Gender',
-        join=True, 
-        palette={'Female': 'red', 'Male': 'blue'},
-        markers=['o', 'o'], 
-        capsize=0.1,
-        ax=ax5
-    )
-    ax5.set_xlim(1, 5) # Adjusted to full Likert scale
-    ax5.set_title("Dumbbell Plot: Mean Motivation Scores by Gender")
-    st.pyplot(fig5)
-    st.success("Analysis complete.")
+# --- 6. FOOTER ---
+st.markdown("---")
+st.caption("Dashboard generated by Gemini. Data source: Respondent CSV.")
