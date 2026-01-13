@@ -5,6 +5,27 @@ import plotly.express as px
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Section C: Consumer Interests", layout="wide")
 
+# --- CSS FIX UNTUK TEXT METRIC TERPOTONG ---
+# Ini kod tambahan untuk paksa tulisan metric supaya tak jadi "..."
+st.markdown("""
+<style>
+/* Sasarkan nilai dalam st.metric */
+[data-testid="stMetricValue"] {
+    font-size: 20px !important; /* Kecilkan sikit font (asalnya 30px+) supaya muat */
+    word-wrap: break-word !important; /* Paksa patah perkataan jika panjang */
+    white-space: normal !important; /* Benarkan text turun ke baris bawah */
+    line-height: 1.2 !important; /* Jarak antara baris */
+}
+
+/* Sasarkan label (tajuk kecil) dalam st.metric */
+[data-testid="stMetricLabel"] {
+    font-size: 14px !important;
+    white-space: normal !important;
+    width: 100% !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- 1. DATA LOADING ---
 @st.cache_data
 def load_data():
@@ -185,7 +206,7 @@ def app():
         top_influence = "N/A"
         avg_awareness = "N/A"
 
-    # Papar Kad
+    # Papar Kad (Columns)
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Respondents", f"{total_respondents}", help="Total number of respondents based on current filters.")
     m2.metric("Majority Budget", top_budget, help="The most common monthly budget range selected by respondents.")
