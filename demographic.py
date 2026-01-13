@@ -94,50 +94,67 @@ col3.metric(
     help=f"{top_region_pct:.1f}% of respondents"
 )
 
+import streamlit as st
+import plotly.express as px
 
-st.header(" 🧍 Part 1 : Demographic Overview")
+# --- PART 1: MAIN PAGE FILTERS ---
+st.header("🧍 Part 1: Demographic Overview")
+st.markdown("Use the filters below to refine the demographic breakdown.")
 
-# Create a container or columns for the filters on the main page
-st.markdown("### 🔍 Customise View")
-filter_col1, filter_col2 = st.columns(2)
+# Create two columns for the filters
+col_filter1, col_filter2 = st.columns(2)
 
-with filter_col1:
+with col_filter1:
     selected_gender = st.multiselect(
-        "Select Gender to Compare:",
+        "Select Gender:",
         options=df["Gender"].unique(),
         default=df["Gender"].unique()
     )
 
-with filter_col2:
+with col_filter2:
     selected_age = st.multiselect(
         "Select Age Groups:",
-        options=age_order,
+        options=age_order, # Using your predefined age_order list
         default=age_order
     )
 
-# Filter the data based on these main-page selections
+# Apply the filter to the dataframe
 df_filtered = df[
     (df["Gender"].isin(selected_gender)) & 
     (df["Age"].isin(selected_age))
 ]
-st.subheader("📊 Interactive Demographic Breakdown")
-st.info("💡 Click on a sector (e.g., 'Female') to zoom into their specific age groups.")
 
-# Use the filtered data for the chart
-fig_sunburst = px.sunburst(
+# --- PART 2: SUNBURST VISUALIZATION ---
+st.subheader("📊 Interactive Gender & Age Hierarchy")
+st.info("💡 **Interactivity Tip:** Click on a inner sector (e.g., 'Female') to zoom into that group's specific age distribution.")
+
+# Create the Sunburst
+fig_sun = px.sunburst(
     df_filtered,
-    path=["Gender", "Age"], # This creates the hierarchy
+    path=["Gender", "Age"], # Inner ring = Gender, Outer ring = Age
+    values=None,           # Plotly will count the rows automatically
     color="Gender",
-    title="Respondent Hierarchy: Gender and Age Group",
-    color_discrete_map={'Female': 'pink', 'Male': 'royalblue'} # Optional: Custom colours
+    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'}, # Custom colors
+    title="Demographic Proportions: Gender and Age"
 )
 
-# Customise the HOVER (Tooltip)
-fig_sunburst.update_traces(
-    hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percent of Parent: %{percentParent:.1f}%"
+# --- PART 3: HOVER & TOOLTIP ENHANCEMENT ---
+fig_sun.update_traces(
+    textinfo="label+percent entry", # Shows the name and percentage inside the slice
+    hovertemplate="""
+    <b>Category:</b> %{label}<br>
+    <b>Total Count:</b> %{value}<br>
+    <b>Share of Parent:</b> %{percentParent:.1f}%<br>
+    <extra></extra>
+    """
 )
 
-st.plotly_chart(fig_sunburst, use_container_width=True)
+fig_sun.update_layout(
+    margin=dict(t=40, l=0, r=0, b=0),
+    height=500
+)
+
+st.plotly_chart(fig_sun, use_container_width=True)
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
