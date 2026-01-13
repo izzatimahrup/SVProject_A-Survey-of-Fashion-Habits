@@ -640,23 +640,33 @@ if gender_choice != "All":
 # 9. Fashion Awareness - Gender
 st.subheader("9. Fashion Awareness by Gender")
 
+# 1. Define the descriptive labels
+awareness_labels = {
+    5: "5 - Extremely aware",
+    4: "4 - Very aware",
+    3: "3 - Moderately aware",
+    2: "2 - Slightly aware",
+    1: "1 - Not aware at all"
+}
+
+# 2. Map labels to data
 fig9_df = df_gender.copy()
 fig9_df["Awareness Label"] = fig9_df["Awareness of Fashion Trends"].map(awareness_labels)
 fig9_data = fig9_df.groupby(["Gender", "Awareness Label"]).size().reset_index(name="Count")
 
-# --- DYNAMIC COLOR LOGIC ---
+# 3. Dynamic Color Logic
 if gender_choice == "All":
-    # Use Green Gradient for Everything
+    # Green Gradient for "All" view
     color_mapping = {
-        "5 - Extremely aware": "#1B5E20",
+        "5 - Extremely aware": "#1B5E20", # Darkest
         "4 - Very aware": "#2E7D32",
         "3 - Moderately aware": "#4CAF50",
         "2 - Slightly aware": "#A5D6A7",
-        "1 - Not aware at all": "#E8F5E9"
+        "1 - Not aware at all": "#E8F5E9"  # Lightest
     }
     color_col = "Awareness Label"
 else:
-    # Use Pink for Female, Blue for Male
+    # Pink/Blue Gradients for specific gender view
     color_mapping = {
         ("Female", "5 - Extremely aware"): "#880E4F", ("Female", "4 - Very aware"): "#E91E63",
         ("Female", "3 - Moderately aware"): "#F06292", ("Female", "2 - Slightly aware"): "#F8BBD0",
@@ -668,15 +678,23 @@ else:
     fig9_data["Color_Key"] = fig9_data.apply(lambda x: (x["Gender"], x["Awareness Label"]), axis=1)
     color_col = "Color_Key"
 
+# 4. Build the Chart
 fig9 = px.bar(
-    fig9_data, x="Gender", y="Count", color=color_col if gender_choice != "All" else "Awareness Label",
+    fig9_data, 
+    x="Gender", 
+    y="Count", 
+    color=color_col if gender_choice != "All" else "Awareness Label",
     color_discrete_map=color_mapping,
-    category_orders={"Awareness Label": ["5 - Extremely aware", "4 - Very aware", "3 - Moderately aware", "2 - Slightly aware", "1 - Not aware at all"]},
+    # This keeps the levels in the right order (High to Low)
+    category_orders={"Awareness Label": [
+        "5 - Extremely aware", "4 - Very aware", "3 - Moderately aware", "2 - Slightly aware", "1 - Not aware at all"
+    ]},
     barmode="stack",
-    title=f"Awareness Levels: {gender_choice} View"
+    title=f"Awareness Levels: {gender_choice} Participants"
 )
-fig9.update_layout(height=500, showlegend=True, legend_title="Awareness Scale")
-st.plotly_chart(fig9, use_container_width=True) 
+
+fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awareness)")
+st.plotly_chart(fig9, use_container_width=True)
 # 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
