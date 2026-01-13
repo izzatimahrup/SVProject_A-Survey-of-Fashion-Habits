@@ -165,10 +165,9 @@ fig1.update_layout(
 st.plotly_chart(fig1, use_container_width=True)
 st.info("""
 📝 Interpretation:
-
-
-""")
-
+- The sunburst reveals a sample dominated by younger female respondents, particularly in the under-25 and 26-34 age brackets.
+- This indicates that the fashion insights captured are most representative of Gen Z and Millennial female consumers
+""") 
 st.markdown("---") 
 
 # 2. Region Distribution
@@ -222,9 +221,9 @@ st.plotly_chart(fig2, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
-
+- With the majority of respondents located in East Malaysia, this geographic area serves as the primary context for the study's findings.
+- This concentration suggests that fashion habits may be influenced by regional market availability and localized preferences within East Malaysia
 """)
-
 st.markdown("---")
 
 # 3. Education Level Distribution
@@ -275,8 +274,10 @@ st.plotly_chart(fig3, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
-
+- The data shows a high concentration of respondents with Bachelor’s degrees or Secondary education.
+- This suggests that the fashion behaviors observed are linked to an educated demographic likely influenced by peer social environments.
 """)
+st.markdown("---")
 
 # 4. Employment Status Distribution
 st.subheader("4. Employment Status Distribution")
@@ -310,8 +311,10 @@ st.plotly_chart(fig4, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
-
+- The standout result is that students represent the highest number of respondents among all employment categories.
+- This indicates that the survey results primarily reflect the shopping behaviors and lifestyle needs of the student population.
 """)
+st.markdown("---")
 
 # 5. Monthly Fashion Expenditure
 st.subheader("5. Monthly Fashion Expenditure Distribution")
@@ -363,12 +366,13 @@ fig5.update_layout(
 st.plotly_chart(fig5, use_container_width=True)
 st.info("""
 📝 Interpretation:
+- Most respondents fall into lower-to-middle spending tiers, which is a standout trend likely driven by the high volume of student participants.
+- This confirms that fashion engagement remains high even among demographics with more limited monthly budgets.
 """)
-
+st.markdown("---")
 
 # 6. Awareness of Fashion Trends
 st.subheader("6. Awareness of Fashion Trends")
-
 
 awareness_counts = df["Awareness of Fashion Trends"].value_counts().sort_index().reset_index()
 awareness_counts.columns = ["Level", "Count"]
@@ -415,7 +419,10 @@ st.plotly_chart(fig6, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
+- A large portion of the sample reports being moderately to extremely aware of current styles.
+- This indicates a digitally connected audience that actively tracks and engages with evolving fashion trends
 """)
+st.markdown("---")
 
 # 7. Factors Influencing Fashion Shopping Decisions
 st.subheader("7. Factors Influencing Fashion Shopping Decisions")
@@ -458,10 +465,13 @@ st.plotly_chart(fig7, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
+- Social media and peer recommendations standout as the primary external drivers for purchase decisions.
+- This emphasizes that digital word-of-mouth is significantly more influential than traditional advertising for this group.
 """)
+st.markdown("---")
 
 # =========================================================
-# SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
+# PART 2: COMPARATIVE & BEHAVIOURAL ANALYSIS
 # =========================================================
 st.divider()
 st.header("📈 Part 2: Demographic–Behavioural Relationships")
@@ -483,8 +493,8 @@ df_gender = df.copy()
 if gender_choice != "All":
     df_gender = df_gender[df_gender["Gender"] == gender_choice]
 
-# 9. Fashion Awareness - Gender
-st.subheader("9. Fashion Awareness by Gender")
+# 8. Fashion Awareness - Gender
+st.subheader("1. Fashion Awareness by Gender")
 
 # 1. Define the descriptive labels
 awareness_labels = {
@@ -496,23 +506,20 @@ awareness_labels = {
 }
 
 # 2. Map labels to data
-fig9_df = df_gender.copy()
-fig9_df["Awareness Label"] = fig9_df["Awareness of Fashion Trends"].map(awareness_labels)
-fig9_data = fig9_df.groupby(["Gender", "Awareness Label"]).size().reset_index(name="Count")
+fig8_df = df_gender.copy()
+fig8_df["Awareness Label"] = fig8_df["Awareness of Fashion Trends"].map(awareness_labels)
+fig8_data = fig8_df.groupby(["Gender", "Awareness Label"]).size().reset_index(name="Count")
 
-# 3. Dynamic Color Logic
 if gender_choice == "All":
-    # Green Gradient for "All" view
     color_mapping = {
-        "5 - Extremely aware": "#1B5E20", # Darkest
+        "5 - Extremely aware": "#1B5E20", 
         "4 - Very aware": "#2E7D32",
         "3 - Moderately aware": "#4CAF50",
         "2 - Slightly aware": "#A5D6A7",
-        "1 - Not aware at all": "#E8F5E9"  # Lightest
+        "1 - Not aware at all": "#E8F5E9"
     }
     color_col = "Awareness Label"
 else:
-    # Pink/Blue Gradients for specific gender view
     color_mapping = {
         ("Female", "5 - Extremely aware"): "#880E4F", ("Female", "4 - Very aware"): "#E91E63",
         ("Female", "3 - Moderately aware"): "#F06292", ("Female", "2 - Slightly aware"): "#F8BBD0",
@@ -521,12 +528,11 @@ else:
         ("Male", "3 - Moderately aware"): "#64B5F6", ("Male", "2 - Slightly aware"): "#BBDEFB",
         ("Male", "1 - Not aware at all"): "#E3F2FD"
     }
-    fig9_data["Color_Key"] = fig9_data.apply(lambda x: (x["Gender"], x["Awareness Label"]), axis=1)
+    fig8_data["Color_Key"] = fig8_data.apply(lambda x: (x["Gender"], x["Awareness Label"]), axis=1)
     color_col = "Color_Key"
 
-# 4. Build the Chart
-fig9 = px.bar(
-    fig9_data, 
+fig8 = px.bar(
+    fig8_data, 
     x="Gender", 
     y="Count", 
     color=color_col if gender_choice != "All" else "Awareness Label",
@@ -539,23 +545,26 @@ fig9 = px.bar(
     title=f"Awareness Levels: {gender_choice} Participants"
 )
 
-fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awareness)")
-st.plotly_chart(fig9, use_container_width=True)
+fig8.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awareness)")
+st.plotly_chart(fig8, use_container_width=True)
 st.info("""
 📝 Interpretation:
+- The comparison highlights a standout trend where female participants often report higher "Extremely aware" scores than their male counterparts.
+- These insights allow for more effective gender-targeted marketing that aligns with the specific awareness levels of each group
 """)
+st.markdown("---")
 
-# 10. Shopping Influence by Gender
-st.subheader("10. Shopping Influence Factors")
+# 9. Shopping Influence by Gender
+st.subheader("2. Shopping Influence Factors")
 
-fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+fig9_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
-fig10_data["Wrapped Label"] = fig10_data["Influence on Shopping"].str.wrap(15).apply(lambda x: x.replace('\n', '<br>'))
+fig9_data["Wrapped Label"] = fig9_data["Influence on Shopping"].str.wrap(15).apply(lambda x: x.replace('\n', '<br>'))
 
 color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
 
-fig10 = px.bar(
-    fig10_data, 
+fig9 = px.bar(
+    fig9_data, 
     x="Wrapped Label",
     y="Count", 
     color="Gender",            
@@ -565,7 +574,7 @@ fig10 = px.bar(
     text_auto=True
 )
 
-fig10.update_layout(
+fig9.update_layout(
     height=600, 
     xaxis_title="Influence Factor",
     yaxis_title="Count of Respondents",
@@ -577,14 +586,15 @@ fig10.update_layout(
     },
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
-fig10.update_traces(textposition='outside')
-st.plotly_chart(fig10, use_container_width=True)
+fig9.update_traces(textposition='outside')
+st.plotly_chart(fig9, use_container_width=True)
 st.info("""
 📝 Interpretation:
+- The chart reveals that social media stands out as a significantly stronger influence for females compared to other traditional factors.
+- This standout result enables brands to focus their communication strategies on the primary trust sources for each gender demographic
 """)
-
+st.markdown("---")
 st.divider()
-
 
 
 # SECTION B: Monthly Expenses Focus
@@ -608,40 +618,43 @@ if expense_choice != "All":
     actual_val = expense_choice.replace("RM ", "")
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_val]
 
-# 11. Treemap - Spending Power
-st.subheader("11. Spending Power by Employment")
-fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+# 10. Treemap - Spending Power
+st.subheader("1. Spending Power by Employment")
+fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
 # Sort numerically for color intensity
-fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
-fig11_data["Display RM"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+fig10_data = fig10_data.sort_values("Average Monthly Expenses (RM)")
+fig10_data["Display RM"] = fig10_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
-if not fig11_data.empty:
+if not fig10_data.empty:
     path_logic = ["Employment Status", "Display RM"] if expense_choice == "All" else ["Employment Status"]
-    fig11 = px.treemap(
-        fig11_data,
+    fig10 = px.treemap(
+        fig10_data,
         path=path_logic,
         values="Count",
         color="Display RM" if expense_choice == "All" else None,
         color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
         title=f"Spending Power Distribution: {expense_choice}"
     )
-    fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
-    st.plotly_chart(fig11, use_container_width=True)
+    fig10.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
+    st.plotly_chart(fig10, use_container_width=True)
     
-    st.info("""
+st.info("""
 📝 Interpretation:
+- The treemap highlights that students make up the largest block of consumers, even though their spending ranges are more concentrated in lower tiers.
+- This confirms that the student demographic is the most active and engaged participant in the fashion market surveyed
 """)
+st.markdown("---")
 
-# 12. Influence by Spending Level
-st.subheader("12. Influence by Spending Level")
-fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+# 11. Influence by Spending Level
+st.subheader("2. Influence by Spending Level")
+fig11_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
 # Ensure sorting for color logic
-fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
-fig12_data["Display RM"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
+fig11_data["Display RM"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
-fig12 = px.bar(
-    fig12_data, 
+fig11 = px.bar(
+    fig11_data, 
     x="Count", 
     y="Influence on Shopping", 
     color="Display RM" if expense_choice == "All" else None,
@@ -651,8 +664,8 @@ fig12 = px.bar(
     title=f"Influence Factors for {expense_choice}"
 )
 
-totals = fig12_data.groupby("Influence on Shopping")["Count"].sum().reset_index()
-fig12.add_scatter(
+totals = fig11_data.groupby("Influence on Shopping")["Count"].sum().reset_index()
+fig11.add_scatter(
     x=totals["Count"],
     y=totals["Influence on Shopping"],
     mode='text',
@@ -662,17 +675,19 @@ fig12.add_scatter(
     hoverinfo='skip' 
 )
 
-fig12.update_layout(
+fig11.update_layout(
     yaxis={'categoryorder':'total ascending'}, 
     legend={'traceorder': 'normal'},
     xaxis={'range': [0, totals["Count"].max() * 1.15]} # Space for labels
 )
 
-fig12.update_traces(hovertemplate="Factor: %{y}<br>Count in Category: %{x}<extra></extra>")
-st.plotly_chart(fig12, use_container_width=True)
+fig11.update_traces(hovertemplate="Factor: %{y}<br>Count in Category: %{x}<extra></extra>")
+st.plotly_chart(fig11, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
+- The analysis identifies that top-tier spenders are motivated by distinct influence factors that differ from the majority student group.
+- This standout result clarifies the specific drivers for high-value consumers compared to the lifestyle-based choices of the broader student respondent pool
 """)
 st.divider()
 
