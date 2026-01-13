@@ -197,6 +197,7 @@ fig2 = px.bar(
 fig2.update_traces(
     width=0.5,
     textposition='outside',
+    cliponaxis=False,
     hovertemplate="""
     <b>Region:</b> %{x}<br>
     <b>Respondents:</b> %{y}<br>
@@ -207,7 +208,7 @@ fig2.update_traces(
 )
 
 fig2.update_layout(
-    height=450,
+    height=400,
     title_x=0,
     xaxis_title=None,
     yaxis_title="Total Respondents",
@@ -318,7 +319,7 @@ fig5 = px.bar(
     category_orders={"Expense": expense_order}
 )
 
-fig5.update_traces(width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside')
+fig5.update_traces(width=0.5, texttemplate='<b>%{y:.1f}%</b>', textposition='outside',cliponaxis=False,)
 fig5.update_layout(title_x=0, height=400, coloraxis_showscale=False, yaxis_title="Percentage (%)")
 
 st.plotly_chart(fig5, use_container_width=True)
@@ -355,14 +356,17 @@ fig6 = px.bar(
 )
 
 fig6.update_traces(
+    width=0.5,
     texttemplate='<b>%{y}</b>', 
     textposition='outside',
+    cliponaxis=False,
     hovertemplate="<b>%{x}</b><br>Respondents: %{y}<extra></extra>"
 )
 
 fig6.update_layout(
+    yaxis_range=[0, awareness_counts["Count"].max() * 1.2],
     title_x=0, 
-    height=450, 
+    height=400, 
     coloraxis_showscale=False,
     xaxis_title=None, 
     yaxis_title="Number of Respondents",
@@ -387,7 +391,7 @@ fig7 = px.bar(
     x='Count',
     y='Factor',
     orientation='h',
-    color_discrete_sequence=['#6A1B9A'], 
+    color_continuous_scale=['#F5E6DA', '#A68A78', '#4E342E'],
     title="Ranking of Influence Sources"
 )
 
@@ -395,6 +399,11 @@ fig7.update_layout(yaxis={'categoryorder': 'total ascending'}, title_x=0, height
 fig7.update_traces(width=0.7, texttemplate='<b>%{x}</b>', textposition='inside')
 
 st.plotly_chart(fig7, use_container_width=True) 
+st.info("""
+📝 Interpretation:
+""")
+
+
 
 # =========================================================
 # SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
