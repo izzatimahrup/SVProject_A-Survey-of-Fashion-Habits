@@ -208,11 +208,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# --- 1. CONFIGURATION ---
-# Note: Ensure the order matches the Y-axis of your image
+# 1. SETUP & MAPPING
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
+# Define the order to match your image (Never at the top, Very Often at the bottom)
 frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
 frequency_insights = {
@@ -225,78 +225,93 @@ frequency_insights = {
 
 def show_consumer_behavior_page(df):
     st.header("🛍️ Consumer Behavior Analysis")
-    
-    # Pre-processing: Identify columns
+
+    # --- 2. DATA PREPARATION ---
+    # Identify the specific ordinal columns from your dataset
     ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
     
-    # --- 2. STRUCTURED FILTER SECTION ---
+    if not ordinal_cols:
+        st.error("Could not find columns starting with 'Freq_' and ending with '_Ordinal'. Please check your dataset.")
+        return
+
+    # --- 3. STRUCTURED FILTER BAR ---
     with st.container(border=True):
-        st.subheader("Filter Behavior Data")
-        # Clean names for the filter
+        st.subheader("Dashboard Controls")
+        # Map clean names for the UI to the raw column names
         activity_map = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
         
         selected_names = st.multiselect(
-            "Select Social Media Activities",
+            "Select Activities to Compare",
             options=list(activity_map.keys()),
             default=list(activity_map.keys())
         )
 
     st.write("##")
 
-    # --- 3. CHART GENERATION ---
+    # --- 4. BOX PLOT GENERATION (Matching Image Style) ---
     if not selected_names:
-        st.info("Please select activities to visualize.")
+        st.info("Please select activities from the filter above to generate the analysis.")
     else:
+        # Create 2-column layout for the charts
         col1, col2 = st.columns(2)
         
         for i, name in enumerate(selected_names):
             orig_col = activity_map[name]
             
-            # Prepare data for Plotly
+            # Filter and map labels for the specific activity
             plot_df = df[[orig_col]].copy()
-            plot_df['Label'] = plot_df[orig_col].map(frequency_labels)
+            plot_df['Frequency_Level_Label'] = plot_df[orig_col].map(frequency_labels)
             
-            # Create Box Plot to match the image style
+            # Create the Plotly Box Plot to match the seaborn color/style
             fig = px.box(
                 plot_df,
-                y='Label', # Swapped to Y to match your image vertical orientation
-                points=False, # Set to False to match the clean look of the Seaborn image
+                y='Frequency_Level_Label',
+                points="outliers",  # Shows individual dots only for outliers like your image
                 title=f"Distribution: {name}",
-                category_orders={"Label": frequency_order},
-                color='Label', # This allows us to apply the Viridis palette per category
+                category_orders={"Frequency_Level_Label": frequency_order},
+                color='Frequency_Level_Label',
                 color_discrete_sequence=px.colors.sequential.Viridis,
-                labels={'Label': 'Frequency Level'}
+                labels={'Frequency_Level_Label': 'Frequency Level'}
             )
 
-            # Matching the image's clean whitegrid style
+            # Styling to match the 'whitegrid' look
             fig.update_layout(
                 showlegend=False,
                 plot_bgcolor='white',
                 height=450,
-                yaxis_title="Frequency Level",
-                xaxis_title="",
                 margin=dict(t=50, b=20, l=10, r=10)
             )
-            fig.update_yaxes(showgrid=True, gridcolor='lightgrey', autorange="reversed") # Reverse to match Never at top
+            fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0', autorange="reversed")
+            fig.update_xaxes(showticklabels=False) # Hides X labels to keep it clean like individual boxes
 
-            # Alternating columns
+            # Logic to alternate between columns
             target_col = col1 if i % 2 == 0 else col2
             
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Insight Box
+                # Insight Box matching the requested logic
                 with st.container(border=True):
                     st.markdown(f"**Quick Insight: {name}**")
                     st.write(frequency_insights.get(name, "No specific analysis available."))
                 st.write("##")
 
-    # --- 4. KEY FINDINGS ---
+    # --- 5. FOOTER SUMMARY ---
     st.info("""
     **Key Findings:**
-    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement.
-    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload content.
+    * **Video Dominance:** Video content sees the highest 'Very Often' engagement.
+    * **Passive vs Active:** High frequency in consumption (Reading/Watching) vs low frequency in creation (Uploading).
     """)
+
+# --- EXECUTION ---
+# This ensures the function runs if you are testing this script alone
+if __name__ == "__main__":
+    # If 'df' exists in your environment, it will run. 
+    # If not, you need to load your data first: df = pd.read_csv("your_data.csv")
+    if 'df' in locals() or 'df' in globals():
+        show_consumer_behavior_page(df)
+    else:
+        st.warning("Dataframe 'df' not found. Please load your data before running the dashboard.")
 
 # ======================================================
 # SECTION E
