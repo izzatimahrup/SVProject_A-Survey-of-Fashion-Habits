@@ -30,29 +30,29 @@ def load_motivation_data():
     return data, valid_cols
 
 # ======================================================
-# 2. CALCULATION HELPERS (The Fix is Here)
+# 2. CALCULATION HELPERS
 # ======================================================
 def calculate_percentages(df_input, columns):
-    """Calculates Likert percentages and ensures index type safety"""
-    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
+    """Calculates Likert percentages and ensures type safety"""
+    label_map = {
+        1: 'Strongly Disagree', 
+        2: 'Disagree', 
+        3: 'Neutral', 
+        4: 'Agree', 
+        5: 'Strongly Agree'
+    }
     pct_list = []
     
     for col in columns:
-        # Convert to numeric, handle errors, and drop NaNs
+        # Force to numeric and drop NaNs
         series = pd.to_numeric(df_input[col], errors='coerce').dropna()
         
-        # Get raw frequencies
+        # Get percentages, ensure integer index
         counts = series.value_counts(normalize=True)
-        
-        # --- THE FIX ---
-        # Ensure index is integer so it matches [1,2,3,4,5] perfectly
         counts.index = counts.index.astype(int)
         
-        # Reindex to ensure all levels 1-5 exist, then multiply
-        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0)
-        counts = counts * 100 
-        
-        # Map labels and name the series
+        # Reindex, multiply by 100, and map labels
+        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0) * 100
         counts.index = counts.index.map(label_map)
         counts.name = col
         pct_list.append(counts)
@@ -67,7 +67,7 @@ st.title("📊 Fashion Brand Motivation Dashboard")
 # Load Data
 df_raw, motivation_cols = load_motivation_data()
 
-# --- SIDEBAR FILTER ---
+# --- DEMOGRAPHIC FILTER ---
 st.sidebar.header("Filter Results")
 if 'Gender' in df_raw.columns:
     gender_options = ["All"] + sorted(list(df_raw['Gender'].unique()))
@@ -79,7 +79,7 @@ if 'Gender' in df_raw.columns:
         df = df_raw.copy()
 else:
     df = df_raw.copy()
-    selected_gender = "Overall"
+    selected_gender = "Overall Scaling"
 
 # ------------------------------------------------------
 # SECTION A: RANKING
@@ -103,13 +103,10 @@ st.plotly_chart(fig_ranking, use_container_width=True)
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
 
-# Calculate Percentages safely
+# Calculate Percentages
 df_motivation_pct = calculate_percentages(df, motivation_cols)
 
-# Sidebar toggle
-show_labels = st.sidebar.checkbox("Show Percentage Labels", value=True)
-
-# Likert Plotting
+# Plotting with Matplotlib
 sns.set_style("whitegrid")
 plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
 colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
@@ -123,6 +120,46 @@ ax.set_title('Percentage Distribution of Responses', fontsize=16, pad=20)
 ax.set_xlabel('Percentage (%)', fontsize=12)
 ax.set_xlim(0, 100)
 
-if show_labels:
-    for c in ax.containers:
-        # Only label
+# Add Labels
+for c in ax.containers:
+    labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c]
+    ax.bar_label(c, labels=labels, label_type='center', fontsize=9)
+
+ax.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+st.pyplot(fig)
+
+# Blue Interpretation Box
+st.info(f"""
+**Data Interpretation ({selected_gender}):**
+The chart shows a strong positive sentiment across most motivations. 
+The **Agree** (light green) and **Strongly Agree** (dark green) categories dominate.
+""")
+
+# ------------------------------------------------------
+# SECTION C: RELATIONSHIPS
+# ------------------------------------------------------
+st.divider()
+st.header("Section C: Engagement Relationships")
+tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
+
+with tab_corr:
+    corr_matrix = df[motivation_cols].corr()
+    fig_heatmap = px.imshow(
+        corr_matrix, text_auto=".2f",
+        color_continuous_scale='RdBu_r',
+        title="Relationship Between Drivers"
+    )
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+
+with tab_rel:
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        x_var = st.selectbox("X-axis", motivation_cols, index=0)
+        y_var = st.selectbox("Y-axis", motivation_cols, index=1)
+    with c2:
+        fig_scatter = px.scatter(df, x=x_var, y=y_var, opacity=0.4, trendline="ols")
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.divider()
+st.markdown("✔ **Analysis Complete**")
