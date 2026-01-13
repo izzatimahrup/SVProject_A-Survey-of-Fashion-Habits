@@ -1041,3 +1041,25 @@ fig12 = px.bar(
     title=f"Influence for {expense_choice} Spenders"
 )
 st.plotly_chart(fig12, use_container_width=True)
+
+
+# ---------------------------------------------------------
+# 10. Spending vs Employment (Treemap)
+# ---------------------------------------------------------
+st.subheader("10. Distribution of Spending by Employment")
+
+# We group by both variables to create the hierarchy
+fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+
+fig10 = px.treemap(
+    fig10_data,
+    path=[px.Constant("All Respondents"), "Employment Status", "Average Monthly Expenses (RM)"],
+    values="Count",
+    color="Average Monthly Expenses (RM)",
+    color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
+    category_orders={"Average Monthly Expenses (RM)": expense_order},
+    title=f"Spending Power Hierarchy: {expense_choice}"
+)
+
+fig10.update_layout(height=500)
+st.plotly_chart(fig10, use_container_width=True)
