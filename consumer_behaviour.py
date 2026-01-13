@@ -204,130 +204,116 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 # --- 1. CONFIGURATION & MAPPING ---
 frequency_labels = {
-    0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
+    0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
-frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
 frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
-    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
-    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
+    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
+    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
+    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
+    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
+    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
 }
 
-def show_consumer_behavior(df, activity_counts):
-    st.header("🛒 Consumer Behavior: Social Media Engagement")
-    st.markdown("Explore high-level platform activity proportions followed by deep-dives into specific user behaviors.")
+def show_consumer_behavior():
+    st.header("🛒 Consumer Behavior: Social Media Engagement")
+    st.markdown("Explore how users interact with different content types, from passive reading to active creation.")
 
-    # --- 2. TOP-LEVEL FILTER BAR (Structured Filtration) ---
-    with st.container(border=True):
-        st.subheader("📊 Dashboard Controls")
-        f_col1, f_col2 = st.columns([2, 1])
-        
-        with f_col1:
-            # Multi-select for detailed activity filtering
-            ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
-            activity_options = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
-            
-            selected_activities = st.multiselect(
-                "Filter Activities for Detailed Analysis",
-                options=list(activity_options.keys()),
-                default=list(activity_options.keys())[:2]
-            )
+    # Data Preparation: Identifying columns
+    ordinal_frequency_cols = [
+        col for col in df.columns 
+        if col.startswith('Freq_') and col.endswith('_Ordinal')
+    ]
 
-        with f_col2:
-            # Toggle for visual style of detailed charts
-            view_type = st.radio("Chart Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
+    # --- 2. STRUCTURED FILTER BAR ---
+    # We place filters inside a container at the top of the page
+    with st.container(border=True):
+        f_col1, f_col2 = st.columns([2, 1])
+        
+        with f_col1:
+            # Multi-select for structured activity filtering
+            activity_options = {col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): col 
+                               for col in ordinal_frequency_cols}
+            
+            selected_activity_names = st.multiselect(
+                "Filter Activities to Display",
+                options=list(activity_options.keys()),
+                default=list(activity_options.keys())[:2]
+            )
 
-    # --- 3. GLOBAL TREEMAP VIEW ---
-    st.write("### Proportion of Social Media Activity Levels Across Platforms")
-    
-    # Pre-processing for Treemap (Internal cleanup)
-    activity_counts_for_plot = activity_counts.copy()
-    activity_counts_for_plot['Platform'] = activity_counts_for_plot['Platform'].astype(str)
-    activity_counts_for_plot['Activity_Level'] = activity_counts_for_plot['Activity_Level'].astype(str)
+        with f_col2:
+            # Toggle between the original Box Plot and a Bar Chart view
+            view_type = st.radio("Visualization Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
 
-    fig_tree = px.treemap(
-        activity_counts_for_plot,
-        path=[px.Constant("All Platforms"), 'Platform', 'Activity_Level'],
-        values='Percentage',
-        color='Activity_Level',
-        color_discrete_map={
-            '(?)': 'lightgrey',
-            'very active': '#1a9850', 
-            'active': '#91cf60', 
-            'sometimes active': '#ffffbf', 
-            'inactive': '#fc8d59'
-        },
-        labels={'Platform': 'Social Media Platform', 'Activity_Level': 'Activity Level', 'Percentage': 'Percentage of Users'},
-        hover_data={'Count': True, 'Percentage': ':.2f'}
-    )
-    fig_tree.update_layout(margin=dict(t=30, l=10, r=10, b=10))
-    st.plotly_chart(fig_tree, use_container_width=True)
-    
-    st.divider()
+    st.write("---")
 
-    # --- 4. DYNAMIC GRID LAYOUT (Detailed Analysis) ---
-    if not selected_activities:
-        st.info("Please select activities in the control panel above to see detailed distributions.")
-    else:
-        col1, col2 = st.columns(2)
-        
-        for i, activity_name in enumerate(selected_activities):
-            original_col = activity_options[activity_name]
-            plot_data = df[[original_col]].copy()
-            plot_data['Label'] = plot_data[original_col].map(frequency_labels)
-            
-            # Alternate placement in columns
-            target_col = col1 if i % 2 == 0 else col2
-            
-            with target_col:
-                if "Box Plot" in view_type:
-                    # Vertical Box Plot with Viridis palette
-                    fig = px.box(
-                        plot_data,
-                        y='Label', # Vertical orientation
-                        points="outliers", 
-                        title=f"Distribution: {activity_name}",
-                        category_orders={"Label": frequency_order},
-                        color='Label',
-                        color_discrete_sequence=px.colors.sequential.Viridis,
-                        labels={'Label': 'Frequency Level'}
-                    )
-                    # Styling for the requested design
-                    fig.update_yaxes(autorange="reversed", showgrid=True, gridcolor='lightgrey')
-                else:
-                    # Bar Chart Volume View
-                    counts = plot_data['Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
-                    counts.columns = ['Label', 'count']
-                    fig = px.bar(
-                        counts, x='Label', y='count', text='count',
-                        title=f"Volume: {activity_name}",
-                        color='count', color_continuous_scale='Blues'
-                    )
-                    fig.update_traces(textposition='outside')
+    # --- 3. DYNAMIC GRID LAYOUT ---
+    if not selected_activity_names:
+        st.info("Select at least one activity above to visualize the behavior data.")
+    else:
+        # Create columns for the 2-per-row layout
+        col1, col2 = st.columns(2)
+        
+        for i, activity_name in enumerate(selected_activity_names):
+            original_col = activity_options[activity_name]
+            
+            # Prepare Plotly Data
+            # For Box Plots, we use raw data; for Bar Charts, we use value counts
+            plot_data = df[[original_col]].copy()
+            plot_data['Label'] = plot_data[original_col].map(frequency_labels)
+            
+            # Create Plotly Chart
+            if "Box Plot" in view_type:
+                fig = px.box(
+                    plot_data,
+                    x='Label',
+                    y=original_col,
+                    points="all", # Replaces the 'jitter' from Seaborn
+                    title=f"Distribution: {activity_name}",
+                    labels={'Label': 'Frequency', original_col: 'Scale (0-4)'},
+                    category_orders={"Label": list(frequency_labels.values())},
+                    color_discrete_sequence=['#0068c9']
+                )
+            else:
+                counts = plot_data['Label'].value_counts().reindex(list(frequency_labels.values()), fill_value=0).reset_index()
+                counts.columns = ['Label', 'count']
+                fig = px.bar(
+                    counts, x='Label', y='count', text='count',
+                    title=f"Volume: {activity_name}",
+                    color='count', color_continuous_scale='Blues'
+                )
+                fig.update_traces(textposition='outside')
 
-                fig.update_layout(showlegend=False, plot_bgcolor='white', margin=dict(t=50, b=20), height=450)
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Insight Box matching the requested format
-                with st.container(border=True):
-                    st.markdown(f"**Quick Insight: {activity_name}**")
-                    st.write(frequency_insights.get(activity_name, "Analysis pending."))
-                st.write("##")
+            fig.update_layout(showlegend=False, margin=dict(t=50, b=20, l=10, r=10), height=400)
+            
+            # Alternate placement
+            target_col = col1 if i % 2 == 0 else col2
+            
+            with target_col:
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Insight Box matching your requested format
+                with st.container(border=True):
+                    st.markdown(f"**Quick Insight: {activity_name}**")
+                    insight_text = frequency_insights.get(activity_name, "No specific analysis available.")
+                    st.write(insight_text)
+                st.write("##")
 
-    # --- 5. SUMMARY SECTION ---
-    st.info("""
-    **Key Behavioral Findings:**
-    * **Passive Dominance:** The Treemap highlights that 'Reading' and 'Watching' are significantly more common than 'Uploading'.
-    * **Creator Gap:** Only a small percentage of users fall into the 'Very Active' category for sharing or uploading content.
-    """)
+    # --- 4. SUMMARY SECTION ---
+    st.info("""
+    **Key Findings:**
+    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
+    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment.
+    """)
 
-# Execution call
-# show_consumer_behavior(df, activity_counts)
+# Call the function
+show_consumer_behavior()
 # ======================================================
 # SECTION E
 # ======================================================
