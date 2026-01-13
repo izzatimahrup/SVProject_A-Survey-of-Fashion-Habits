@@ -369,7 +369,7 @@ fig6.update_layout(
     plot_bgcolor='rgba(0,0,0,0)'
 )
 
-st.plotly_chart(fig7, use_container_width=True)
+st.plotly_chart(fig6, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
