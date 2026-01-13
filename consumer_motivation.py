@@ -1,37 +1,12 @@
-# ======================================================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 # ======================================================
-# PAGE CONFIG
-# ======================================================
-st.set_page_config(
-    page_title="Fashion Brand Motivation Analysis",
-    layout="wide"
-)
-
-# ======================================================
-# HELPER: CENTER ALL PLOTLY TITLES
-# ======================================================
-def center_title(fig):
-    fig.update_layout(
-        title={'x': 0.5, 'xanchor': 'center'}
-    )
-    return fig
-
-# ======================================================
-# PAGE TITLE & DESCRIPTION
-# ======================================================
-st.title("📊 Fashion Brand Motivation Dashboard")
-
-st.subheader("Objective")
-st.markdown(
-    "To analyze the driving factors behind why consumers follow fashion brands on social media."
-)
-
-# ======================================================
-# LOAD & MAP DATA
+# 1. DATA LOADING & MAPPING
 # ======================================================
 @st.cache_data
 def load_motivation_data():
@@ -51,19 +26,64 @@ def load_motivation_data():
     }
     
     data = data.rename(columns=column_mapping)
-    # Extract only the values that now exist as column names in the dataframe
     valid_cols = [v for v in column_mapping.values() if v in data.columns]
     return data, valid_cols
 
-df, motivation_cols = load_motivation_data()
-
-if not motivation_cols:
-    st.error("Could not find the motivation columns in the CSV. Check your column mapping keys.")
-    st.stop()
+# ======================================================
+# 2. CALCULATION HELPERS
+# ======================================================
+def calculate_percentages(df_input, columns):
+    """Calculates Likert percentages and ensures type safety"""
+    label_map = {
+        1: 'Strongly Disagree', 
+        2: 'Disagree', 
+        3: 'Neutral', 
+        4: 'Agree', 
+        5: 'Strongly Agree'
+    }
+    pct_list = []
+    
+    for col in columns:
+        # Force to numeric and drop NaNs
+        series = pd.to_numeric(df_input[col], errors='coerce').dropna()
+        
+        # Get percentages, ensure integer index
+        counts = series.value_counts(normalize=True)
+        counts.index = counts.index.astype(int)
+        
+        # Reindex, multiply by 100, and map labels
+        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0) * 100
+        counts.index = counts.index.map(label_map)
+        counts.name = col
+        pct_list.append(counts)
+    
+    return pd.DataFrame(pct_list)
 
 # ======================================================
+# 3. MAIN DASHBOARD EXECUTION
+# ======================================================
+st.title("📊 Fashion Brand Motivation Dashboard")
+
+# Load Data
+df_raw, motivation_cols = load_motivation_data()
+
+# --- DEMOGRAPHIC FILTER ---
+st.sidebar.header("Filter Results")
+if 'Gender' in df_raw.columns:
+    gender_options = ["All"] + sorted(list(df_raw['Gender'].unique()))
+    selected_gender = st.sidebar.selectbox("Filter by Gender", gender_options)
+    
+    if selected_gender != "All":
+        df = df_raw[df_raw['Gender'] == selected_gender].copy()
+    else:
+        df = df_raw.copy()
+else:
+    df = df_raw.copy()
+    selected_gender = "Overall Scaling"
+
+# ------------------------------------------------------
 # SECTION A: RANKING
-# ======================================================
+# ------------------------------------------------------
 st.header("Section A: Motivation Ranking")
 motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
 motivation_means.columns = ['Motivation', 'Average Score']
@@ -72,130 +92,19 @@ fig_ranking = px.bar(
     motivation_means, x='Average Score', y='Motivation',
     orientation='h', text_auto='.2f',
     color='Average Score', color_continuous_scale='Viridis',
-    title="Average Agreement Score (Likert 1-5)"
+    title=f"Average Agreement Score: {selected_gender}"
 )
-fig_ranking.update_layout(xaxis_range=[1, 5])
-st.plotly_chart(center_title(fig_ranking), use_container_width=True)
+fig_ranking.update_layout(xaxis_range=[1, 5], title={'x': 0.5, 'xanchor': 'center'})
+st.plotly_chart(fig_ranking, use_container_width=True)
 
-# Interpretation for Section A
-top_motivation = motivation_means.iloc[-1]['Motivation']
-bottom_motivation = motivation_means.iloc[0]['Motivation']
-
-with st.expander("📝 Detailed Interpretation: Ranking Analysis"):
-    st.write(f"""
-    * **Primary Driver:** The highest-ranked motivation is **{top_motivation}**. This indicates that the audience is most strongly driven by tangible value and core brand identity. 
-    * **Strategic Insight:** Marketing efforts should lean heavily into the highest-scoring factors to ensure maximum follower retention.
-    * **Opportunity Gap:** The lowest score for **{bottom_motivation}** suggests either a lack of interest from the audience or an untapped area where brands could improve their engagement strategies.
-    """)
-
-# ======================================================
-# SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
-# ======================================================
+# ------------------------------------------------------
+# SECTION B: CONSUMER SENTIMENT (LIKERT)
+# ------------------------------------------------------
 st.divider()
 st.header("Section B: Deep Dive into Motivations")
-st.write("Analyzing the specific trends and trust factors for each motivation.")
 
+# Calculate Percentages
+df_motivation_pct = calculate_percentages(df, motivation_cols)
 
-
-col1, col2 = st.columns(2)
-
-for i, col_name in enumerate(motivation_cols):
-    # Data Processing
-    counts = df[col_name].value_counts().sort_index().reset_index()
-    counts.columns = ['Score', 'Respondents']
-    avg_score = df[col_name].mean()
-    
-    # Create the Chart
-    fig_dist = px.bar(
-        counts, x='Score', y='Respondents', text='Respondents',
-        title=f"Distribution: {col_name}",
-        color='Score', color_continuous_scale='Plasma'
-    )
-    fig_dist.update_layout(showlegend=False, height=350, xaxis_title="1 (Disagree) to 5 (Agree)")
-    
-    target_col = col1 if i % 2 == 0 else col2
-    
-    with target_col:
-        st.plotly_chart(center_title(fig_dist), use_container_width=True)
-        
-        # 📝 DYNAMIC ANALYSIS LOGIC
-        st.write("### 📝 Analysis:")
-        
-        # 1. Determine the Driver Status
-        if avg_score >= 3.8:
-            status = f"**{col_name}** ranks as a **top driver** of interest among respondents."
-        elif avg_score >= 3.0:
-            status = f"**{col_name}** is a **moderate driver**, showing steady but not primary interest."
-        else:
-            status = f"**{col_name}** currently ranks as a **minor driver**, suggesting lower impact on this audience."
-        
-        # 2. Determine the Strategic Trend
-        if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
-            trend = "This confirms that modern consumers trust **social proof** and peer identity more than traditional direct marketing."
-        elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
-            trend = "This reflects a **transactional trend**, where consumers follow for immediate, tangible rewards and efficiency."
-        else:
-            trend = "This highlights a focus on **aesthetic alignment**, where the visual 'vibe' of the brand is the main anchor for the consumer."
-
-        st.write(status)
-        st.write(f"**Trend:** {trend}")
-        st.markdown("---")
-
-# ======================================================
-# SECTION C: RELATIONSHIPS
-# ======================================================
-st.divider()
-st.header("Section C: Engagement Relationships")
-
-tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
-
-with tab_corr:
-    st.write("### How motivations move together")
-    corr_matrix = df[motivation_cols].corr()
-    fig_heatmap = px.imshow(
-        corr_matrix, text_auto=".2f",
-        color_continuous_scale='RdBu_r',
-        title="Correlation Heatmap"
-    )
-    st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
-    
-    with st.expander("📝 Detailed Interpretation: Heatmap Correlation"):
-        st.write("""
-        * **Positive Correlation (Blue):** When two motivations are highly correlated (e.g., > 0.60), it means users who follow for one reason are very likely to follow for the other. 
-        * **Strategic Value:** High correlations allow brands to "bundle" content. For example, if 'Entertainment' and 'Style' correlate, entertaining videos should always showcase product style.
-        """)
-
-with tab_rel:
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
-        y_var = st.selectbox("Select Y-axis", motivation_cols, index=min(1, len(motivation_cols)-1))
-        
-        current_corr = df[x_var].corr(df[y_var])
-        st.write(f"**Correlation Coefficient:** {current_corr:.2f}")
-        
-        if current_corr > 0.6:
-            st.success("Analysis: **Strong Relationship**. These two factors are deeply linked in the consumer's mind.")
-        elif current_corr > 0.3:
-            st.warning("Analysis: **Moderate Relationship**. There is a visible trend, but other factors are also at play.")
-        else:
-            st.error("Analysis: **Weak Relationship**. These factors operate independently of one another.")
-    
-    with c2:
-        try:
-            import statsmodels
-            t_line = "ols"
-        except ImportError:
-            t_line = None
-            
-        fig_scatter = px.scatter(
-            df, x=x_var, y=y_var, 
-            trendline=t_line, 
-            opacity=0.4,
-            title=f"Relationship: {x_var} vs {y_var}"
-        )
-        st.plotly_chart(center_title(fig_scatter), use_container_width=True)
-
-st.divider()
-st.markdown("✔ **Consumer Motivation Analysis Complete**") 
- 
+# Plotting with Matplotlib
+sns
