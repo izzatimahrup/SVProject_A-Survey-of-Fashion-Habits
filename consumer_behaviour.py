@@ -197,6 +197,91 @@ st.info("""
 * **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding nearly **70%** of user preference.
 * **Activity Patterns:** TikTok has the highest **'Very Active'** intensity (63 respondents), while Facebook and Pinterest have shifted toward occasional usage.
 """)
+
+# ======================================================
+# SECTION C: ACTIVITY LEVEL DISTRIBUTION
+# ======================================================
+st.divider()
+st.header("Section C: Activity Level Distribution Across Platforms")
+
+# 1. Configuration & Labels
+activity_labels = {
+    0: 'Very Active', 
+    1: 'Active', 
+    2: 'Sometimes Active', 
+    3: 'Inactive'
+}
+
+# 2. Prepare Data for Grouped Bar Chart
+# Identify the columns
+ordinal_activity_cols = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
+
+# Melt the dataframe from wide to long format
+df_melted_activity = df.melt(
+    value_vars=ordinal_activity_cols,
+    var_name='Platform',
+    value_name='Activity_Ordinal'
+)
+
+# Clean up Platform names and map labels
+df_melted_activity['Platform'] = df_melted_activity['Platform'].str.replace('Active_', '').str.replace('_Ordinal', '')
+df_melted_activity['Activity_Level'] = df_melted_activity['Activity_Ordinal'].map(activity_labels)
+
+# Define order for consistent visualization (matching your request)
+platform_order = ['Facebook', 'Threads', 'Instagram', 'Pinterest', 'Tiktok']
+activity_order = ['Very Active', 'Active', 'Sometimes Active', 'Inactive']
+
+# 3. Create the Plotly Grouped Bar Chart
+# This replaces the Seaborn sns.countplot logic
+fig_grouped = px.histogram(
+    df_melted_activity,
+    x='Platform',
+    color='Activity_Level',
+    barmode='group',
+    category_orders={
+        'Platform': platform_order,
+        'Activity_Level': activity_order
+    },
+    color_discrete_sequence=px.colors.sequential.Viridis,
+    title='Distribution of Social Media Activity Levels Across Platforms'
+)
+
+fig_grouped.update_layout(
+    xaxis_title="Social Media Platform",
+    yaxis_title="Number of Respondents",
+    legend_title="Activity Level",
+    template="plotly_white"
+)
+
+fig_grouped = center_title(fig_grouped)
+
+# 4. Display the Chart
+st.plotly_chart(fig_grouped, use_container_width=True)
+
+# 5. Quick Insights Grid
+st.markdown("### Platform Insights")
+cols = st.columns(3)
+insight_list = [
+    ("Instagram", "Top-tier fashion hub with balanced high-engagement."),
+    ("TikTok", "The powerhouse for viral content (63 'Very Active' users)."),
+    ("Facebook", "Mainly 'Sometimes Active'; transitioned to a secondary platform."),
+    ("Pinterest", "A 'Discovery' hub for planning and mood boarding."),
+    ("Threads", "Highest 'Inactive' count; yet to be fully integrated by users."),
+    ("YouTube", "Steady base for long-form reviews and documentaries.")
+]
+
+for i, (p_name, insight) in enumerate(insight_list):
+    with cols[i % 3]:
+        with st.container(border=True):
+            st.markdown(f"**{p_name}**")
+            st.caption(insight)
+
+# 6. Final Key Findings
+st.info("""
+**Key Findings:**
+* **Dominant Platforms:** TikTok and Instagram are the clear leaders in fashion engagement, commanding the majority of high-activity responses.
+* **Activity Patterns:** While TikTok drives high-intensity 'Very Active' usage, Pinterest and Facebook serve more as occasional or utility-based platforms.
+""")
         
 # ======================================================
 # SECTION D
