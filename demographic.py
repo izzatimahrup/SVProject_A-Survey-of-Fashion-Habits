@@ -970,3 +970,74 @@ fig12 = px.bar(
 )
 fig12.update_layout(height=500, margin=dict(l=150), title_x=0)
 st.plotly_chart(fig12, use_container_width=True)
+
+
+st.divider()
+st.header("📈 Part 2: Behavioural Analysis")
+
+# --- TWO SEPARATE FILTERS ---
+col_filter1, col_filter2 = st.columns(2)
+
+with col_filter1:
+    gender_choice = st.selectbox("Filter Awareness & Influence (Fig 9, 11):", ["All", "Female", "Male"])
+
+with col_filter2:
+    expense_choice = st.selectbox("Filter Spending Behavior (Fig 10, 12):", ["All"] + expense_order)
+
+# ---------------------------------------------------------
+# 9 & 11: GENDER-BASED ANALYSIS
+# ---------------------------------------------------------
+df_gender = df.copy()
+if gender_choice != "All":
+    df_gender = df_gender[df_gender["Gender"] == gender_choice]
+
+st.subheader("9. Fashion Awareness Level")
+c1, c2 = st.columns([3, 1])
+with c1:
+    fig9_data = df_gender.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+    fig9 = px.bar(
+        fig9_data, x="Gender", y="Count", color="Awareness of Fashion Trends",
+        barmode="stack",
+        color_discrete_sequence=['#E8EAF6', '#C5CAE9', '#7986CB', '#3F51B5', '#1A237E'],
+        title=f"Awareness for {gender_choice}"
+    )
+    fig9.update_layout(height=400, showlegend=False)
+    st.plotly_chart(fig9, use_container_width=True)
+with c2:
+    st.write("### 🔍 Key")
+    st.markdown("| Lvl | Color |\n| :--- | :--- |\n| 5 | 🟦 Dark |\n| ... | ... |\n| 1 | ⬜ Light |")
+
+st.subheader("11. Shopping Influence Factors")
+fig11_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+fig11 = px.bar(
+    fig11_data, x="Count", y="Influence on Shopping", color="Gender",
+    orientation='h', barmode='group',
+    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
+    title=f"Influence by Gender: {gender_choice}"
+)
+st.plotly_chart(fig11, use_container_width=True)
+
+# ---------------------------------------------------------
+# 10 & 12: EXPENDITURE-BASED ANALYSIS
+# ---------------------------------------------------------
+df_expense = df.copy()
+if expense_choice != "All":
+    df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == expense_choice]
+
+st.subheader("10. Spending vs Employment")
+heatmap_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+fig10 = px.density_heatmap(
+    heatmap_data, x="Average Monthly Expenses (RM)", y="Employment Status", z="Count",
+    color_continuous_scale="Greens", title=f"Spending Power: {expense_choice}"
+)
+st.plotly_chart(fig10, use_container_width=True)
+
+st.subheader("12. Influence by Spending Level")
+fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+fig12 = px.bar(
+    fig12_data, x="Count", y="Influence on Shopping", color="Average Monthly Expenses (RM)",
+    orientation='h', barmode='stack',
+    color_discrete_sequence=['#E8F5E9', '#A5D6A7', '#4CAF50', '#2E7D32', '#1B5E20'],
+    title=f"Influence for {expense_choice} Spenders"
+)
+st.plotly_chart(fig12, use_container_width=True)
