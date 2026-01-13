@@ -279,88 +279,100 @@ st.divider()
 
 st.header("Section E: Cross Platform Connection")
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from scipy.stats import pearsonr
 
+# --- 1. DATA PREPARATION ---
+# List of ordinal columns for selection
+activity_columns = [
+    'Active_Instagram_Ordinal', 
+    'Active_Tiktok_Ordinal', 
+    'Active_Facebook_Ordinal', 
+    'Active_Twitter_Ordinal'
+]
 
-x_col = 'Active_Instagram_Ordinal'
+# Ensure df is defined - using your existing dataframe
+# (Assuming df contains the ordinal columns)
 
-y_col = 'Active_Tiktok_Ordinal'
+# --- 2. UI LAYOUT: FILTERS ---
+st.subheader("Relationship Scatters")
 
+# Create two columns for the selectors to look structured
+col_select1, col_select2 = st.columns(2)
 
+with col_select1:
+    x_axis_label = st.selectbox("Select X-axis", options=activity_columns, index=0)
 
+with col_select2:
+    y_axis_label = st.selectbox("Select Y-axis", options=activity_columns, index=1)
+
+# --- 3. DYNAMIC ANALYSIS (Correlation) ---
+# Calculate correlation coefficient for the selected axes
+corr_value, _ = pearsonr(df[x_axis_label], df[y_axis_label])
+
+# Determine relationship strength for the insight box
+if abs(corr_value) > 0.7:
+    strength = "Strong Relationship"
+    color = "green"
+elif abs(corr_value) > 0.4:
+    strength = "Moderate Relationship"
+    color = "orange"
+else:
+    strength = "Weak Relationship"
+    color = "gray"
+
+# --- 4. VISUALIZATION ---
 try:
-
     import statsmodels
-
     t_line = "ols"
-
 except ImportError:
-
     t_line = None
 
-
-
 fig3 = px.scatter(
-
     df, 
-
-    x=x_col, 
-
-    y=y_col, 
-
+    x=x_axis_label, 
+    y=y_axis_label, 
     trendline=t_line, 
-
     opacity=0.6, 
-
-    title='Relationship Between Instagram and TikTok Activity',
-
+    title=f'Relationship: {x_axis_label.replace("_", " ")} vs {y_axis_label.replace("_", " ")}',
     labels={
-
-        x_col: 'Instagram Activity (0=Very Active, 3=Inactive)',
-
-        y_col: 'TikTok Activity (0=Very Active, 3=Inactive)'
-
+        x_axis_label: f'{x_axis_label.replace("_", " ")} (0=Very Active, 3=Inactive)',
+        y_axis_label: f'{y_axis_label.replace("_", " ")} (0=Very Active, 3=Inactive)'
     },
-
-    # FIX: Use "plotly_white" instead of "whitegrid"
-
     template="plotly_white" 
-
 )
 
-
-
-# Apply red color to the regression line
-
+# Apply red color to the regression line to match your style
 if t_line == "ols":
-
     fig3.data[1].line.color = 'red'
 
-
-
-# Style the layout and add the grid lines manually to match Seaborn
-
 fig3.update_layout(
-
     xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
-
     yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
-
 )
 
+# Center the title (using your existing function)
+if 'center_title' in globals():
+    fig3 = center_title(fig3)
 
+# --- 5. DISPLAY CHART AND INSIGHT BOX ---
+col_chart, col_insight = st.columns([2, 1])
 
-fig3 = center_title(fig3)
+with col_chart:
+    st.plotly_chart(fig3, use_container_width=True)
 
-st.plotly_chart(fig3, use_container_width=True)
-
-
+with col_insight:
+    st.write(f"**Correlation Coefficient:** {corr_value:.2f}")
+    
+    # Matching the green analysis box from your screenshot
+    st.success(f"""
+    **Analysis: {strength}.** These two platforms are linked in the consumer's digital behavior.
+    """)
 
 st.divider()
-
 st.info("""
-
 **Interpretation:**
-
-The scatter plot reveals a positive correlation between Instagram and TikTok activity. Users who are highly active on one platform tend to be active on the other, indicating a segment of "Power Users" who dominate fashion engagement across the ecosystem.
-
+The scatter plot reveals the connection between different platforms. Users who are highly active on one platform often exhibit similar patterns on others, helping identify cross-platform "Power Users."
 """)
