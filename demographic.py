@@ -266,7 +266,7 @@ st.info("""
 
 """)
 
-# 4. mployment Status Distribution
+# 4. Employment Status Distribution
 st.subheader("4. Employment Status Distribution")
 
 employment_counts = df["Employment Status"].value_counts().reset_index()
@@ -298,8 +298,8 @@ st.plotly_chart(fig4, use_container_width=True)
 
 st.info("""
 📝 Interpretation:
-"""))
- 
+
+""")
 # 6️⃣ Monthly Fashion Expenditure
 st.subheader("6. Monthly Fashion Expenditure Distribution")
 
