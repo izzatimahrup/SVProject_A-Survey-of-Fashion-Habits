@@ -212,6 +212,7 @@ import plotly.express as px
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
+frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
 frequency_insights = {
     "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
@@ -222,7 +223,7 @@ frequency_insights = {
 }
 
 def show_consumer_behavior_page(df, activity_counts):
-    st.header("🛒 Consumer Behavior: Activity Levels & Frequencies")
+    st.header("🛒 Consumer Behavior: Platform Activity & Engagement")
 
     # --- 2. STRUCTURED FILTER SECTION ---
     with st.container(border=True):
@@ -230,13 +231,9 @@ def show_consumer_behavior_page(df, activity_counts):
         f_col1, f_col2 = st.columns([2, 1])
         
         with f_col1:
-            # Multi-select for structured activity filtering
-            ordinal_frequency_cols = [
-                col for col in df.columns 
-                if col.startswith('Freq_') and col.endswith('_Ordinal')
-            ]
-            activity_map = {col.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): col 
-                           for col in ordinal_frequency_cols}
+            # Multi-select for detailed activity filtering
+            ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
+            activity_map = {c.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' '): c for c in ordinal_cols}
             
             selected_activities = st.multiselect(
                 "Select Specific Activities to Analyze",
@@ -245,81 +242,88 @@ def show_consumer_behavior_page(df, activity_counts):
             )
 
         with f_col2:
-            # Toggle for high-level vs detailed view
-            show_treemap = st.toggle("Show Global Treemap View", value=True)
+            # Toggle for visual style
+            view_type = st.radio("Visualization Style", ["Box Plot (Spread)", "Bar Chart (Count)"], horizontal=True)
 
     # --- 3. GLOBAL TREEMAP VIEW ---
-    if show_treemap:
-        st.subheader("Proportion of Social Media Activity Levels Across Platforms")
-        fig_tree = px.treemap(
-            activity_counts,
-            path=[px.Constant("All Platforms"), 'Platform', 'Activity_Level'],
-            values='Percentage',
-            color='Activity_Level',
-            color_discrete_map={
-                '(?)': 'lightgrey',
-                'very active': '#1a9850', 
-                'active': '#91cf60', 
-                'sometimes active': '#ffffbf', 
-                'inactive': '#fc8d59'
-            },
-            labels={'Platform': 'Social Media Platform', 'Activity_Level': 'Activity Level', 'Percentage': 'Percentage of Users'},
-            hover_data={'Count': True, 'Percentage': ':.2f'}
-        )
-        fig_tree.update_layout(margin=dict(t=50, l=10, r=10, b=10))
-        st.plotly_chart(fig_tree, use_container_width=True)
-        st.divider()
+    st.subheader("Proportion of Social Media Activity Levels Across Platforms")
+    
+    # Pre-processing for Treemap to avoid FutureWarning
+    activity_counts_for_plot = activity_counts.copy()
+    activity_counts_for_plot['Platform'] = activity_counts_for_plot['Platform'].astype(str)
+    activity_counts_for_plot['Activity_Level'] = activity_counts_for_plot['Activity_Level'].astype(str)
 
-    # --- 4. DETAILED ACTIVITY BREAKDOWN ---
+    fig_tree = px.treemap(
+        activity_counts_for_plot,
+        path=[px.Constant("All Platforms"), 'Platform', 'Activity_Level'],
+        values='Percentage',
+        color='Activity_Level',
+        color_discrete_map={
+            '(?)': 'lightgrey',
+            'very active': '#1a9850', 
+            'active': '#91cf60', 
+            'sometimes active': '#ffffbf', 
+            'inactive': '#fc8d59'
+        },
+        labels={'Platform': 'Social Media Platform', 'Activity_Level': 'Activity Level', 'Percentage': 'Percentage of Users'},
+        hover_data={'Count': True, 'Percentage': ':.2f'}
+    )
+    fig_tree.update_layout(margin=dict(t=30, l=10, r=10, b=10))
+    st.plotly_chart(fig_tree, use_container_width=True)
+    
+    st.divider()
+
+    # --- 4. DETAILED ACTIVITY ANALYSIS ---
     if not selected_activities:
-        st.info("Select specific activities from the filter above to view detailed frequency distributions.")
+        st.info("Select specific activities above to view detailed engagement distributions.")
     else:
         col1, col2 = st.columns(2)
         
         for i, activity_name in enumerate(selected_activities):
             orig_col = activity_map[activity_name]
-            
-            # Prepare Chart Data
-            counts = df[orig_col].value_counts().sort_index().reset_index()
-            counts.columns = [orig_col, 'count']
-            counts['label'] = counts[orig_col].map(frequency_labels)
+            plot_df = df[[orig_col]].copy()
+            plot_df['Label'] = plot_df[orig_col].map(frequency_labels)
 
-            # Create Chart
-            fig = px.bar(
-                counts,
-                x='label',
-                y='count',
-                text='count',
-                title=f"Frequency: '{activity_name}'",
-                labels={'label': 'Frequency Level', 'count': 'Number of Respondents'},
-                color_discrete_sequence=['#0068c9']
-            )
+            if "Box Plot" in view_type:
+                # Vertical Box Plot with Viridis palette to match requested style
+                fig = px.box(
+                    plot_df,
+                    y='Label',
+                    points="outliers",
+                    title=f"Distribution: {activity_name}",
+                    category_orders={"Label": frequency_order},
+                    color='Label',
+                    color_discrete_sequence=px.colors.sequential.Viridis
+                )
+                fig.update_yaxes(autorange="reversed", showgrid=True, gridcolor='lightgrey')
+            else:
+                counts = plot_df['Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
+                counts.columns = ['Label', 'count']
+                fig = px.bar(
+                    counts, x='Label', y='count', text='count',
+                    title=f"Volume: {activity_name}",
+                    color='count', color_continuous_scale='Blues'
+                )
+                fig.update_traces(textposition='outside')
 
-            fig.update_traces(textposition='outside')
-            fig.update_layout(showlegend=False, margin=dict(b=20, t=50), height=400)
+            fig.update_layout(showlegend=False, plot_bgcolor='white', height=450, margin=dict(t=50, b=20))
             
-            # Alternate columns
             target_col = col1 if i % 2 == 0 else col2
-            
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
-                
-                # Insight Box
                 with st.container(border=True):
                     st.markdown(f"**Quick Insight: {activity_name}**")
-                    insight_text = frequency_insights.get(activity_name, "No specific analysis available.")
-                    st.write(insight_text)
+                    st.write(frequency_insights.get(activity_name, "N/A"))
                 st.write("##")
 
-    # --- 5. KEY FINDINGS SUMMARY ---
+    # --- 5. FINAL FINDINGS ---
     st.info("""
     **Key Findings:**
-    * **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement.
-    * **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload content or comment.
+    * **Platform Dominance:** The Treemap highlights which platforms maintain the highest 'very active' user base.
+    * **Passive vs Active:** Individual activity data confirms that video-first consumption is the most frequent user behavior.
     """)
 
-# To execute:
-# show_consumer_behavior_page(df, activity_counts)
+# To call: show_consumer_behavior_page(df, activity_counts)
 # ======================================================
 # SECTION E
 # ======================================================
