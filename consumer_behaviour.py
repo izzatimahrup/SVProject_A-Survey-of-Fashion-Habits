@@ -204,127 +204,123 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
-# --- 1. SETTINGS & MAPPING ---
+# --- 1. CONFIGURATION ---
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
 frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
-# Mapping specific activity names to their survey insights
-frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users engaging 'Sometimes'. This indicates high passive consumption.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often'. This confirms that video-first content is the most effective medium.",
-    "Comment on posts": "Interaction via comments is moderate. A significant portion 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes'. Users are likely to share content occasionally rather than daily.",
-    "Upload pictures or videos": "Uploading is the least frequent behavior, identifying a small group of active content creators."
-}
-
 def show_consumer_behavior(df):
-    st.header("🛒 Consumer Behavior: Activity Frequencies")
-    st.markdown("Explore how users engage with different social media activities, from passive reading to active creation.")
-
-    # --- 2. DEFINE df_melted_frequency ---
-    # Identify columns that start with 'Freq_' and end with '_Ordinal'
+    st.header("🛒 Consumer Behavior: Respondent Engagement Analysis")
+    
+    # --- 2. DATA PRE-PROCESSING ---
     ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
     
-    if not ordinal_cols:
-        st.error("No frequency data columns found (expected format: 'Freq_Activity_Ordinal').")
-        return
-
-    # Transform data from Wide to Long format
-    df_melted_frequency = df.melt(
+    # Create the melted dataframe to handle multiple activities
+    df_melted = df.melt(
         id_vars=[c for c in df.columns if c not in ordinal_cols],
         value_vars=ordinal_cols,
         var_name='Activity_Type',
         value_name='Frequency_Level'
     )
-
-    # Clean the activity names for display
-    df_melted_frequency['Activity_Type'] = (
-        df_melted_frequency['Activity_Type']
+    
+    # Clean activity names
+    df_melted['Activity_Type'] = (
+        df_melted['Activity_Type']
         .str.replace('Freq_', '', regex=False)
         .str.replace('_Ordinal', '', regex=False)
         .str.replace('_', ' ', regex=False)
     )
+    
+    # Map to labels
+    df_melted['Frequency_Label'] = df_melted['Frequency_Level'].map(frequency_labels)
 
-    # Map numbers to readable labels
-    df_melted_frequency['Frequency_Label'] = df_melted_frequency['Frequency_Level'].map(frequency_labels)
-
-    # --- 3. STRUCTURED FILTRATION BAR ---
+    # --- 3. TOP-LEVEL FILTRATION ---
     with st.container(border=True):
-        st.subheader("📊 Filtration & View Controls")
+        st.subheader("📊 Analysis Controls")
         f_col1, f_col2 = st.columns([2, 1])
         
         with f_col1:
-            all_activities = sorted(df_melted_frequency['Activity_Type'].unique())
             selected_activities = st.multiselect(
-                "Select Activities to Display",
-                options=all_activities,
-                default=all_activities[:2]
+                "Select Activities to Compare:",
+                options=sorted(df_melted['Activity_Type'].unique()),
+                default=sorted(df_melted['Activity_Type'].unique())[:2]
             )
         
         with f_col2:
-            chart_mode = st.radio("Visualization Style", ["Box Plot (Distribution)", "Bar Chart (Count)"], horizontal=True)
+            # Added "Notched" as the significant style
+            plot_type = st.radio("Visualization Style", ["Significant Box Plot (Notched)", "Respondent Count (Bar)"], horizontal=False)
 
     st.write("---")
 
-    # --- 4. DYNAMIC GRID LAYOUT ---
+    # --- 4. DYNAMIC VISUALIZATION GRID ---
     if not selected_activities:
-        st.info("Please select at least one activity from the filter above.")
+        st.info("Please select activities to view respondent data.")
     else:
-        # Create two columns for a side-by-side layout
         col1, col2 = st.columns(2)
         
         for i, activity in enumerate(selected_activities):
-            # Filter data for this specific chart
-            plot_df = df_melted_frequency[df_melted_frequency['Activity_Type'] == activity].dropna()
+            plot_df = df_melted[df_melted['Activity_Type'] == activity].dropna()
+            total_n = len(plot_df) # Total respondents for this activity
             
-            # Create Plotly Figure
-            if "Box Plot" in chart_mode:
+            if "Significant Box Plot" in plot_type:
+                # 
                 fig = px.box(
                     plot_df,
-                    y='Frequency_Label', # Vertical box plot
+                    y='Frequency_Label',
                     points="outliers",
-                    title=f"Distribution: {activity}",
+                    notched=True, # Added for statistical significance
+                    title=f"{activity} (n={total_n})",
                     category_orders={"Frequency_Label": frequency_order},
                     color='Frequency_Label',
                     color_discrete_sequence=px.colors.sequential.Viridis,
-                    labels={'Frequency_Label': 'Frequency Level'}
+                    labels={'Frequency_Label': 'Respondent Frequency Level'}
                 )
-                # Ensure 'Never' is at the top to match survey scales
-                fig.update_yaxes(autorange="reversed")
+                fig.update_yaxes(autorange="reversed") # 'Never' at top
+                fig.update_layout(yaxis_title="Number of Respondents (Scale)")
+                
             else:
+                # 
                 counts = plot_df['Frequency_Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
+                counts.columns = ['Label', 'Respondent_Count']
                 fig = px.bar(
-                    counts, x='Frequency_Label', y='count', text='count',
-                    title=f"Volume: {activity}",
-                    color='count', color_continuous_scale='Viridis'
+                    counts, 
+                    x='Label', 
+                    y='Respondent_Count',
+                    text='Respondent_Count',
+                    title=f"Total Respondents: {activity}",
+                    color='Respondent_Count',
+                    color_continuous_scale='Viridis',
+                    labels={'Respondent_Count': 'Number of Respondents', 'Label': 'Frequency Level'}
                 )
                 fig.update_traces(textposition='outside')
 
-            # Layout styling
-            fig.update_layout(showlegend=False, plot_bgcolor='white', height=450, margin=dict(t=50, b=20, l=10, r=10))
+            # General Styling
+            fig.update_layout(
+                showlegend=False,
+                plot_bgcolor='white',
+                height=450,
+                margin=dict(t=50, b=20, l=10, r=10)
+            )
             fig.update_xaxes(showgrid=False)
-            fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+            fig.update_yaxes(showgrid=True, gridcolor='#eeeeee')
 
-            # Alternate placement
+            # Alternating columns
             target_col = col1 if i % 2 == 0 else col2
-            
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
                 
                 # Insight Box
                 with st.container(border=True):
-                    st.markdown(f"**Quick Insight: {activity}**")
-                    insight_text = frequency_insights.get(activity, "Specific behavioral patterns observed for this activity.")
-                    st.write(insight_text)
+                    st.markdown(f"**Data Summary: {activity}**")
+                    st.write(f"This chart represents a total of **{total_n}** respondents.")
                 st.write("##")
 
-    # --- 5. GLOBAL FINDINGS ---
-    st.info("""
-    **Key Behavioral Findings:**
-    * **High Passive Engagement:** 'Watching' and 'Reading' consistently show higher frequency levels across all age groups.
-    * **The Content Gap:** Active participation (Uploading/Commenting) shows a significant number of 'Rarely' and 'Never' responses.
+    # --- 5. SUMMARY FINDINGS ---
+    st.info(f"""
+    **Statistical Summary:**
+    * **Notched Significance:** In the box plots, if notches do not overlap between activities, the difference in respondent medians is statistically significant.
+    * **Respondent Volume:** Use the 'Bar Chart' toggle to see the exact distribution of how many individuals selected each category.
     """)
 
 # To call the page:
