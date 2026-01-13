@@ -256,15 +256,16 @@ with tab_corr:
     )
     st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
     
-st.info(f"""
-**📝 Key Observations: Relationship Analysis**
+# Heatmap-specific interpretation (Only shows in this tab)
+    st.info(f"""
+    **📝 Key Observations: Relationship Analysis**
 
-* **Positive Correlations:** Strong positive relationships (dark blue) exist between similar psychological drivers. For example, users who follow for **'{motivation_cols[4]}'** (Express Personality) often show high engagement with **'{motivation_cols[5]}'** (Online Community), indicating these behaviors reinforce each other.
-  
-* **Cluster Behaviors:** Certain behaviors, like seeking **Discounts** or **Updates**, show positive correlations across multiple categories. This suggests that "Reward-Driven" followers are likely to engage with almost any brand-led promotional activity.
+    * **Positive Correlations:** Strong positive relationships (dark blue) exist between similar psychological drivers. For example, users who follow for **'{motivation_cols[4]}'** (Express Personality) often show high engagement with **'{motivation_cols[5]}'** (Online Community).
+      
+    * **Cluster Behaviors:** Certain behaviors, like seeking **Discounts** or **Updates**, show positive correlations across multiple categories, suggesting a "Reward-Driven" follower segment.
 
-* **Negative or Weak Correlations:** Observed between contrasting motivations (red/white areas). A lower or negative correlation indicates that high interest in one area—such as **{motivation_cols[0]}**—does not necessarily translate to activity in others, suggesting these user segments might be distinct and require separate targeting strategies.
-""")
+    * **Negative or Weak Correlations:** Observed between contrasting motivations (red/white areas). A lower correlation indicates that high interest in **{motivation_cols[0]}** does not necessarily translate to activity in other areas, suggesting distinct targeting is needed.
+    """)
 
 with tab_rel:
     c1, c2 = st.columns([1, 2])
