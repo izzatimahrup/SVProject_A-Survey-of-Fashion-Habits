@@ -174,7 +174,7 @@ st.markdown("---")
 # 2. Region Distribution
 st.subheader("2. Regional Distribution of Respondents")
 
-# 1. Prepare Data
+
 region_counts = df["Region"].value_counts().reset_index()
 region_counts.columns = ["Region", "Count"]
 
@@ -291,6 +291,7 @@ fig4 = px.pie(
 )
 
 fig4.update_traces(
+    width=0.7,
     textinfo='percent+label', 
     marker=dict(line=dict(color='#FFFFFF', width=2)),
     hovertemplate="<b>%{label}</b><br>Total: %{value} respondents<br>Percentage: %{percent}<extra></extra>"
