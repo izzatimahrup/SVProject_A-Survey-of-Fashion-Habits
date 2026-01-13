@@ -11,24 +11,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# ======================================================
-# HELPER: CENTER ALL PLOTLY TITLES
-# ======================================================
 def center_title(fig):
-    fig.update_layout(
-        title={'x': 0.5, 'xanchor': 'center'}
-    )
+    fig.update_layout(title={'x': 0.5, 'xanchor': 'center'})
     return fig
-
-# ======================================================
-# PAGE TITLE & DESCRIPTION
-# ======================================================
-st.title("📊 Fashion Brand Motivation Dashboard")
-
-st.subheader("Objective")
-st.markdown(
-    "To analyze the driving factors behind why consumers follow fashion brands on social media."
-)
 
 # ======================================================
 # LOAD & MAP DATA
@@ -39,7 +24,6 @@ def load_motivation_data():
     data = pd.read_csv(url)
     data.columns = data.columns.str.strip()
     
-    # Mapping dictionary to shorten long survey questions
     column_mapping = {
         "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
         "I follow fashion brands on social media because  I like their products and style": "Product & Style",
@@ -53,7 +37,6 @@ def load_motivation_data():
     data = data.rename(columns=column_mapping)
     valid_cols = [v for v in column_mapping.values() if v in data.columns]
     
-    # Clean Gender Column
     if 'Gender' in data.columns:
         data['Gender'] = data['Gender'].astype(str).str.strip()
         
@@ -61,88 +44,88 @@ def load_motivation_data():
 
 df, motivation_cols = load_motivation_data()
 
-if not motivation_cols:
-    st.error("Could not find the motivation columns in the CSV. Check your column mapping keys.")
-    st.stop()
+# ======================================================
+# HEADER
+# ======================================================
+st.title("📊 Fashion Brand Motivation Dashboard")
+st.markdown("---")
 
 # ======================================================
-# SECTION A: RANKING & GENDER ANALYSIS
+# SECTION A: MOTIVATION RANKING & GENDER COMPARISON
 # ======================================================
-st.header("Section A: Motivation Ranking & Demographic Insights")
+st.header("Section A: Motivation Ranking & Gender Comparison")
 
-# --- Ranking Chart ---
-col_rank, col_dumb = st.columns([1, 1.2])
+# --- 1. Overall Ranking (Full Width) ---
+motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
+motivation_means.columns = ['Motivation', 'Average Score']
 
-with col_rank:
-    st.subheader("Overall Ranking")
-    motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
-    motivation_means.columns = ['Motivation', 'Average Score']
+fig_ranking = px.bar(
+    motivation_means, x='Average Score', y='Motivation',
+    orientation='h', text_auto='.2f',
+    color='Average Score', color_continuous_scale='Viridis',
+    title="Overall Ranking: Average Agreement Score (Likert 1-5)"
+)
+fig_ranking.update_layout(xaxis_range=[1, 5], height=450)
+st.plotly_chart(center_title(fig_ranking), use_container_width=True)
 
-    fig_ranking = px.bar(
-        motivation_means, x='Average Score', y='Motivation',
-        orientation='h', text_auto='.2f',
-        color='Average Score', color_continuous_scale='Viridis',
-        title="Average Agreement Score (Likert 1-5)"
-    )
-    fig_ranking.update_layout(xaxis_range=[1, 5], height=500)
-    st.plotly_chart(center_title(fig_ranking), use_container_width=True)
+# --- 2. Summary Metrics (Intermediary insight) ---
+top_m = motivation_means.iloc[-1]['Motivation']
+st.info(f"💡 **Key Insight:** '{top_m}' is the strongest driver across all respondents. Below, we see how this varies by gender.")
 
-# --- Dumbbell Plot (Gender Analysis) ---
-with col_dumb:
-    st.subheader("Gender Comparison")
-    
-    # Processing Gender Distributions for Plotly
-    gender_mean_list = []
-    for gender in df['Gender'].unique():
-        gender_df = df[df['Gender'] == gender]
-        g_means = gender_df[motivation_cols].mean()
-        for motivation, score in g_means.items():
-            gender_mean_list.append({'Motivation': motivation, 'Gender': gender, 'Mean Score': score})
-    
-    df_melted_means = pd.DataFrame(gender_mean_list)
-    
-    # Create Dumbbell using Plotly Graph Objects for better control
-    fig_dumbbell = go.Figure()
+# --- 3. Gender Comparison (Dumbbell Plot - Vertical Stack) ---
+st.subheader("Gender Gap Analysis")
 
-    for motivation in motivation_cols:
-        motivation_data = df_melted_means[df_melted_means['Motivation'] == motivation]
-        
-        # Add connecting line
-        if len(motivation_data) >= 2:
-            fig_dumbbell.add_trace(go.Scatter(
-                x=motivation_data['Mean Score'], y=[motivation]*len(motivation_data),
-                mode='lines', line=dict(color='lightgrey', width=2),
-                showlegend=False
-            ))
+# Processing Gender Means
+gender_mean_list = []
+for gender in df['Gender'].unique():
+    g_df = df[df['Gender'] == gender]
+    g_means = g_df[motivation_cols].mean()
+    for motivation, score in g_means.items():
+        gender_mean_list.append({'Motivation': motivation, 'Gender': gender, 'Mean Score': score})
 
-    # Add gender points
-    for gender, color in zip(df['Gender'].unique(), ['#FF4B4B', '#1C83E1', '#00C49A']):
-        gender_data = df_melted_means[df_melted_means['Gender'] == gender]
+df_melted_means = pd.DataFrame(gender_mean_list)
+
+# Build the Dumbbell Chart
+fig_dumbbell = go.Figure()
+
+# Add the "bars" (lines between dots)
+for motivation in motivation_cols:
+    m_data = df_melted_means[df_melted_means['Motivation'] == motivation]
+    if len(m_data) >= 2:
         fig_dumbbell.add_trace(go.Scatter(
-            x=gender_data['Mean Score'], y=gender_data['Motivation'],
-            mode='markers', name=gender,
-            marker=dict(color=color, size=12)
+            x=m_data['Mean Score'], y=[motivation]*len(m_data),
+            mode='lines', line=dict(color='rgba(100,100,100,0.3)', width=3),
+            showlegend=False, hoverinfo='skip'
         ))
 
-    fig_dumbbell.update_layout(
-        title="Mean Scores: Male vs Female Gap",
-        xaxis_title="Average Score (Likert Scale)",
-        xaxis_range=[2.0, 5.0],
-        height=500,
-        legend_title="Gender",
-        margin=dict(l=20, r=20, t=40, b=40)
-    )
-    st.plotly_chart(center_title(fig_dumbbell), use_container_width=True)
+# Add the Gender Points
+colors = {'Female': '#FF4B4B', 'Male': '#1C83E1', 'Other': '#9A9A9A'}
+for gender in df['Gender'].unique():
+    gender_data = df_melted_means[df_melted_means['Gender'] == gender]
+    fig_dumbbell.add_trace(go.Scatter(
+        x=gender_data['Mean Score'], y=gender_data['Motivation'],
+        mode='markers', name=gender,
+        marker=dict(color=colors.get(gender, '#333'), size=14, line=dict(width=1, color='white'))
+    ))
 
-# Interpretation for Section A
-top_motivation = motivation_means.iloc[-1]['Motivation']
-bottom_motivation = motivation_means.iloc[0]['Motivation']
+fig_dumbbell.update_layout(
+    title="Mean Motivation Scores by Gender (Dumbbell Plot)",
+    xaxis_title="Average Agreement (1-5)",
+    xaxis_range=[1.5, 5.0],
+    height=550,
+    legend_title="Gender",
+    margin=dict(l=20, r=20, t=60, b=40)
+)
 
-with st.expander("📝 Detailed Interpretation: Ranking & Demographic Analysis"):
+st.plotly_chart(center_title(fig_dumbbell), use_container_width=True)
+
+
+
+with st.expander("📝 Detailed Interpretation: Section A"):
     st.write(f"""
-    * **Primary Driver:** The highest-ranked motivation is **{top_motivation}**. This indicates that the audience is most strongly driven by tangible value and core brand identity. 
-    * **Gender Nuance:** The dumbbell plot reveals the "gap" in interest. For example, if markers are far apart, one gender finds that specific motivation significantly more compelling than the other.
-    * **Strategic Insight:** Marketing efforts should lean heavily into high-scoring factors while adjusting messaging if a significant gender gap exists in your primary target audience.
+    * **Ranking:** Respondents consistently prioritize **{top_m}**, suggesting that functional and aesthetic brand value outweighs community-seeking behavior.
+    * **Gender Dynamics:** Look at the length of the grey lines in the dumbbell plot. A **long line** indicates a significant difference in motivation between genders, while **overlapping dots** show shared interests.
+    * **Strategic Application:** If 'Discounts & Contests' shows a large gap, brand campaigns for that specific motivation should be targeted toward the high-scoring gender for better ROI.
     """)
 # ======================================================
 # SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
