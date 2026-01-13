@@ -154,12 +154,11 @@ fig_dumbbell.update_layout(
 
 st.plotly_chart(center_title(fig_dumbbell), use_container_width=True)
 
-with st.expander("📝 Detailed Interpretation: Section A"):
-    st.write(f"""
-    * **Ranking:** Respondents consistently prioritize **{top_m}**, suggesting that functional and aesthetic brand value outweighs community-seeking behavior.
-    * **Gender Dynamics:** Look at the length of the grey lines in the dumbbell plot. A **long line** indicates a significant difference in motivation between genders, while **overlapping dots** show shared interests.
-    * **Strategic Application:** If 'Discounts & Contests' shows a large gap, brand campaigns for that specific motivation should be targeted toward the high-scoring gender for better ROI.
-    """)
+st.info(f"""
+**📝 Strategic Interpretation: Section A**
+* **Primary Driver:** Respondents consistently prioritize **{top_name}**, indicating brand identity and product style are the strongest anchors.
+* **Gender Dynamics:** Long horizontal lines in the chart above signify a high 'Demographic Gap.' Strategies for these categories should be segmented by gender for maximum ROI.
+""")
     
 # ======================================================
 # SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
