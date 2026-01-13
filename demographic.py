@@ -251,7 +251,6 @@ fig3 = px.bar(
 )
 
 fig3.update_traces(
-    width=0.7,
     texttemplate='<b>%{x}</b>', 
     textposition='outside',
     cliponaxis=False, 
@@ -266,7 +265,10 @@ fig3.update_layout(
     xaxis_title="Total Respondents", 
     yaxis_title=None,
     margin=dict(l=0, r=100), 
-    xaxis_range=[0, edu_counts["count"].max() * 1.3] 
+    xaxis_range=[0, edu_counts["count"].max() * 1.3],
+    bargap=0.4, 
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 st.plotly_chart(fig3, use_container_width=True)
@@ -330,13 +332,13 @@ fig5 = px.bar(
 
 
 fig5.update_traces(
-    width=0.5, 
     texttemplate='<b>%{y:.1f}%</b>', 
     textposition='outside',
     cliponaxis=False
 )
 
 fig5.update_layout(
+    bargap=0.4,
     yaxis_range=[0, expense_counts["pct"].max() * 1.3], 
     title_x=0, 
     height=400, 
@@ -380,7 +382,6 @@ fig6 = px.bar(
 )
 
 fig6.update_traces(
-    width=0.5,
     texttemplate='<b>%{y}</b>', 
     textposition='outside',
     cliponaxis=False,
@@ -388,6 +389,7 @@ fig6.update_traces(
 )
 
 fig6.update_layout(
+    bargap=0.4
     yaxis_range=[0, awareness_counts["Count"].max() * 1.2],
     title_x=0, 
     height=400, 
