@@ -327,106 +327,106 @@ st.header("Section E: Cross Platform Connection")
 
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.express as px
+from scipy.stats import pearsonr
 
 # --- 1. DATA PREPARATION ---
-# Identify the frequency columns (e.g., Freq_Read posts or articles_Ordinal)
-frequency_cols = [
-    col for col in df.columns 
-    if col.startswith('Freq_') and col.endswith('_Ordinal')
-]
+# Creating lists for the dropdowns based on your naming conventions
+activity_options = [col for col in df.columns if col.startswith('Active_') and col.endswith('_Ordinal')]
+frequency_options = [col for col in df.columns if col.startswith('Freq_') and col.endswith('_Ordinal')]
 
-# Create df_melted_frequency for the Box Plot
-# We clean the names here so they match your 'frequency_insights' keys
-df_melted_frequency = df.melt(
-    value_vars=frequency_cols,
-    var_name='Activity_Type',
-    value_name='Frequency_Level'
-)
+# --- 2. UI LAYOUT: FILTERS ---
+st.subheader("Relationship Scatters")
 
-# Clean the Activity_Type strings to match your labels/insights
-df_melted_frequency['Activity_Type'] = df_melted_frequency['Activity_Type'].str.replace('Freq_', '').str.replace('_Ordinal', '').str.replace('_', ' ')
+# Creating columns for selectors to look structured like the image
+col_select1, col_select2 = st.columns(2)
 
-# --- 2. MAPPINGS ---
-frequency_labels = {
-    0: 'Never',
-    1: 'Rarely',
-    2: 'Sometimes',
-    3: 'Often',
-    4: 'Very often'
-}
-
-frequency_insights = {
-    "Read posts or articles": "Reading posts is a core activity, with the majority of users (40) engaging 'Sometimes'. This indicates high passive consumption of fashion information across platforms.",
-    "Watch videos": "Video consumption shows a heavy skew toward 'Very often' (52). This confirms that video-first content is the most effective medium for capturing fashion consumer attention.",
-    "Comment on posts": "Interaction via comments is moderate, peaking at 'Sometimes' (33). However, a significant portion (over 50 combined) 'Rarely' or 'Never' comment, suggesting many users are 'lurkers'.",
-    "Share posts or photos": "Sharing behavior is centralized around 'Sometimes' (36). Users are more likely to share content occasionally rather than on a daily basis, indicating a selective curation process.",
-    "Upload pictures or videos": "Uploading is the least frequent active behavior, with most users falling into 'Rarely' (35) or 'Sometimes' (34). Only 8 respondents upload 'Very often', identifying a small group of content creators."
-}
-
-# --- 3. IN-PAGE FILTERING ---
-st.subheader("Social Media Activity Frequency Analysis")
-
-# Filter selection directly on page
-selected_activities = st.multiselect(
-    "Filter Activities:",
-    options=list(frequency_insights.keys()),
-    default=list(frequency_insights.keys())
-)
-
-# Apply Filter
-filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(selected_activities)]
-
-# --- 4. MAIN BOX PLOT ---
-if not filtered_df.empty:
-    sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 7))
-    
-    sns.boxplot(
-        data=filtered_df,
-        x='Activity_Type',
-        y='Frequency_Level',
-        hue='Activity_Type',
-        palette='viridis',
-        legend=False,
-        # Ensure the order respects the selection
-        order=[a for a in frequency_insights.keys() if a in selected_activities]
+with col_select1:
+    # Logic for X-axis (e.g., Active_Tiktok_Ordinal)
+    x_col = st.selectbox(
+        "Select X-axis (Activity)", 
+        options=activity_options, 
+        index=0,
+        format_func=lambda x: x.replace('Active_', '').replace('_Ordinal', '').replace('_', ' ')
     )
 
-    # Set Y-Axis labels to your custom frequency labels
-    ax.set_yticks(list(frequency_labels.keys()))
-    ax.set_yticklabels(list(frequency_labels.values()))
-    
-    plt.title('Distribution of Social Media Activity Frequencies (Box Plot)', fontsize=16)
-    plt.xlabel('Social Media Activity Type', fontsize=12)
-    plt.ylabel('Frequency Level', fontsize=12)
-    plt.xticks(rotation=45, ha='right', fontsize=10)
-    
-    st.pyplot(fig)
+with col_select2:
+    # Logic for Y-axis (e.g., Freq_Comment on posts_Ordinal)
+    y_col = st.selectbox(
+        "Select Y-axis (Frequency)", 
+        options=frequency_options, 
+        index=0,
+        format_func=lambda x: x.replace('Freq_', '').replace('_Ordinal', '').replace('_', ' ')
+    )
+
+# --- 3. DYNAMIC CORRELATION CALCULATION ---
+# Drop NaNs to ensure accurate calculation
+valid_df = df[[x_col, y_col]].dropna()
+corr_coef, _ = pearsonr(valid_df[x_col], valid_df[y_col])
+
+# Determine relationship strength for the display box
+if abs(corr_coef) > 0.7:
+    status, color = "Strong Relationship", "green"
+elif abs(corr_coef) > 0.4:
+    status, color = "Moderate Relationship", "orange"
 else:
-    st.warning("Please select at least one activity type.")
+    status, color = "Weak Relationship", "gray"
+
+# --- 4. VISUALIZATION ---
+try:
+    import statsmodels
+    t_line = "ols"
+except ImportError:
+    t_line = None
+
+# Clean labels for the chart
+x_clean = x_col.replace('Active_', '').replace('_Ordinal', '')
+y_clean = y_col.replace('Freq_', '').replace('_Ordinal', '')
+
+fig3 = px.scatter(
+    df, 
+    x=x_col, 
+    y=y_col, 
+    trendline=t_line, 
+    opacity=0.6, 
+    title=f'Relationship: {x_clean} vs {y_clean}',
+    labels={
+        x_col: f'{x_clean} Activity',
+        y_col: f'{y_clean} Frequency'
+    },
+    template="plotly_white" 
+)
+
+# Customize the regression line color to red
+if t_line == "ols":
+    fig3.data[1].line.color = 'red'
+
+fig3.update_layout(
+    xaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray'),
+    yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
+)
+
+# Helper function check (assumes center_title is defined)
+if 'center_title' in globals():
+    fig3 = center_title(fig3)
+
+# --- 5. DISPLAY CHART AND DYNAMIC ANALYSIS ---
+chart_col, insight_col = st.columns([2, 1])
+
+with chart_col:
+    st.plotly_chart(fig3, use_container_width=True)
+
+with insight_col:
+    st.write(f"**Correlation Coefficient:** {corr_coef:.2f}")
+    
+    # Matching the green "Analysis" box style from your screenshot
+    st.success(f"""
+    **Analysis: {status}.** These two factors are deeply linked in the consumer's mind.
+    """)
 
 st.divider()
-
-# --- 5. STRUCTURED INSIGHTS (Matching your Column Layout) ---
-col1, col2 = st.columns(2)
-
-for i, activity in enumerate(selected_activities):
-    # Alternate between column 1 and column 2
-    target_col = col1 if i % 2 == 0 else col2
-    
-    with target_col:
-        # Display Insight in a Box
-        with st.container(border=True):
-            st.markdown(f"**Quick Insight: {activity}**")
-            insight_text = frequency_insights.get(activity, "No specific analysis available.")
-            st.write(insight_text)
-        st.write("##") # Space between items
-
-# --- 6. KEY FINDINGS ---
-st.info("""
-**Key Findings:**
-* **Content Preference:** Video is the most effective medium, with the highest frequency of "Very often" engagement compared to static posts.
-* **User Behavior:** Most consumers are "passive observers" who read and watch frequently but rarely upload their own content or comment.
+st.info(f"""
+**Interpretation:**
+The scatter plot reveals the correlation between {x_clean} and {y_clean}. 
+A higher score on one usually corresponds with the other, identifying behavioral trends in your target segment.
 """)
