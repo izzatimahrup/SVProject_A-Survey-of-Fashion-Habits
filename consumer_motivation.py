@@ -1,165 +1,140 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 
-# ======================================================
-# 1. DATA LOADING & MAPPING
-# ======================================================
+# ==========================================
+# 1. PAGE SETUP & DATA LOADING
+# ==========================================
+st.set_page_config(page_title="Consumer Motivation Dashboard", layout="wide")
+
 @st.cache_data
-def load_motivation_data():
+def load_and_preprocess_data():
+    # Replace this with your actual data source, e.g., pd.read_csv('data.csv')
+    # For now, this assumes 'df' is available.
     url = "https://raw.githubusercontent.com/izzatimahrup/SVProject_A-Survey-of-Fashion-Habits/main/Cleaned_FashionHabitGF.csv"
-    data = pd.read_csv(url)
-    data.columns = data.columns.str.strip()
+    df = pd.read_csv(url)
     
-    # Mapping dictionary to shorten long survey questions
-    column_mapping = {
-        "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
-        "I follow fashion brands on social media because  I like their products and style": "Product & Style",
-        "I follow fashion brands on social media because it is entertaining.": "Entertainment",
-        "I follow fashion brands on social media because I want to receive discounts or participate in contests.": "Discounts & Contests",
-        "I follow fashion brands on social media because it helps me express my personality": "Express Personality",
-        "I follow fashion brands on social media because I want to feel part of an online community.": "Online Community",
-        "I follow fashion brands on social media because I want to support or show loyalty to the brand.": "Brand Loyalty"
-    }
+    motivation_questions = [
+        'follow_for_updates_promotions', 'follow_because_like_products',
+        'follow_because_entertaining', 'follow_because_discounts_contests',
+        'follow_because_express_personality', 'follow_because_online_community',
+        'follow_because_support_loyalty'
+    ]
     
-    data = data.rename(columns=column_mapping)
-    valid_cols = [v for v in column_mapping.values() if v in data.columns]
-    return data, valid_cols
+    # Ensure Gender is clean
+    if 'Gender' in df.columns:
+        df['Gender'] = df['Gender'].astype(str).str.strip()
+        
+    return df, motivation_questions
 
-# ======================================================
-# 2. CALCULATION HELPERS
-# ======================================================
-def calculate_percentages(df_input, columns):
-    """Calculates Likert percentages and ensures type safety"""
-    label_map = {
-        1: 'Strongly Disagree', 
-        2: 'Disagree', 
-        3: 'Neutral', 
-        4: 'Agree', 
-        5: 'Strongly Agree'
-    }
+df, motivation_questions = load_and_preprocess_data()
+
+st.title("📊 Consumer Motivation Analysis Dashboard")
+st.markdown("Exploring the drivers behind fashion brand engagement on social media.")
+
+# ==========================================
+# 2. CALCULATION LOGIC
+# ==========================================
+# Calculate Likert Percentages for the Stacked Bar
+def get_motivation_pct(df, questions):
+    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
     pct_list = []
-    
-    for col in columns:
-        # Force to numeric and drop NaNs
-        series = pd.to_numeric(df_input[col], errors='coerce').dropna()
-        
-        # Get percentages, ensure integer index
-        counts = series.value_counts(normalize=True)
-        counts.index = counts.index.astype(int)
-        
-        # Reindex, multiply by 100, and map labels
-        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0) * 100
+    for q in questions:
+        counts = df[q].value_counts(normalize=True).reindex([1, 2, 3, 4, 5], fillvalue=0) * 100
         counts.index = counts.index.map(label_map)
-        counts.name = col
+        counts.name = q
         pct_list.append(counts)
-    
     return pd.DataFrame(pct_list)
 
-# ======================================================
-# 3. MAIN DASHBOARD EXECUTION
-# ======================================================
-st.title("📊 Fashion Brand Motivation Dashboard")
+df_motivation_pct = get_motivation_pct(df, motivation_questions)
 
-# Load Data
-df_raw, motivation_cols = load_motivation_data()
+# ==========================================
+# 3. SIDEBAR FILTERS
+# ==========================================
+st.sidebar.header("Global Filters")
+selected_gender = st.sidebar.multiselect("Filter by Gender", options=df['Gender'].unique(), default=list(df['Gender'].unique()))
+filtered_df = df[df['Gender'].isin(selected_gender)]
 
-# --- DEMOGRAPHIC FILTER ---
-st.sidebar.header("Filter Results")
-if 'Gender' in df_raw.columns:
-    gender_options = ["All"] + sorted(list(df_raw['Gender'].unique()))
-    selected_gender = st.sidebar.selectbox("Filter by Gender", gender_options)
+# ==========================================
+# 4. DASHBOARD TABS
+# ==========================================
+tab1, tab2, tab3 = st.tabs(["Overview & Ranking", "Relationships", "Demographics"])
+
+# ------------------------------------------
+# TAB 1: OVERVIEW & RANKING
+# ------------------------------------------
+with tab1:
+    col1, col2 = st.columns(2)
     
-    if selected_gender != "All":
-        df = df_raw[df_raw['Gender'] == selected_gender].copy()
-    else:
-        df = df_raw.copy()
-else:
-    df = df_raw.copy()
-    selected_gender = "Overall Scaling"
+    with col1:
+        st.subheader("Mean Agreement Scores")
+        motivation_means = filtered_df[motivation_questions].mean().sort_values(ascending=False)
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.barplot(x=motivation_means.values, y=motivation_means.index, palette='viridis', ax=ax)
+        ax.set_xlim(0, 5)
+        for i, v in enumerate(motivation_means.values):
+            ax.text(v + 0.05, i, f'{v:.2f}', va='center')
+        st.pyplot(fig)
 
-# ------------------------------------------------------
-# SECTION A: RANKING
-# ------------------------------------------------------
-st.header("Section A: Motivation Ranking")
-motivation_means = df[motivation_cols].mean().sort_values(ascending=True).reset_index()
-motivation_means.columns = ['Motivation', 'Average Score']
+    with col2:
+        st.subheader("Likert Scale Distribution")
+        plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
+        colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
+        
+        fig, ax = plt.subplots(figsize=(10, 6.4))
+        df_motivation_pct[plot_columns].plot(kind='barh', stacked=True, color=colors, ax=ax)
+        ax.set_xlim(0, 100)
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        st.pyplot(fig)
 
-fig_ranking = px.bar(
-    motivation_means, x='Average Score', y='Motivation',
-    orientation='h', text_auto='.2f',
-    color='Average Score', color_continuous_scale='Viridis',
-    title=f"Average Agreement Score: {selected_gender}"
-)
-fig_ranking.update_layout(xaxis_range=[1, 5], title={'x': 0.5, 'xanchor': 'center'})
-st.plotly_chart(fig_ranking, use_container_width=True)
+# ------------------------------------------
+# TAB 2: RELATIONSHIPS
+# ------------------------------------------
+with tab2:
+    st.subheader("Correlation Analysis")
+    col_a, col_b = st.columns([2, 1])
+    
+    with col_a:
+        # Heatmap
+        corr = filtered_df[motivation_questions].corr()
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+        st.pyplot(fig)
+        
+    with col_b:
+        st.markdown("**Regression Analysis**")
+        x_axis = st.selectbox("Select X axis", motivation_questions, index=1)
+        y_axis = st.selectbox("Select Y axis", motivation_questions, index=5)
+        
+        fig, ax = plt.subplots()
+        sns.regplot(data=filtered_df, x=x_axis, y=y_axis, scatter_kws={'alpha':0.4}, line_kws={'color':'red'}, ax=ax)
+        st.pyplot(fig)
 
-# ------------------------------------------------------
-# SECTION B: CONSUMER SENTIMENT (LIKERT)
-# ------------------------------------------------------
-st.divider()
-st.header("Section B: Deep Dive into Motivations")
+# ------------------------------------------
+# TAB 3: DEMOGRAPHICS
+# ------------------------------------------
+with tab3:
+    st.subheader("Gender Differences (Dumbbell Plot)")
+    
+    # Recalculate melted means for dumbbell plot
+    gender_means = df.groupby('Gender')[motivation_questions].mean().T.reset_index()
+    df_melted = gender_means.melt(id_vars='index', var_name='Gender', value_name='Mean Score')
+    df_melted.rename(columns={'index': 'Question'}, inplace=True)
 
-# Calculate Percentages
-df_motivation_pct = calculate_percentages(df, motivation_cols)
-
-# Plotting with Matplotlib
-sns.set_style("whitegrid")
-plot_columns = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree']
-colors = ["#d73027", "#fc8d59", "#ffffbf", "#91cf60", "#1a9850"]
-
-fig, ax = plt.subplots(figsize=(12, 8))
-df_motivation_pct[plot_columns].plot(
-    kind='barh', stacked=True, color=colors, ax=ax, width=0.8
-)
-
-ax.set_title('Percentage Distribution of Responses', fontsize=16, pad=20)
-ax.set_xlabel('Percentage (%)', fontsize=12)
-ax.set_xlim(0, 100)
-
-# Add Labels
-for c in ax.containers:
-    labels = [f'{w:.1f}%' if (w := v.get_width()) > 5 else '' for v in c]
-    ax.bar_label(c, labels=labels, label_type='center', fontsize=9)
-
-ax.legend(title='Response', bbox_to_anchor=(1.05, 1), loc='upper left')
-plt.tight_layout()
-st.pyplot(fig)
-
-# Blue Interpretation Box
-st.info(f"""
-**Data Interpretation ({selected_gender}):**
-The chart shows a strong positive sentiment across most motivations. 
-The **Agree** (light green) and **Strongly Agree** (dark green) categories dominate.
-""")
-
-# ------------------------------------------------------
-# SECTION C: RELATIONSHIPS
-# ------------------------------------------------------
-st.divider()
-st.header("Section C: Engagement Relationships")
-tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
-
-with tab_corr:
-    corr_matrix = df[motivation_cols].corr()
-    fig_heatmap = px.imshow(
-        corr_matrix, text_auto=".2f",
-        color_continuous_scale='RdBu_r',
-        title="Relationship Between Drivers"
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.pointplot(
+        data=df_melted, x='Mean Score', y='Question', hue='Gender',
+        join=True, palette={'Female': 'red', 'Male': 'blue'},
+        markers=['o', 'o'], linestyles=['-', '-'], capsize=0.1, ax=ax
     )
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+    ax.set_xlim(2.5, 4.5)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    st.pyplot(fig)
 
-with tab_rel:
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        x_var = st.selectbox("X-axis", motivation_cols, index=0)
-        y_var = st.selectbox("Y-axis", motivation_cols, index=1)
-    with c2:
-        fig_scatter = px.scatter(df, x=x_var, y=y_var, opacity=0.4, trendline="ols")
-        st.plotly_chart(fig_scatter, use_container_width=True)
+    st.info("Interpretation: The dumbbell plot highlights the gap in motivation scores between genders. Red points represent Female respondents while blue points represent Male respondents.")
 
 st.divider()
-st.markdown("✔ **Analysis Complete**")
+st.markdown("✔ Dashboard components loaded successfully.")
