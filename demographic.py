@@ -109,12 +109,13 @@ edu_counts = (
 )
 
 fig4 = px.bar(
+    Width=0.5,
     edu_counts,
     x="count",
     y="Education Level",
     orientation="h",
     color="count",
-    color_continuous_scale='Purples', # Professional academic feel
+    color_continuous_scale=['#E1BEE7', '#9C27B0', '#4A148C'],
     title="Highest Education Level of Respondents",
     category_orders={"Education Level": education_order}
 )
@@ -127,7 +128,7 @@ fig4.update_traces(
 )
 
 fig4.update_layout(
-    title_x=0, height=450, showlegend=False, coloraxis_showscale=False,
+    title_x=0, height=400, showlegend=False, coloraxis_showscale=False,
     margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
 )
 
