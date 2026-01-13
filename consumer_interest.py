@@ -1,13 +1,7 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
-from math import pi
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, HoverTool, CategoricalColorMapper, Legend
-from bokeh.palettes import Magma256, Turbo256
-from bokeh.transform import transform, cumsum, jitter
-from bokeh.embed import file_html
-from bokeh.resources import CDN
+import plotly.express as px
+import plotly.graph_objects as go
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Section C: Consumer Interests", layout="wide")
@@ -33,6 +27,7 @@ def load_data():
         'Region': 'Region'
     })
     
+    # Cleaning Influence
     def clean_influence(val):
         val = str(val)
         if "Online community" in val: return "Online Community"
@@ -44,13 +39,17 @@ def load_data():
         return val
     df['Influence'] = df['Influence'].apply(clean_influence)
     
-    # --- FIX SUSUNAN SKALA ---
+    # --- FIX SUSUNAN SKALA (LIKERT / ORDINAL) ---
+    
+    # 1. BUDGET ORDER (Kecil ke Besar)
     budget_order_logic = ["<500", "500-1000", "1000-3000", ">3000"]
     found_budget = [x for x in budget_order_logic if x in df['Budget'].unique()]
     other_budget = [x for x in df['Budget'].unique() if x not in found_budget]
     final_budget = found_budget + other_budget
+    # Convert to Categorical so Plotly respects the order
     df['Budget'] = pd.Categorical(df['Budget'], categories=final_budget, ordered=True)
     
+    # 2. FREQUENCY ORDER (Kerap ke Jarang)
     freq_order_logic = [
         "Daily", "Every day", "Everyday", 
         "Weekly", "Once a week", "Every week",
@@ -66,189 +65,112 @@ def load_data():
     if not final_freq: final_freq = sorted(df['Frequency'].dropna().unique().tolist())
     df['Frequency'] = pd.Categorical(df['Frequency'], categories=final_freq, ordered=True)
 
+    # 3. AWARENESS (1 ke 5)
     df['Awareness_Str'] = df['Awareness'].astype(str)
     awareness_order = sorted(df['Awareness_Str'].unique().tolist())
     df['Awareness_Str'] = pd.Categorical(df['Awareness_Str'], categories=awareness_order, ordered=True)
     
     return df
 
-# --- HELPER: RENDER BOKEH ---
-def render_bokeh(plot):
-    plot.sizing_mode = "scale_width"
-    plot.height = 400 
-    plot.min_border_bottom = 80  
-    plot.min_border_left = 60
-    html = file_html(plot, CDN, "my plot")
-    components.html(html, height=450, scrolling=False)
+# --- COLOR PALETTE (CONSISTENT) ---
+# Modern Palette for Plotly
+COLOR_SEQUENCE = px.colors.qualitative.Prism 
 
-# --- UNIFIED COLOR PALETTE (CONSISTENT THEME) ---
-# Kita guna satu set warna "Master" supaya semua graf nampak sedondon.
-# Warna: Dark Blue, Teal, Green, Yellow, Orange, Red, Purple, Pink
-MASTER_PALETTE = ["#264653", "#2a9d8f", "#8ab17d", "#e9c46a", "#f4a261", "#e76f51", "#d62828", "#5f0f40"]
+# --- 2. PLOTLY CHARTS FUNCTIONS ---
 
-# --- 2. BOKEH CHARTS FUNCTIONS ---
+# 1. PIE CHART (Ganti Donut)
+def chart_pie_budget(df):
+    data = df['Budget'].value_counts().reset_index()
+    data.columns = ['Budget', 'Count']
+    
+    fig = px.pie(data, values='Count', names='Budget', 
+                 title="Distribution of Monthly Budget",
+                 color_discrete_sequence=COLOR_SEQUENCE,
+                 hole=0) # Hole=0 means Pie Chart (Full)
+    
+    # Feedback: Info mesti ada dalam chart, bukan tooltip je
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(showlegend=True)
+    return fig
 
-# 1. DONUT CHART
-def chart_donut_budget(df):
-    data = df['Budget'].value_counts().reset_index(name='value')
-    data.columns = ['Budget', 'value'] 
+# 2. BAR CHART (Simple & Clean for Awareness)
+def chart_bar_awareness(df):
+    data = df['Awareness_Str'].value_counts().sort_index().reset_index()
+    data.columns = ['Awareness', 'Count']
     
-    total = data['value'].sum()
-    data['angle'] = data['value'] / total * 2 * pi
-    # Guna Master Palette
-    data['color'] = MASTER_PALETTE[:len(data)]
-    data['percentage'] = (data['value'] / total * 100).round(1).astype(str) + '%'
+    fig = px.bar(data, x='Awareness', y='Count',
+                 title="Self-Perceived Fashion Awareness Level",
+                 labels={'Awareness': 'Awareness Level (1-5)', 'Count': 'Number of Respondents'},
+                 color='Count', # Color gradient based on count
+                 color_continuous_scale='Teal')
     
-    source = ColumnDataSource(data)
-    p = figure(title="Distribution of Monthly Budget", 
-               toolbar_location=None, tools="hover", 
-               tooltips="@Budget: @value respondents (@percentage)", 
-               x_range=(-0.5, 2.0)) 
-    p.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), 
-            end_angle=cumsum('angle'), line_color="white", fill_color='color', 
-            legend_field='Budget', source=source)
-    p.axis.visible = False
-    p.grid.grid_line_color = None
-    p.outline_line_color = None
-    p.legend.title = "Budget (RM)"
-    p.legend.location = "center_right"
-    return p
+    fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Total Count")
+    return fig
 
-# 2. LOLLIPOP CHART
-def chart_lollipop_awareness(df):
-    data = df['Awareness_Str'].value_counts().sort_index().reset_index(name='counts')
-    data.columns = ['Awareness', 'counts'] 
-    data = data.sort_values(by='Awareness')
-    
-    source = ColumnDataSource(data)
-    p = figure(x_range=data['Awareness'].tolist(), title="Self-Perceived Fashion Awareness Level",
-               toolbar_location=None, 
-               x_axis_label="Likert Scale (1 = Low, 5 = High)", y_axis_label="Total Count")
-    
-    # Guna warna konsisten (Dark Grey untuk batang, Teal untuk bulat)
-    p.segment(x0='Awareness', y0=0, x1='Awareness', y1='counts', source=source, 
-              line_width=4, line_color="#4a4a4a")
-    p.scatter(x='Awareness', y='counts', size=25, source=source, 
-              fill_color=MASTER_PALETTE[1], line_color="white", line_width=2) # Teal
-    
-    p.y_range.start = 0
-    p.xgrid.grid_line_color = None
-    p.add_tools(HoverTool(tooltips=[("Level", "@Awareness"), ("Count", "@counts")]))
-    return p
-
-# 3. BAR CHART
+# 3. BAR CHART (Influence Ranking)
 def chart_bar_influence(df):
-    counts = df['Influence'].value_counts()
-    factors = counts.index.tolist()
-    # Guna satu warna solid (Dark Blue) untuk nampak kemas
-    source = ColumnDataSource(data=dict(factors=factors, counts=counts, color=[MASTER_PALETTE[0]]*len(factors)))
+    data = df['Influence'].value_counts().reset_index()
+    data.columns = ['Influence', 'Count']
     
-    p = figure(x_range=factors, title="Top Influencing Factors Ranking", 
-               toolbar_location=None, tools="hover", 
-               x_axis_label="Influence Source", y_axis_label="Number of Respondents")
-    p.vbar(x='factors', top='counts', width=0.5, source=source, 
-           line_color='white', fill_color='color', alpha=0.9)
-    p.y_range.start = 0
-    p.xgrid.grid_line_color = None
-    p.xaxis.major_label_orientation = 0 
-    p.hover.tooltips = [("Driver", "@factors"), ("Count", "@counts")]
-    return p
+    fig = px.bar(data, x='Influence', y='Count',
+                 title="Top Influencing Factors Ranking",
+                 labels={'Influence': 'Source of Influence', 'Count': 'Number of Respondents'},
+                 color='Influence',
+                 color_discrete_sequence=COLOR_SEQUENCE)
+    
+    fig.update_layout(xaxis_title="Influence Source", yaxis_title="Count", showlegend=False)
+    return fig
 
-# 4. HEATMAP
+# 4. HEATMAP (Frequency vs Budget)
 def chart_heatmap_freq_budget(df):
-    df_group = df.groupby(['Frequency', 'Budget']).size().reset_index(name='counts')
-    max_count = df_group['counts'].max()
-    df_group['bubble_size'] = (df_group['counts'] / max_count) * 45 + 5
-    
-    source = ColumnDataSource(df_group)
-    freq_factors = df['Frequency'].cat.categories.tolist()
-    budget_factors = df['Budget'].cat.categories.tolist()
-    
-    p = figure(title="Matrix: Frequency vs. Budget", 
-               x_range=freq_factors, y_range=budget_factors,
-               tools="hover", toolbar_location=None,
-               x_axis_label="Shopping Frequency", y_axis_label="Monthly Budget")
-    
-    # Guna warna Orange/Red dari Master Palette untuk nampak 'Heat'
-    p.scatter(x="Frequency", y="Budget", size='bubble_size', 
-              source=source, color=MASTER_PALETTE[5], fill_alpha=0.8, line_color="white") # Red-Orange
-    
-    p.grid.grid_line_color = "#e5e5e5"
-    p.xaxis.major_label_orientation = 0.2
-    p.hover.tooltips = [("Freq", "@Frequency"), ("Budget", "@Budget"), ("Count", "@counts")]
-    return p
+    # Plotly Density Heatmap is perfect for this matrix
+    fig = px.density_heatmap(df, x='Frequency', y='Budget',
+                             title="Matrix: Frequency vs. Budget",
+                             labels={'Frequency': 'Shopping Frequency', 'Budget': 'Monthly Budget'},
+                             color_continuous_scale='OrRd') # Orange-Red scale
+    return fig
 
-# 5. SCATTER
-def chart_scatter_awareness_budget(df):
-    source = ColumnDataSource(df)
-    budget_factors = df['Budget'].cat.categories.tolist()
+# 5. BUBBLE CHART (Awareness vs Budget)
+# Guna Bubble Chart supaya tak nampak "Weird" macam scatter plot biasa yang bertindih
+def chart_bubble_awareness_budget(df):
+    # Grouping data untuk dapatkan saiz bubble
+    df_grouped = df.groupby(['Awareness_Str', 'Budget']).size().reset_index(name='Count')
     
-    unique_freq = df['Frequency'].unique().tolist()
-    # Guna Master Palette untuk mapping
-    if len(unique_freq) <= len(MASTER_PALETTE):
-        palette_use = MASTER_PALETTE[:len(unique_freq)]
-    else:
-        palette_use = Turbo256[:len(unique_freq)]
-        
-    color_mapper = CategoricalColorMapper(factors=unique_freq, palette=palette_use)
+    fig = px.scatter(df_grouped, x='Awareness_Str', y='Budget',
+                     size='Count', # Saiz bubble ikut jumlah orang
+                     color='Count',
+                     title="Correlation: Awareness vs. Budget",
+                     labels={'Awareness_Str': 'Fashion Awareness (1-5)', 'Budget': 'Budget Range'},
+                     size_max=40,
+                     color_continuous_scale='Viridis')
     
-    p = figure(title="Correlation: Awareness vs. Budget", 
-               x_range=["1", "2", "3", "4", "5"], y_range=budget_factors,
-               tools="pan,wheel_zoom,reset,hover", active_scroll="wheel_zoom", 
-               x_axis_label="Fashion Awareness (1-5)", y_axis_label="Budget Range")
-    p.scatter(x=jitter('Awareness_Str', width=0.6, range=p.x_range), 
-              y=jitter('Budget', width=0.6, range=p.y_range), 
-              size=14, source=source, color=transform('Frequency', color_mapper),
-              fill_alpha=0.7, line_color="white", legend_field='Frequency')
-    p.legend.location = "top_left"
-    p.legend.orientation = "horizontal"
-    p.hover.tooltips = [("Awareness", "@Awareness"), ("Budget", "@Budget"), ("Freq", "@Frequency")]
-    return p
+    fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Budget Range")
+    return fig
 
-# 6. STACKED BAR (Freq)
+# 6. STACKED BAR (Influence vs Frequency)
 def chart_stacked_influence_freq(df):
-    cross_tab = pd.crosstab(df['Influence'], df['Frequency'])
-    factors = cross_tab.index.tolist()
-    freq_cols = list(cross_tab.columns)
+    # Prepare data specifically for stacked bar to ensure order is respected
+    df_grouped = df.groupby(['Influence', 'Frequency']).size().reset_index(name='Count')
     
-    # Guna Master Palette
-    if len(freq_cols) <= len(MASTER_PALETTE):
-        palette_use = MASTER_PALETTE[:len(freq_cols)]
-    else:
-        palette_use = Turbo256[:len(freq_cols)]
+    fig = px.bar(df_grouped, x='Influence', y='Count', color='Frequency',
+                 title="Impact of Influences on Shopping Frequency",
+                 labels={'Influence': 'Influence Source', 'Count': 'Count', 'Frequency': 'Frequency'},
+                 color_discrete_sequence=px.colors.qualitative.Safe) # Safe palette
     
-    source = ColumnDataSource(data=cross_tab)
-    p = figure(x_range=factors, title="Impact of Influences on Shopping Frequency",
-               toolbar_location=None, tools="hover", tooltips="$name: @$name",
-               x_axis_label="Influence Source", y_axis_label="Count of Respondents")
-    p.vbar_stack(freq_cols, x='Influence', width=0.5, color=palette_use, source=source, legend_label=freq_cols)
-    p.y_range.start = 0
-    p.xgrid.grid_line_color = None
-    p.legend.location = "top_right"
-    p.legend.title = "Frequency"
-    return p
+    fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
+    return fig
 
-# 7. STACKED BAR (Budget)
+# 7. STACKED BAR (Influence vs Budget)
 def chart_stacked_influence_budget(df):
-    cross_tab = pd.crosstab(df['Influence'], df['Budget'])
-    factors = cross_tab.index.tolist()
-    budget_cols = list(cross_tab.columns)
+    df_grouped = df.groupby(['Influence', 'Budget']).size().reset_index(name='Count')
     
-    # Guna Master Palette (Slice lain sikit supaya tak boring, tapi tetap tema sama)
-    # Kita reverse palette untuk variasi visual
-    palette_use = MASTER_PALETTE[:len(budget_cols)]
+    fig = px.bar(df_grouped, x='Influence', y='Count', color='Budget',
+                 title="Does Influence Source Affect Spending Limits?",
+                 labels={'Influence': 'Influence Source', 'Count': 'Count', 'Budget': 'Budget Range'},
+                 color_discrete_sequence=px.colors.qualitative.Pastel)
     
-    source = ColumnDataSource(data=cross_tab)
-    p = figure(x_range=factors, title="Does Influence Source Affect Spending Limits?",
-               toolbar_location=None, tools="hover", tooltips="$name: @$name",
-               x_axis_label="Influence Source", y_axis_label="Count of Respondents")
-    
-    p.vbar_stack(budget_cols, x='Influence', width=0.5, color=palette_use, source=source, legend_label=budget_cols)
-    p.y_range.start = 0
-    p.xgrid.grid_line_color = None
-    p.legend.location = "top_right"
-    p.legend.title = "Budget"
-    return p
+    fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
+    return fig
 
 # --- 3. MAIN APP ---
 def app():
@@ -286,13 +208,14 @@ def app():
         st.warning("⚠️ No data available.")
         return
 
-    # --- VISUALIZATION ---
+    # --- VISUALIZATION (PLOTLY) ---
     
-    # 1. DISTRIBUTION
+    # 1. DISTRIBUTION (PIE CHART - FIXED)
     st.header("1. Spending Preferences")
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
-        render_bokeh(chart_donut_budget(df_filtered))
+        # Pie chart dengan label di dalam
+        st.plotly_chart(chart_pie_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **A significant majority of respondents allocate a low monthly budget (under RM500) for fashion.**
@@ -300,11 +223,11 @@ def app():
         """)
     st.markdown("---")
     
-    # 2. AWARENESS LEVEL
+    # 2. AWARENESS LEVEL (BAR CHART)
     st.header("2. Fashion Knowledge Level")
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
-        render_bokeh(chart_lollipop_awareness(df_filtered))
+        st.plotly_chart(chart_bar_awareness(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **Most respondents rate their fashion knowledge at levels 3 or 4, showing they are quite updated with current trends.**
@@ -312,11 +235,11 @@ def app():
         """)
     st.markdown("---")
     
-    # 3. RANKING
+    # 3. RANKING (BAR CHART)
     st.header("3. Key Interest Drivers")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
-        render_bokeh(chart_bar_influence(df_filtered))
+        st.plotly_chart(chart_bar_influence(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **Online Communities and Social Media Influencers rank as the top drivers of interest, far surpassing traditional advertisements.**
@@ -324,11 +247,11 @@ def app():
         """)
     st.markdown("---")
     
-    # 4. FREQUENCY vs BUDGET
+    # 4. FREQUENCY vs BUDGET (HEATMAP)
     st.header("4. Interest Intensity Matrix")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
-        render_bokeh(chart_heatmap_freq_budget(df_filtered))
+        st.plotly_chart(chart_heatmap_freq_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **A strong pattern emerges where consumers shop frequently (weekly or monthly) but maintain a low budget.**
@@ -336,11 +259,11 @@ def app():
         """)
     st.markdown("---")
 
-    # 5. AWARENESS vs BUDGET
+    # 5. AWARENESS vs BUDGET (BUBBLE CHART)
     st.header("5. Awareness vs. Spending Interest")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
-        render_bokeh(chart_scatter_awareness_budget(df_filtered))
+        st.plotly_chart(chart_bubble_awareness_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **Interestingly, high fashion awareness (Level 5) does not strictly correlate with high spending.**
@@ -348,11 +271,11 @@ def app():
         """)
     st.markdown("---")
 
-    # 6. INFLUENCE vs FREQUENCY
+    # 6. INFLUENCE vs FREQUENCY (STACKED BAR)
     st.header("6. Impact of Drivers on Intensity (Frequency)")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
-        render_bokeh(chart_stacked_influence_freq(df_filtered))
+        st.plotly_chart(chart_stacked_influence_freq(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **Respondents influenced by Influencers tend to shop more frequently compared to those relying on family advice.**
@@ -360,11 +283,11 @@ def app():
         """)
     st.markdown("---")
 
-    # 7. INFLUENCE vs BUDGET
+    # 7. INFLUENCE vs BUDGET (STACKED BAR)
     st.header("7. Impact of Drivers on Spending Power")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
-        render_bokeh(chart_stacked_influence_budget(df_filtered))
+        st.plotly_chart(chart_stacked_influence_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
         * **While advice from Family and Friends usually leads to conservative spending, high-value purchases (>RM1000) are often driven by external media.**
