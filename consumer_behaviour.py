@@ -284,44 +284,53 @@ import pandas as pd
 import plotly.express as px
 from scipy.stats import pearsonr
 
-# --- 1. DATA PREPARATION ---
-# List of ordinal columns for selection
-activity_columns = [
-    'Active_Instagram_Ordinal', 
-    'Active_Tiktok_Ordinal', 
-    'Active_Facebook_Ordinal', 
-    'Active_Twitter_Ordinal'
+# --- 1. DEFINE DATA COLUMNS ---
+# This identifies all columns that follow your naming convention
+# Replace 'df' with your actual dataframe name
+frequency_columns = [
+    col for col in df.columns 
+    if col.startswith('Active_') and col.endswith('_Ordinal')
 ]
 
-# Ensure df is defined - using your existing dataframe
-# (Assuming df contains the ordinal columns)
+# Fallback if the list is empty to prevent app crash
+if not frequency_columns:
+    frequency_columns = ['Active_Instagram_Ordinal', 'Active_Tiktok_Ordinal']
 
-# --- 2. UI LAYOUT: FILTERS ---
+# --- 2. UI LAYOUT: FILTERS (IN-PAGE) ---
 st.subheader("Relationship Scatters")
 
-# Create two columns for the selectors to look structured
+# Create two columns for the selectors to match your screenshot
 col_select1, col_select2 = st.columns(2)
 
 with col_select1:
-    x_axis_label = st.selectbox("Select X-axis", options=activity_columns, index=0)
+    x_axis_label = st.selectbox(
+        "Select X-axis", 
+        options=frequency_columns, 
+        index=0,
+        key="x_axis"
+    )
 
 with col_select2:
-    y_axis_label = st.selectbox("Select Y-axis", options=frequency_columns, index=1)
+    # Set index=1 so the Y-axis defaults to a different column than X
+    y_axis_label = st.selectbox(
+        "Select Y-axis", 
+        options=frequency_columns, 
+        index=1 if len(frequency_columns) > 1 else 0,
+        key="y_axis"
+    )
 
-# --- 3. DYNAMIC ANALYSIS (Correlation) ---
-# Calculate correlation coefficient for the selected axes
-corr_value, _ = pearsonr(df[x_axis_label], df[y_axis_label])
+# --- 3. CALCULATE CORRELATION ---
+# Handling potential NaN values to ensure pearsonr works
+valid_data = df[[x_axis_label, y_axis_label]].dropna()
+corr_value, _ = pearsonr(valid_data[x_axis_label], valid_data[y_axis_label])
 
-# Determine relationship strength for the insight box
+# Define strength and color for the UI box
 if abs(corr_value) > 0.7:
-    strength = "Strong Relationship"
-    color = "green"
+    strength, color = "Strong Relationship", "green"
 elif abs(corr_value) > 0.4:
-    strength = "Moderate Relationship"
-    color = "orange"
+    strength, color = "Moderate Relationship", "orange"
 else:
-    strength = "Weak Relationship"
-    color = "gray"
+    strength, color = "Weak Relationship", "gray"
 
 # --- 4. VISUALIZATION ---
 try:
@@ -336,15 +345,14 @@ fig3 = px.scatter(
     y=y_axis_label, 
     trendline=t_line, 
     opacity=0.6, 
-    title=f'Relationship: {x_axis_label.replace("_", " ")} vs {y_axis_label.replace("_", " ")}',
+    title=f'Relationship: {x_axis_label} vs {y_axis_label}',
     labels={
-        x_axis_label: f'{x_axis_label.replace("_", " ")} (0=Very Active, 3=Inactive)',
-        y_axis_label: f'{y_axis_label.replace("_", " ")} (0=Very Active, 3=Inactive)'
+        x_axis_label: f'{x_axis_label} (Activity Level)',
+        y_axis_label: f'{y_axis_label} (Activity Level)'
     },
     template="plotly_white" 
 )
 
-# Apply red color to the regression line to match your style
 if t_line == "ols":
     fig3.data[1].line.color = 'red'
 
@@ -353,11 +361,7 @@ fig3.update_layout(
     yaxis=dict(dtick=1, showgrid=True, gridcolor='LightGray')
 )
 
-# Center the title (using your existing function)
-if 'center_title' in globals():
-    fig3 = center_title(fig3)
-
-# --- 5. DISPLAY CHART AND INSIGHT BOX ---
+# --- 5. DISPLAY ---
 col_chart, col_insight = st.columns([2, 1])
 
 with col_chart:
@@ -366,8 +370,10 @@ with col_chart:
 with col_insight:
     st.write(f"**Correlation Coefficient:** {corr_value:.2f}")
     
-    # Matching the green analysis box from your screenshot
-    st.info(f"""
-    **Analysis: {strength}.** These two platforms are linked in the consumer's digital behavior.
+    # Analysis box mimicking your screenshot
+    st.success(f"""
+    **Analysis: {strength}.** These two factors are deeply linked in the consumer's mind.
     """)
+
+st.divider()
 
