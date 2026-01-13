@@ -1048,6 +1048,11 @@ st.plotly_chart(fig12, use_container_width=True)
 # ---------------------------------------------------------
 st.subheader("10. Distribution of Spending by Employment")
 
+# ---------------------------------------------------------
+# 10. Spending vs Employment (Fixed Treemap)
+# ---------------------------------------------------------
+st.subheader("10. Distribution of Spending by Employment")
+
 # 1. Group the data
 fig10_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
 
@@ -1069,6 +1074,3 @@ if not fig10_data.empty:
     st.plotly_chart(fig10, use_container_width=True)
 else:
     st.warning(f"No data available for the spending level: {expense_choice}")
-
-fig10.update_layout(height=500)
-st.plotly_chart(fig10, use_container_width=True)
