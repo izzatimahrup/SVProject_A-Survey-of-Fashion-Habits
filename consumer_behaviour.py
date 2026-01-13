@@ -204,20 +204,21 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
+
 # --- 1. SET PAGE CONFIG ---
 st.set_page_config(page_title="Social Media Analytics", layout="wide")
 
 # --- 2. DEFINE DATA (df_melted_frequency) ---
-# Generating dummy data for demonstration
 @st.cache_data
 def load_data():
     activities = ['Likes', 'Shares', 'Comments', 'Posts', 'Direct Messages']
+    # Generating dummy data using Python's native random module
     data = {
-        'Activity_Type': np.random.choice(activities, 500),
-        'Frequency_Level': np.random.randint(1, 100, 500)
+        'Activity_Type': [random.choice(activities) for _ in range(500)],
+        'Frequency_Level': [random.randint(1, 100) for _ in range(500)]
     }
     df = pd.DataFrame(data)
-    # Ensuring Activity_Type is categorical for the 'order' logic in your original code
+    # Ensuring Activity_Type is categorical
     df['Activity_Type'] = pd.Categorical(df['Activity_Type'], categories=activities)
     return df
 
@@ -225,26 +226,26 @@ df_melted_frequency = load_data()
 
 # --- 3. UI STRUCTURE (In-Page Filtering) ---
 st.title("📊 Social Media Activity Dashboard")
-st.markdown("Use the filters below to refine the distribution data shown in the box plot.")
+st.markdown("Filter the activity types below to update the box plot visualization.")
 
-# Create a container for filters to keep it structured
+# UI Container for filters
 filter_container = st.container()
 
 with filter_container:
-    # Creating a 2-column layout for filters if you want to add more later
-    col1, col2 = st.columns([2, 1])
-    
+    # Use columns to keep the UI tight and professional
+    col1, _ = st.columns([2, 1])
     with col1:
-        # Get unique activities for the filter
+        # Get list of categories
         all_activities = df_melted_frequency['Activity_Type'].unique().tolist()
         
         selected_activities = st.multiselect(
-            'Select Activity Types to Display:',
+            'Select Activity Types:',
             options=all_activities,
             default=all_activities
         )
 
 # --- 4. FILTERING LOGIC ---
+# Standard pandas filtering (no numpy needed)
 filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(selected_activities)]
 
 # --- 5. PLOTTING ---
@@ -252,7 +253,7 @@ if not filtered_df.empty:
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 7))
     
-    # Using your original plotting logic
+    # Plotting using your logic
     sns.boxplot(
         data=filtered_df,
         x='Activity_Type',
@@ -260,26 +261,21 @@ if not filtered_df.empty:
         hue='Activity_Type',
         palette='viridis',
         legend=False,
-        order=[cat for cat in filtered_df['Activity_Type'].cat.categories if cat in selected_activities] if hasattr(filtered_df['Activity_Type'], 'cat') else None,
+        # Dynamically adjust the order based on selection
+        order=[cat for cat in df_melted_frequency['Activity_Type'].cat.categories if cat in selected_activities],
         ax=ax
     )
 
-    # Styling
     plt.title('Distribution of Social Media Activity Frequencies', fontsize=16)
     plt.xlabel('Social Media Activity Type', fontsize=12)
     plt.ylabel('Frequency Level', fontsize=12)
     plt.xticks(rotation=45, ha='right', fontsize=10)
     plt.yticks(fontsize=10)
-    plt.tight_layout()
-
-    # Display the plot in Streamlit
+    
+    # Render plot
     st.pyplot(fig)
 else:
-    st.warning("Please select at least one Activity Type to view the visualization.")
-
-# --- 6. OPTIONAL: DATA SUMMARY ---
-with st.expander("View Raw Data Summary"):
-    st.write(filtered_df.describe())
+    st.warning("No data selected. Please pick at least one activity type from the filter above.")
 # ======================================================
 # SECTION E
 # ======================================================
