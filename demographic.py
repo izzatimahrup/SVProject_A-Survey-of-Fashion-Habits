@@ -94,7 +94,46 @@ col3.metric(
     help=f"{top_region_pct:.1f}% of respondents"
 )
 
+st.subheader("4. Education Level Distribution")
 
+edu_counts = (
+    df["Education Level"]
+    .value_counts()
+    .reindex(education_order, fill_value=0)
+    .reset_index(name="count")
+    .rename(columns={"index": "Education Level"})
+)
+
+fig4 = px.bar(
+    edu_counts,
+    x="count",
+    y="Education Level",
+    orientation="h",
+    color="count",
+    color_continuous_scale='Purples', # Professional academic feel
+    title="Highest Education Level of Respondents",
+    category_orders={"Education Level": education_order}
+)
+
+fig4.update_traces(
+    texttemplate='<b>%{x}</b>', 
+    textposition='outside',
+    hovertemplate="<b>%{y}</b><br>Respondents: %{x}<extra></extra>",
+    width=0.6
+)
+
+fig4.update_layout(
+    title_x=0, height=450, showlegend=False, coloraxis_showscale=False,
+    margin=dict(l=0, r=50), xaxis_title="Total Respondents", yaxis_title=None
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+st.info("""
+### 📝 Interpretation:
+* **Higher Education Presence:** Most respondents possess post-secondary or tertiary education, associated with higher digital literacy.
+* **Information Processing:** This background likely influences how individuals interpret fashion trends and make informed shopping decisions online.
+""") 
 # =========================================================
 # SECTION A: DEMOGRAPHIC DATA VISUALISATION
 # =========================================================
