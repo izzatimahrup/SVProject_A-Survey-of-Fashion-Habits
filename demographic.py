@@ -850,3 +850,108 @@ fig11 = px.bar(
 )
 fig11.update_layout(yaxis={'categoryorder':'total ascending'}, height=450, coloraxis_showscale=False, bargap=0.4)
 st.plotly_chart(fig11, use_container_width=True)
+
+
+
+
+
+st.divider()
+st.header("📈 Part 2: Behavioural Analysis")
+
+# 1. THE FILTERS (Side-by-Side)
+col_f1, col_f2 = st.columns(2)
+with col_f1:
+    gender_choice = st.selectbox("Select Gender:", ["All", "Female", "Male"])
+with col_f2:
+    region_choice = st.selectbox("Select Region:", ["All", "West Malaysia", "East Malaysia"])
+
+# 2. FILTER LOGIC
+df_filtered = df.copy()
+if gender_choice != "All":
+    df_filtered = df_filtered[df_filtered["Gender"] == gender_choice]
+if region_choice != "All":
+    df_filtered = df_filtered[df_filtered["Region"] == region_choice]
+
+# Show a small counter of how many people are in this group
+st.info(f"Showing data for **{len(df_filtered)}** respondents matching these filters.")
+
+# ---------------------------------------------------------
+# 9. Fashion Awareness (Stacked Bar Chart)
+# ---------------------------------------------------------
+st.subheader("9. Fashion Awareness Level")
+
+# We group by Gender AND Awareness to make it stacked
+fig9_data = df_filtered.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+
+fig9 = px.bar(
+    fig9_data,
+    x="Gender",
+    y="Count",
+    color="Awareness of Fashion Trends",
+    barmode="stack", # This keeps it stacked
+    color_discrete_sequence=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'],
+    title="Awareness Distribution by Gender"
+)
+fig9.update_layout(height=450, bargap=0.4, title_x=0)
+st.plotly_chart(fig9, use_container_width=True)
+
+# ---------------------------------------------------------
+# 10. Spending Heatmap
+# ---------------------------------------------------------
+st.subheader("10. Spending by Employment Status")
+
+heatmap_data = df_filtered.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+heatmap_pivot = heatmap_data.pivot(index="Employment Status", columns="Average Monthly Expenses (RM)", values="Count").fillna(0)
+
+# Sort columns to match your RM order
+existing_cols = [c for c in expense_order if c in heatmap_pivot.columns]
+heatmap_pivot = heatmap_pivot[existing_cols]
+
+fig10 = px.imshow(
+    heatmap_pivot,
+    text_auto=True,
+    color_continuous_scale="Blues",
+    title="Spending Density"
+)
+st.plotly_chart(fig10, use_container_width=True)
+
+# ---------------------------------------------------------
+# 11. Shopping Influence by Gender
+# ---------------------------------------------------------
+st.subheader("11. Shopping Influence Factors")
+
+fig11_data = df_filtered.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+
+fig11 = px.bar(
+    fig11_data,
+    x="Count",
+    y="Influence on Shopping",
+    color="Gender",
+    orientation='h',
+    barmode='group', # Side-by-side for easy comparison
+    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'},
+    title="Influence Sources: Male vs Female"
+)
+fig11.update_layout(yaxis={'categoryorder':'total ascending'}, height=500, title_x=0)
+st.plotly_chart(fig11, use_container_width=True)
+
+# ---------------------------------------------------------
+# 12. Shopping Influence by Expenditure Level
+# ---------------------------------------------------------
+st.subheader("12. Shopping Influence by Spending Power")
+
+fig12_data = df_filtered.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+
+fig12 = px.bar(
+    fig12_data,
+    x="Count",
+    y="Influence on Shopping",
+    color="Average Monthly Expenses (RM)",
+    orientation='h',
+    barmode='stack', # Stacked to see the "mix" of spenders for each factor
+    color_discrete_sequence=['#B2DFDB', '#4DB6AC', '#00796B', '#004D40'],
+    category_orders={"Average Monthly Expenses (RM)": expense_order},
+    title="Influence Sources by Spending Level"
+)
+fig12.update_layout(height=500, margin=dict(l=150), title_x=0)
+st.plotly_chart(fig12, use_container_width=True)
