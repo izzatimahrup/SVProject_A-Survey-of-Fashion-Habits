@@ -619,3 +619,120 @@ st.markdown("---")
 #     category_orders={"Average Monthly Expenses (RM)": expense_order}
 # )
 # st.plotly_chart(fig12, use_container_width=True)
+
+# =========================================================
+# SECTION B: COMPARATIVE & BEHAVIOURAL ANALYSIS
+# =========================================================
+st.divider()
+st.header("📈 Part 2: Demographic–Behavioural Relationships")
+st.markdown("Use the filter below to see how different regions compare across all behavioral charts.")
+
+# 1. ADDING THE "REMOTE CONTROL" (Global Filter)
+# This filter will control Fig 9, 10, 11, and 12
+selected_region_b = st.multiselect(
+    "Select Region to Update Analysis:",
+    options=df["Region"].unique(),
+    default=df["Region"].unique(),
+    key="region_filter_b"
+)
+
+# Apply the filter to a new dataframe for this section
+df_b = df[df["Region"].isin(selected_region_b)]
+
+# ---------------------------------------------------------
+# 9️⃣ Fashion Awareness by Gender
+# ---------------------------------------------------------
+st.subheader("9. Fashion Awareness by Gender")
+
+# We use df_b here so it reacts to the filter
+fig9_data = df_b.groupby(["Gender", "Awareness of Fashion Trends"]).size().reset_index(name="Count")
+
+fig9 = px.bar(
+    fig9_data,
+    x="Gender",
+    y="Count",
+    color="Awareness of Fashion Trends",
+    barmode="stack",
+    color_continuous_scale=['#FFEBEE', '#EF9A9A', '#E53935', '#B71C1C'],
+    title="Fashion Awareness Distribution"
+)
+
+fig9.update_traces(
+    hovertemplate="<b>Gender:</b> %{x}<br><b>Count:</b> %{y}<extra></extra>"
+)
+
+fig9.update_layout(bargap=0.5, height=450, coloraxis_showscale=False, title_x=0)
+st.plotly_chart(fig9, use_container_width=True)
+
+# ---------------------------------------------------------
+# 🔟 Monthly Expenditure Heatmap
+# ---------------------------------------------------------
+st.subheader("10. Monthly Expenditure by Employment")
+
+heatmap_data = df_b.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
+heatmap_pivot = heatmap_data.pivot(index="Employment Status", columns="Average Monthly Expenses (RM)", values="Count").fillna(0)
+
+# Sort columns to match your RM order
+existing_cols = [c for c in expense_order if c in heatmap_pivot.columns]
+heatmap_pivot = heatmap_pivot[existing_cols]
+
+fig10 = px.imshow(
+    heatmap_pivot,
+    text_auto=True,
+    aspect="auto",
+    color_continuous_scale="Blues",
+    title="Spending Density Heatmap"
+)
+fig10.update_layout(title_x=0)
+st.plotly_chart(fig10, use_container_width=True)
+
+# ---------------------------------------------------------
+# 1️⃣1️⃣ Shopping Influence by Gender
+# ---------------------------------------------------------
+st.subheader("11. Shopping Influence Factors by Gender")
+
+fig11_data = df_b.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
+
+fig11 = px.bar(
+    fig11_data,
+    x='Count',
+    y='Influence on Shopping',
+    color='Gender',
+    orientation='h',
+    barmode='group',
+    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'}, 
+    title="Influence Sources (Male vs Female)"
+)
+
+fig11.update_traces(
+    hovertemplate="<b>Group:</b> %{fullData.name}<br><b>Total:</b> %{x}<extra></extra>"
+)
+
+fig11.update_layout(bargap=0.2, height=500, title_x=0, yaxis={'categoryorder':'total ascending'})
+st.plotly_chart(fig11, use_container_width=True)
+
+# ---------------------------------------------------------
+# 1️⃣2️⃣ Shopping Influence by Expenditure
+# ---------------------------------------------------------
+st.subheader("12. Shopping Influence by Expenditure Level")
+
+fig12_data = df_b.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+
+fig12 = px.bar(
+    fig12_data,
+    x="Count",
+    y="Influence on Shopping",
+    color="Average Monthly Expenses (RM)",
+    orientation='h',
+    barmode='stack',
+    color_discrete_sequence=['#B2DFDB', '#4DB6AC', '#00796B', '#004D40'],
+    title="Influence Sources by Spending Power",
+    category_orders={"Average Monthly Expenses (RM)": expense_order}
+)
+
+fig12.update_traces(
+    hovertemplate="<b>Spend Level:</b> %{fullData.name}<br><b>Count:</b> %{x}<extra></extra>"
+)
+
+fig12.update_layout(bargap=0.3, height=500, title_x=0, margin=dict(l=150))
+st.plotly_chart(fig12, use_container_width=True)
