@@ -204,124 +204,144 @@ st.info("""
 st.divider()
 st.header("Section D: Distribution of Frequency Levels")
 
-# --- 1. CONFIGURATION ---
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# --- 1. DATA MAPPING & CONFIGURATION ---
 frequency_labels = {
     0: 'Never', 1: 'Rarely', 2: 'Sometimes', 3: 'Often', 4: 'Very often'
 }
 frequency_order = ['Never', 'Rarely', 'Sometimes', 'Often', 'Very often']
 
-def show_consumer_behavior(df):
-    st.header("🛒 Consumer Behavior: Respondent Engagement Analysis")
-    
-    # --- 2. DATA PRE-PROCESSING ---
+def show_consumer_behavior_page(df):
+    st.header("📊 Consumer Behavior: Activity Distribution")
+    st.markdown("Analyze the statistical significance of user engagement and respondent volume.")
+
+    # --- 2. DEFINE df_melted_frequency ---
+    # We identify columns that follow your naming convention: Freq_ActivityName_Ordinal
     ordinal_cols = [c for c in df.columns if c.startswith('Freq_') and c.endswith('_Ordinal')]
     
-    # Create the melted dataframe to handle multiple activities
-    df_melted = df.melt(
+    if not ordinal_cols:
+        st.error("Missing data: Please ensure your columns are named 'Freq_ActivityName_Ordinal'.")
+        return
+
+    # Melting the dataframe from Wide to Long format
+    df_melted_frequency = df.melt(
         id_vars=[c for c in df.columns if c not in ordinal_cols],
         value_vars=ordinal_cols,
         var_name='Activity_Type',
         value_name='Frequency_Level'
     )
-    
-    # Clean activity names
-    df_melted['Activity_Type'] = (
-        df_melted['Activity_Type']
+
+    # Clean the activity names for better UI display
+    df_melted_frequency['Activity_Type'] = (
+        df_melted_frequency['Activity_Type']
         .str.replace('Freq_', '', regex=False)
         .str.replace('_Ordinal', '', regex=False)
         .str.replace('_', ' ', regex=False)
     )
-    
-    # Map to labels
-    df_melted['Frequency_Label'] = df_melted['Frequency_Level'].map(frequency_labels)
 
-    # --- 3. TOP-LEVEL FILTRATION ---
+    # Map the numeric codes to their readable labels
+    df_melted_frequency['Frequency_Label'] = df_melted_frequency['Frequency_Level'].map(frequency_labels)
+
+    # --- 3. STRUCTURED FILTRATION PANEL ---
     with st.container(border=True):
-        st.subheader("📊 Analysis Controls")
+        st.subheader("🛠️ Analysis Controls")
         f_col1, f_col2 = st.columns([2, 1])
         
         with f_col1:
+            all_activities = sorted(df_melted_frequency['Activity_Type'].unique())
             selected_activities = st.multiselect(
                 "Select Activities to Compare:",
-                options=sorted(df_melted['Activity_Type'].unique()),
-                default=sorted(df_melted['Activity_Type'].unique())[:2]
+                options=all_activities,
+                default=all_activities[:2]
             )
         
         with f_col2:
-            # Added "Notched" as the significant style
-            plot_type = st.radio("Visualization Style", ["Significant Box Plot (Notched)", "Respondent Count (Bar)"], horizontal=False)
+            view_mode = st.radio(
+                "Select Analysis Depth:",
+                ["Statistical (Notched Box)", "Volume (Respondent Count)"]
+            )
 
-    st.write("---")
+    st.divider()
 
     # --- 4. DYNAMIC VISUALIZATION GRID ---
     if not selected_activities:
-        st.info("Please select activities to view respondent data.")
+        st.info("Please select at least one activity from the filters above.")
     else:
-        col1, col2 = st.columns(2)
+        # Create a 2-column layout for the charts
+        grid_col1, grid_col2 = st.columns(2)
         
         for i, activity in enumerate(selected_activities):
-            plot_df = df_melted[df_melted['Activity_Type'] == activity].dropna()
-            total_n = len(plot_df) # Total respondents for this activity
+            # Filter data for the specific loop item
+            plot_df = df_melted_frequency[df_melted_frequency['Activity_Type'] == activity].dropna()
+            total_n = len(plot_df)
             
-            if "Significant Box Plot" in plot_type:
+            if "Statistical" in view_mode:
                 # 
                 fig = px.box(
                     plot_df,
                     y='Frequency_Label',
                     points="outliers",
                     notched=True, # Added for statistical significance
-                    title=f"{activity} (n={total_n})",
+                    title=f"Distribution: {activity} (n={total_n})",
                     category_orders={"Frequency_Label": frequency_order},
                     color='Frequency_Label',
                     color_discrete_sequence=px.colors.sequential.Viridis,
-                    labels={'Frequency_Label': 'Respondent Frequency Level'}
+                    labels={'Frequency_Label': 'Respondent Frequency'}
                 )
-                fig.update_yaxes(autorange="reversed") # 'Never' at top
-                fig.update_layout(yaxis_title="Number of Respondents (Scale)")
-                
+                # Keep 'Never' at the top for intuitive reading
+                fig.update_yaxes(autorange="reversed")
+            
             else:
                 # 
                 counts = plot_df['Frequency_Label'].value_counts().reindex(frequency_order, fill_value=0).reset_index()
-                counts.columns = ['Label', 'Respondent_Count']
+                counts.columns = ['Frequency', 'Respondents']
+                
                 fig = px.bar(
-                    counts, 
-                    x='Label', 
-                    y='Respondent_Count',
-                    text='Respondent_Count',
+                    counts,
+                    x='Frequency',
+                    y='Respondents',
+                    text='Respondents',
                     title=f"Total Respondents: {activity}",
-                    color='Respondent_Count',
+                    color='Respondents',
                     color_continuous_scale='Viridis',
-                    labels={'Respondent_Count': 'Number of Respondents', 'Label': 'Frequency Level'}
+                    labels={'Respondents': 'Number of Respondents'}
                 )
                 fig.update_traces(textposition='outside')
 
-            # General Styling
+            # Clean styling to match 'whitegrid' look
             fig.update_layout(
                 showlegend=False,
                 plot_bgcolor='white',
                 height=450,
                 margin=dict(t=50, b=20, l=10, r=10)
             )
+            fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
             fig.update_xaxes(showgrid=False)
-            fig.update_yaxes(showgrid=True, gridcolor='#eeeeee')
 
-            # Alternating columns
-            target_col = col1 if i % 2 == 0 else col2
+            # Alternate placement in the grid
+            target_col = grid_col1 if i % 2 == 0 else grid_col2
+            
             with target_col:
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Insight Box
+                # Insight Box for each chart
                 with st.container(border=True):
-                    st.markdown(f"**Data Summary: {activity}**")
-                    st.write(f"This chart represents a total of **{total_n}** respondents.")
+                    st.markdown(f"**Quick Stats: {activity}**")
+                    st.write(f"This dataset contains **{total_n}** unique respondent entries.")
                 st.write("##")
 
-    # --- 5. SUMMARY FINDINGS ---
-    st.info(f"""
-    **Statistical Summary:**
-    * **Notched Significance:** In the box plots, if notches do not overlap between activities, the difference in respondent medians is statistically significant.
-    * **Respondent Volume:** Use the 'Bar Chart' toggle to see the exact distribution of how many individuals selected each category.
+    # --- 5. SUMMARY SECTION ---
+    st.info("""
+    **Understanding the Significance:**
+    * **Notched Box Plots:** The 'notches' indicate the confidence interval around the median. If notches from different activities don't overlap, the difference is statistically significant.
+    * **Respondent Counts:** The bar charts show the exact volume of individuals in each category, helping identify the 'Lurker' vs 'Creator' gap.
     """)
+
+# Call the function (assuming 'df' is your pre-loaded dataframe)
+# show_consumer_behavior_page(df)
 
 # To call the page:
 show_consumer_behavior(df)
