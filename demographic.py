@@ -546,35 +546,8 @@ st.info("""
 """)
 
 
-# 10. Shopping Influence by Gender
-st.subheader("10. Shopping Influence Factors")
-fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
-color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
 
-fig10 = px.bar(
-    fig10_data, 
-    x="Influence on Shopping", 
-    y="Count", 
-    color="Gender",           
-    barmode='group',          
-    color_discrete_map=color_map,
-    title=f"Influence Factors: Comparison for {gender_choice}"
-)
-
-fig10.update_layout(
-    height=500,
-    xaxis_title="Influence Factor",
-    yaxis_title="Count of Respondents",
-    xaxis={'categoryorder':'total descending'} 
-)
-st.plotly_chart(fig10, use_container_width=True)
-
-st.info("""
-📝 Interpretation:
-""")
-
-st.divider()
 
 # 10. Shopping Influence by Gender
 st.subheader("10. Shopping Influence Factors")
@@ -590,29 +563,29 @@ fig10 = px.bar(
     barmode='group',           
     color_discrete_map=color_map,
     title=f"Influence Factors: Comparison for {gender_choice}",
-    text_auto=True # Optional: adds values on top of bars
+    text_auto=True
 )
 
 fig10.update_layout(
-    height=600, # Increased height to give space for labels
+    height=600,
     xaxis_title="Influence Factor",
     yaxis_title="Count of Respondents",
-    # --- CENTERING LOGIC FOR LONG NAMES ---
+    # Handles long names and keeps them aligned/centered
     xaxis={
         'categoryorder': 'total descending',
-        'tickangle': -45, # Tilts them so long names don't overlap
-        'tickfont': {'size': 12},
-        'automargin': True # Prevents long names from being cut off at the bottom
+        'tickangle': -45, 
+        'automargin': True
     },
-    # This centers the legend and title
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    margin=dict(b=150) # Extra bottom margin for very long names
+    # Moves legend to the top so it doesn't crowd the long names
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
 
-# Optional: Add totals on top of bars
-fig10.update_traces(textposition='outside')
+st.plotly_chart(fig10, use_container_width=True)
 
-st.plotly_chart(fig10, use_container_width=True
+# Fixed the syntax error here (properly closed divider)
+st.divider()
+
+st.info("📝 Interpretation: This chart shows the primary drivers for fashion purchases across genders.")
 
 
 # SECTION B: Monthly Expenses Focus
