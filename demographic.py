@@ -94,11 +94,33 @@ col3.metric(
     help=f"{top_region_pct:.1f}% of respondents"
 )
 
-import streamlit as st
-import plotly.express as px
 
-import streamlit as st
-import plotly.express as px
+
+# --- PART 1: MAIN PAGE FILTERS ---
+st.header("🧍 Part 1: Demographic Overview")
+st.markdown("Use the filters below to refine the demographic breakdown.")
+
+col_filter1, col_filter2 = st.columns(2)
+
+with col_filter1:
+    selected_gender = st.multiselect(
+        "Select Gender:",
+        options=df["Gender"].unique(),
+        default=df["Gender"].unique()
+    )
+
+with col_filter2:
+    selected_age = st.multiselect(
+        "Select Age Groups:",
+        options=age_order, 
+        default=age_order
+    )
+
+# Apply filter
+df_filtered = df[
+    (df["Gender"].isin(selected_gender)) & 
+    (df["Age"].isin(selected_age))
+].copy()
 
 # --- BOLD FORMATTING ---
 # This makes the labels BOLD for the chart
