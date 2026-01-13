@@ -341,10 +341,8 @@ def show_consumer_behavior_page(df):
     """)
 
 # Call the function (assuming 'df' is your pre-loaded dataframe)
-# show_consumer_behavior_page(df)
+show_consumer_behavior_page(df)
 
-# To call the page:
-show_consumer_behavior(df)
 # ======================================================
 # SECTION E
 # ======================================================
