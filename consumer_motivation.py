@@ -13,6 +13,7 @@ def load_motivation_data():
     data = pd.read_csv(url)
     data.columns = data.columns.str.strip()
     
+    # Mapping dictionary to shorten long survey questions
     column_mapping = {
         "I follow fashion brands on social media to get updates on new collections or promotions": "Updates & Promotions",
         "I follow fashion brands on social media because  I like their products and style": "Product & Style",
@@ -24,6 +25,7 @@ def load_motivation_data():
     }
     
     data = data.rename(columns=column_mapping)
+    # Filter only for columns that exist in the renamed dataframe
     valid_cols = [v for v in column_mapping.values() if v in data.columns]
     
     if 'Gender' in data.columns:
@@ -31,32 +33,36 @@ def load_motivation_data():
         
     return data, valid_cols
 
-# Initialize data
+# Initial Load
 df_raw, motivation_questions = load_motivation_data()
 
 # ==========================================
-# 2. CALCULATION HELPERS (Python 3.13 FIX)
+# 2. CALCULATION HELPERS
 # ==========================================
 def calculate_percentages(df_input, columns):
-    """Calculates Likert percentages and ensures type safety for Python 3.13"""
-    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
+    """Calculates Likert percentages with Python 3.13 type safety"""
+    label_map = {
+        1: 'Strongly Disagree', 
+        2: 'Disagree', 
+        3: 'Neutral', 
+        4: 'Agree', 
+        5: 'Strongly Agree'
+    }
     pct_list = []
     
     for col in columns:
-        # 1. Force to numeric and drop empty rows
+        # Force numeric, drop NaNs
         series = pd.to_numeric(df_input[col], errors='coerce').dropna()
-        
-        # 2. Get normalized counts (percentages as decimals)
         counts = series.value_counts(normalize=True)
         
-        # 3. THE FIX: Force index to integer type before reindexing
+        # Cast index to int to avoid float-alignment errors
         counts.index = counts.index.astype(int)
         
-        # 4. Reindex to 1-5 scale, THEN multiply by 100
+        # Reindex and multiply separately
         counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0)
         counts = counts * 100
         
-        # 5. Map to labels and append
+        # Map labels and name the series
         counts.index = counts.index.map(label_map)
         counts.name = col
         pct_list.append(counts)
@@ -68,7 +74,25 @@ def calculate_percentages(df_input, columns):
 # ==========================================
 st.title("📊 Consumer Motivation Analysis Dashboard")
 
-# SIDEBAR FILTER
+# --- SIDEBAR FILTERS ---
 st.sidebar.header("Filter Results")
 if 'Gender' in df_raw.columns:
-    gender_options = ["All"] +
+    gender_options = ["All"] + sorted(list(df_raw['Gender'].unique()))
+    selected_gender = st.sidebar.selectbox("Filter by Gender", gender_options)
+    
+    if selected_gender != "All":
+        df = df_raw[df_raw['Gender'] == selected_gender].copy()
+    else:
+        df = df_raw.copy()
+else:
+    df = df_raw.copy()
+    selected_gender = "Overall"
+
+# --- TABS FOR ORGANIZATION ---
+tab1, tab2, tab3 = st.tabs(["Overview", "Relationships", "Demographics"])
+
+with tab1:
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Mean Agreement Scores")
