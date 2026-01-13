@@ -697,45 +697,30 @@ fig9.update_layout(height=500, bargap=0.4, legend_title="Scale (Dark = High Awar
 st.plotly_chart(fig9, use_container_width=True)
 
 
-# 10. Shopping Influence - Vertical & Dynamic Colors
+## 10. Shopping Influence - Vertical Grouped Bar Chart
 st.subheader("10. Shopping Influence Factors")
 
-# 1. Prepare Data
 fig10_data = df_gender.groupby(["Gender", "Influence on Shopping"]).size().reset_index(name="Count")
 
-# 2. Dynamic Color Logic
-if gender_choice == "All":
-    # Everything is Green when 'All' is selected
-    color_map = None
-    color_seq = ["#4CAF50"] 
-else:
-    # Use specific colors when Female/Male is selected
-    color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
-    color_seq = None
+# Define the colors for Gender
+color_map = {'Female': '#FFB6C1', 'Male': '#ADD8E6'}
 
-# 3. Build Vertical Bar Chart
 fig10 = px.bar(
     fig10_data, 
-    x="Influence on Shopping",   # Category on X-axis (Vertical)
-    y="Count",                   # Height on Y-axis
-    color="Gender" if gender_choice != "All" else None,
-    barmode='group',
+    x="Influence on Shopping", 
+    y="Count", 
+    color="Gender",           # This creates the "Groups"
+    barmode='group',          # This puts them side-by-side
     color_discrete_map=color_map,
-    color_discrete_sequence=color_seq,
-    title=f"Top Influence Factors ({gender_choice})"
+    title=f"Influence Factors: Comparison for {gender_choice}"
 )
 
-# 4. Improve Layout
 fig10.update_layout(
-    height=500,
-    xaxis_title="Influence Factor",
-    yaxis_title="Count of Respondents",
-    # This sorts the bars from highest to lowest automatically
-    xaxis={'categoryorder':'total descending'} 
+    xaxis={'categoryorder':'total descending'},
+    legend_title="Gender"
 )
 
 st.plotly_chart(fig10, use_container_width=True)
-
 st.divider()plotly_chart(fig10, use_container_width=True
 
 # --- SECTION B: Monthly Expenses Focus
