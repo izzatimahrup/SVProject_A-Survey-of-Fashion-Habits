@@ -331,10 +331,11 @@ st.info("""
 # 6. Awareness of Fashion Trends
 st.subheader("6. Awareness of Fashion Trends")
 
+
 awareness_counts = df["Awareness of Fashion Trends"].value_counts().sort_index().reset_index()
 awareness_counts.columns = ["Level", "Count"]
 
-# Map the numbers to the actual labels from survet
+# Create the labels 
 awareness_map = {
     1: "1 - Not aware at all",
     2: "2 - Slightly aware",
@@ -342,7 +343,7 @@ awareness_map = {
     4: "4 - Very aware",
     5: "5 - Extremely aware"
 }
-awareness_counts['Level'] = awareness_counts['Level'].map(awareness_map)
+awareness_counts['Label'] = awareness_counts['Level'].map(awareness_map)
 
 fig6 = px.bar(
     awareness_counts,
