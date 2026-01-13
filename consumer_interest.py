@@ -70,9 +70,10 @@ def load_data():
     
     return df
 
-# --- PROFESSIONAL BLUE THEME ---
-# Warna Biru Korporat (Navy -> Royal -> Sky -> Pale)
-THEME_BLUE = ["#003366", "#005b96", "#337ab7", "#6497b1", "#b3cde0", "#e6f2ff"]
+# --- HIGH CONTRAST PROFESSIONAL PALETTE ---
+# Warna pekat & jelas. Tak ada warna pudar.
+# Navy, Teal, Deep Red, Gold, Purple, Forest Green
+THEME_BOLD = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
 
 # --- 2. PLOTLY CHARTS FUNCTIONS ---
 
@@ -83,11 +84,10 @@ def chart_pie_budget(df):
     
     fig = px.pie(data, values='Count', names='Budget', 
                  title="Distribution of Monthly Budget",
-                 color_discrete_sequence=THEME_BLUE, # Guna Theme Blue
+                 color_discrete_sequence=THEME_BOLD, # Warna Pekat
                  hole=0)
     
-    # Info Percent & Label duduk dalam Pie
-    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_traces(textposition='inside', textinfo='percent+label', textfont_size=14)
     fig.update_layout(showlegend=True)
     return fig
 
@@ -100,7 +100,7 @@ def chart_bar_awareness(df):
                  title="Self-Perceived Fashion Awareness Level",
                  labels={'Awareness': 'Awareness Level (1-5)', 'Count': 'Number of Respondents'},
                  color='Count', 
-                 color_continuous_scale='Blues') # Skala Biru
+                 color_continuous_scale='Viridis') # Viridis (Sangat Jelas, Kuning ke Biru Gelap)
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Total Count")
     return fig
@@ -114,17 +114,18 @@ def chart_bar_influence(df):
                  title="Top Influencing Factors Ranking",
                  labels={'Influence': 'Source of Influence', 'Count': 'Number of Respondents'},
                  color='Influence',
-                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
+                 color_discrete_sequence=THEME_BOLD) # Warna Pekat
     
     fig.update_layout(xaxis_title="Influence Source", yaxis_title="Count", showlegend=False)
     return fig
 
 # 4. HEATMAP (Frequency vs Budget)
 def chart_heatmap_freq_budget(df):
+    # Guna 'Hot' atau 'YlOrRd' untuk nampak sangat kontras (Merah Api)
     fig = px.density_heatmap(df, x='Frequency', y='Budget',
                              title="Matrix: Frequency vs. Budget",
                              labels={'Frequency': 'Shopping Frequency', 'Budget': 'Monthly Budget'},
-                             color_continuous_scale='Blues') # Skala Biru
+                             color_continuous_scale='YlOrRd') 
     return fig
 
 # 5. BUBBLE CHART (Awareness vs Budget)
@@ -137,7 +138,7 @@ def chart_bubble_awareness_budget(df):
                      title="Correlation: Awareness vs. Budget",
                      labels={'Awareness_Str': 'Fashion Awareness (1-5)', 'Budget': 'Budget Range'},
                      size_max=50,
-                     color_continuous_scale='Blues') # Skala Biru
+                     color_continuous_scale='Portland') # Skala warna pekat & professional
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Budget Range")
     return fig
@@ -149,7 +150,7 @@ def chart_stacked_influence_freq(df):
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Frequency',
                  title="Impact of Influences on Shopping Frequency",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Frequency': 'Frequency'},
-                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
+                 color_discrete_sequence=px.colors.qualitative.Bold) # Bold Palette
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -161,7 +162,7 @@ def chart_stacked_influence_budget(df):
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Budget',
                  title="Does Influence Source Affect Spending Limits?",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Budget': 'Budget Range'},
-                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
+                 color_discrete_sequence=px.colors.qualitative.Set1) # Set1 (Warna Kontras Tinggi)
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -172,8 +173,8 @@ def app():
     
     # --- OBJECTIVE ---
     st.markdown("""
-    <div style="background-color: #f0f7ff; padding: 15px; border-left: 5px solid #003366; margin-bottom: 20px;">
-        <h4 style="color: #003366; margin-top: 0;">Objective</h4>
+    <div style="background-color: #e3f2fd; padding: 15px; border-left: 5px solid #1565c0; margin-bottom: 20px;">
+        <h4 style="color: #1565c0; margin-top: 0;">Objective</h4>
         <p style="margin-bottom: 0; color: #333;">
             To analyze consumer interests in fashion by examining their spending habits, trend awareness, 
             and the key external drivers that influence their purchasing decisions.
