@@ -6,7 +6,7 @@ import seaborn as sns
 import plotly.express as px
 
 # ======================================================
-# 1. PAGE CONFIG & HELPERS
+# 1. HELPERS & CONFIG
 # ======================================================
 def center_title(fig):
     fig.update_layout(title={'x': 0.5, 'xanchor': 'center'})
@@ -42,62 +42,56 @@ def load_motivation_data():
 df_raw, motivation_questions = load_motivation_data()
 
 # ======================================================
-# 3. CALCULATION HELPERS (FIXED FOR PYTHON 3.13)
-# ======================================================
-def calculate_percentages(df_input, columns):
-    """Ensures type safety between float/int indexes for Python 3.13"""
-    label_map = {1: 'Strongly Disagree', 2: 'Disagree', 3: 'Neutral', 4: 'Agree', 5: 'Strongly Agree'}
-    pct_list = []
-    
-    for col in columns:
-        # Convert to numeric and remove NaNs
-        series = pd.to_numeric(df_input[col], errors='coerce').dropna()
-        counts = series.value_counts(normalize=True)
-        
-        # FIX: Explicitly cast index to integer before reindexing
-        counts.index = counts.index.astype(int)
-        
-        # FIX: Reindex and then multiply by 100 separately
-        counts = counts.reindex([1, 2, 3, 4, 5], fillvalue=0.0)
-        counts = counts * 100
-        
-        counts.index = counts.index.map(label_map)
-        counts.name = col
-        pct_list.append(counts)
-        
-    return pd.DataFrame(pct_list)
-
-# ======================================================
-# 5. HEADER & TOP-LEVEL METRICS
+# 3. PAGE TITLE & IN-PAGE FILTER
 # ======================================================
 st.title("📊 Fashion Brand Motivation Dashboard")
-st.markdown(f"**Current View:** {selected_gender}")
 
+# --- IN-PAGE FILTER SECTION ---
+st.markdown("### 🔍 Filter Analysis")
+col_filt1, col_filt2 = st.columns([1, 2])
+
+with col_filt1:
+    if 'Gender' in df_raw.columns:
+        gender_options = ["All Genders"] + sorted(list(df_raw['Gender'].unique()))
+        selected_gender = st.selectbox("View by Demographic:", gender_options)
+        
+        if selected_gender != "All Genders":
+            df = df_raw[df_raw['Gender'] == selected_gender].copy()
+        else:
+            df = df_raw.copy()
+    else:
+        df = df_raw.copy()
+        selected_gender = "All Genders"
+
+with col_filt2:
+    st.info(f"Showing results for **{selected_gender}**. Adjust the dropdown to filter the charts below.")
+
+# ======================================================
+# 4. TOP-LEVEL KPI METRICS
+# ======================================================
 if not df.empty:
     m_scores = df[motivation_questions].mean()
     top_m = m_scores.idxmax()
     top_val = m_scores.max()
 
-    kpi1, kpi2, kpi3 = st.columns(3)
-    kpi1.metric("Sample Size", len(df))
-    kpi2.metric("Top Motivation", top_m)
-    kpi3.metric("Highest Avg Score", f"{top_val:.2f} / 5")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total Respondents", len(df))
+    m2.metric("Primary Motivation", top_m)
+    m3.metric("Highest Avg Score", f"{top_val:.2f} / 5")
 else:
-    st.error("No data available for the selected filter.")
+    st.warning("No data found for this selection.")
     st.stop()
 
 st.divider()
 
 # ======================================================
-# 6. STRUCTURED CONTENT (TABS)
+# 5. ANALYSIS TABS
 # ======================================================
-tab1, tab2, tab3 = st.tabs(["📈 Distributions", "🔗 Relationships", "👥 Comparative View"])
+tab1, tab2, tab3 = st.tabs(["📈 Sentiment Ranking", "🔗 Relationships", "👥 Demographic Gap"])
 
-# --- TAB 1: RANKING & SPREAD ---
 with tab1:
-    st.header("Section A: Motivation Ranking")
-    
-    # Ranking Plotly Bar
+    # --- RANKING CHART ---
+    st.subheader("Section A: Motivation Ranking")
     ranking_data = m_scores.sort_values(ascending=True).reset_index()
     ranking_data.columns = ['Motivation', 'Avg Score']
     
@@ -105,80 +99,63 @@ with tab1:
         ranking_data, x='Avg Score', y='Motivation',
         orientation='h', text_auto='.2f',
         color='Avg Score', color_continuous_scale='Viridis',
-        title="Average Agreement Score"
+        title="Average Agreement (1-5)"
     )
     fig_rank.update_layout(xaxis_range=[1, 5])
     st.plotly_chart(center_title(fig_rank), use_container_width=True)
 
     st.divider()
+
+    # --- INDIVIDUAL DISTRIBUTIONS ---
+    st.subheader("Section B: Detailed Distribution")
     
-    # Detailed Distributions (2 columns)
-    st.header("Section B: Deep Dive into Distributions")
-    col_a, col_b = st.columns(2)
     
+    # Use 2 columns for smaller distribution charts
+    dist_col1, dist_col2 = st.columns(2)
     for i, col_name in enumerate(motivation_questions):
         counts = df[col_name].value_counts().sort_index().reset_index()
         counts.columns = ['Score', 'Respondents']
-        avg_score = df[col_name].mean()
         
         fig_dist = px.bar(
             counts, x='Score', y='Respondents', text='Respondents',
             title=f"Distribution: {col_name}",
             color='Score', color_continuous_scale='Plasma'
         )
-        fig_dist.update_layout(showlegend=False, height=350)
+        fig_dist.update_layout(showlegend=False, height=300)
         
-        target = col_a if i % 2 == 0 else col_b
+        target = dist_col1 if i % 2 == 0 else dist_col2
         with target:
             st.plotly_chart(center_title(fig_dist), use_container_width=True)
-            
-            # Dynamic Insight
-            if avg_score >= 3.8:
-                st.success(f"**Top Driver:** {col_name} shows strong agreement.")
-            elif avg_score >= 3.0:
-                st.info(f"**Moderate Driver:** {col_name} shows neutral to positive lean.")
-            else:
-                st.warning(f"**Minor Driver:** {col_name} has lower impact.")
             st.markdown("---")
 
-# --- TAB 2: CORRELATIONS ---
 with tab2:
-    st.header("Section C: Engagement Relationships")
+    st.subheader("Section C: Connection Analysis")
     
-    c_heat, c_scatter = st.columns([1, 1.2])
     
-    with c_heat:
+    rel_col1, rel_col2 = st.columns([1, 1.2])
+    
+    with rel_col1:
         st.write("**Correlation Matrix**")
         corr = df[motivation_questions].corr()
-        fig_heat = px.imshow(
-            corr, text_auto=".2f",
-            color_continuous_scale='RdBu_r', aspect="auto"
-        )
+        fig_heat = px.imshow(corr, text_auto=".2f", color_continuous_scale='RdBu_r')
         st.plotly_chart(fig_heat, use_container_width=True)
         
-    with c_scatter:
-        st.write("**Trend Explorer**")
-        x_ax = st.selectbox("X-Axis", motivation_questions, index=0)
-        y_ax = st.selectbox("Y-Axis", motivation_questions, index=1)
+    with rel_col2:
+        st.write("**Trend Exploration**")
+        x_ax = st.selectbox("Predictor (X):", motivation_questions, index=0)
+        y_ax = st.selectbox("Outcome (Y):", motivation_questions, index=1)
         
-        fig_scat = px.scatter(
-            df, x=x_ax, y=y_ax, 
-            trendline="ols", opacity=0.5,
-            title=f"Trend: {x_ax} vs {y_ax}"
-        )
+        fig_scat = px.scatter(df, x=x_ax, y=y_ax, trendline="ols", opacity=0.4)
         st.plotly_chart(fig_scat, use_container_width=True)
 
-# --- TAB 3: GENDER COMPARISON (DUMBBELL) ---
 with tab3:
-    st.header("Section D: Gender Disparity Analysis")
-    
+    st.subheader("Section D: Gender Motivation Disparity")
+    # We compare the RAW data here to see the gap between groups
     if 'Gender' in df_raw.columns and len(df_raw['Gender'].unique()) > 1:
-        # Calculate means per gender (Using df_raw so comparison is always visible)
         g_means = df_raw.groupby('Gender')[motivation_questions].mean().T.reset_index()
         df_melted = g_means.melt(id_vars='index', var_name='Gender', value_name='Score')
         df_melted.rename(columns={'index': 'Motivation'}, inplace=True)
         
-        # Seaborn Dumbbell Plot
         fig_dumb, ax_dumb = plt.subplots(figsize=(10, 6))
         sns.pointplot(
             data=df_melted, x='Score', y='Motivation', hue='Gender',
@@ -186,15 +163,15 @@ with tab3:
             markers='o', ax=ax_dumb
         )
         ax_dumb.set_xlim(1, 5)
-        ax_dumb.grid(True, axis='x', linestyle='--', alpha=0.5)
+        ax_dumb.set_title("Gender Mean Scores comparison", fontsize=14)
         st.pyplot(fig_dumb)
         
-        st.info("**Tip:** Points further apart indicate a larger perception gap between genders.")
+        st.info("The dumbbell plot highlights areas where Male and Female consumers prioritize different factors.")
     else:
-        st.warning("Insufficient demographic data for comparison.")
+        st.warning("Gender comparison is unavailable for this dataset.")
 
 # ======================================================
-# 7. FOOTER
+# 6. FOOTER
 # ======================================================
 st.divider()
-st.caption(f"Fashion Habits Research • Motivation Module • {pd.Timestamp.now().year}")
+st.caption(f"Consumer Motivation Analysis • {pd.Timestamp.now().year}")
