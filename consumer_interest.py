@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Section C: Consumer Interests", layout="wide")
@@ -39,17 +38,16 @@ def load_data():
         return val
     df['Influence'] = df['Influence'].apply(clean_influence)
     
-    # --- FIX SUSUNAN SKALA (LIKERT / ORDINAL) ---
+    # --- FIX SUSUNAN SKALA ---
     
-    # 1. BUDGET ORDER (Kecil ke Besar)
+    # 1. BUDGET ORDER
     budget_order_logic = ["<500", "500-1000", "1000-3000", ">3000"]
     found_budget = [x for x in budget_order_logic if x in df['Budget'].unique()]
     other_budget = [x for x in df['Budget'].unique() if x not in found_budget]
     final_budget = found_budget + other_budget
-    # Convert to Categorical so Plotly respects the order
     df['Budget'] = pd.Categorical(df['Budget'], categories=final_budget, ordered=True)
     
-    # 2. FREQUENCY ORDER (Kerap ke Jarang)
+    # 2. FREQUENCY ORDER
     freq_order_logic = [
         "Daily", "Every day", "Everyday", 
         "Weekly", "Once a week", "Every week",
@@ -65,35 +63,35 @@ def load_data():
     if not final_freq: final_freq = sorted(df['Frequency'].dropna().unique().tolist())
     df['Frequency'] = pd.Categorical(df['Frequency'], categories=final_freq, ordered=True)
 
-    # 3. AWARENESS (1 ke 5)
+    # 3. AWARENESS
     df['Awareness_Str'] = df['Awareness'].astype(str)
     awareness_order = sorted(df['Awareness_Str'].unique().tolist())
     df['Awareness_Str'] = pd.Categorical(df['Awareness_Str'], categories=awareness_order, ordered=True)
     
     return df
 
-# --- COLOR PALETTE (CONSISTENT) ---
-# Modern Palette for Plotly
-COLOR_SEQUENCE = px.colors.qualitative.Prism 
+# --- PROFESSIONAL BLUE THEME ---
+# Warna Biru Korporat (Navy -> Royal -> Sky -> Pale)
+THEME_BLUE = ["#003366", "#005b96", "#337ab7", "#6497b1", "#b3cde0", "#e6f2ff"]
 
 # --- 2. PLOTLY CHARTS FUNCTIONS ---
 
-# 1. PIE CHART (Ganti Donut)
+# 1. PIE CHART (Budget)
 def chart_pie_budget(df):
     data = df['Budget'].value_counts().reset_index()
     data.columns = ['Budget', 'Count']
     
     fig = px.pie(data, values='Count', names='Budget', 
                  title="Distribution of Monthly Budget",
-                 color_discrete_sequence=COLOR_SEQUENCE,
-                 hole=0) # Hole=0 means Pie Chart (Full)
+                 color_discrete_sequence=THEME_BLUE, # Guna Theme Blue
+                 hole=0)
     
-    # Feedback: Info mesti ada dalam chart, bukan tooltip je
+    # Info Percent & Label duduk dalam Pie
     fig.update_traces(textposition='inside', textinfo='percent+label')
     fig.update_layout(showlegend=True)
     return fig
 
-# 2. BAR CHART (Simple & Clean for Awareness)
+# 2. BAR CHART (Awareness)
 def chart_bar_awareness(df):
     data = df['Awareness_Str'].value_counts().sort_index().reset_index()
     data.columns = ['Awareness', 'Count']
@@ -101,13 +99,13 @@ def chart_bar_awareness(df):
     fig = px.bar(data, x='Awareness', y='Count',
                  title="Self-Perceived Fashion Awareness Level",
                  labels={'Awareness': 'Awareness Level (1-5)', 'Count': 'Number of Respondents'},
-                 color='Count', # Color gradient based on count
-                 color_continuous_scale='Teal')
+                 color='Count', 
+                 color_continuous_scale='Blues') # Skala Biru
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Total Count")
     return fig
 
-# 3. BAR CHART (Influence Ranking)
+# 3. BAR CHART (Influence)
 def chart_bar_influence(df):
     data = df['Influence'].value_counts().reset_index()
     data.columns = ['Influence', 'Count']
@@ -116,46 +114,42 @@ def chart_bar_influence(df):
                  title="Top Influencing Factors Ranking",
                  labels={'Influence': 'Source of Influence', 'Count': 'Number of Respondents'},
                  color='Influence',
-                 color_discrete_sequence=COLOR_SEQUENCE)
+                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
     
     fig.update_layout(xaxis_title="Influence Source", yaxis_title="Count", showlegend=False)
     return fig
 
 # 4. HEATMAP (Frequency vs Budget)
 def chart_heatmap_freq_budget(df):
-    # Plotly Density Heatmap is perfect for this matrix
     fig = px.density_heatmap(df, x='Frequency', y='Budget',
                              title="Matrix: Frequency vs. Budget",
                              labels={'Frequency': 'Shopping Frequency', 'Budget': 'Monthly Budget'},
-                             color_continuous_scale='OrRd') # Orange-Red scale
+                             color_continuous_scale='Blues') # Skala Biru
     return fig
 
 # 5. BUBBLE CHART (Awareness vs Budget)
-# Guna Bubble Chart supaya tak nampak "Weird" macam scatter plot biasa yang bertindih
 def chart_bubble_awareness_budget(df):
-    # Grouping data untuk dapatkan saiz bubble
     df_grouped = df.groupby(['Awareness_Str', 'Budget']).size().reset_index(name='Count')
     
     fig = px.scatter(df_grouped, x='Awareness_Str', y='Budget',
-                     size='Count', # Saiz bubble ikut jumlah orang
+                     size='Count', 
                      color='Count',
                      title="Correlation: Awareness vs. Budget",
                      labels={'Awareness_Str': 'Fashion Awareness (1-5)', 'Budget': 'Budget Range'},
-                     size_max=40,
-                     color_continuous_scale='Viridis')
+                     size_max=50,
+                     color_continuous_scale='Blues') # Skala Biru
     
     fig.update_layout(xaxis_title="Awareness Level", yaxis_title="Budget Range")
     return fig
 
 # 6. STACKED BAR (Influence vs Frequency)
 def chart_stacked_influence_freq(df):
-    # Prepare data specifically for stacked bar to ensure order is respected
     df_grouped = df.groupby(['Influence', 'Frequency']).size().reset_index(name='Count')
     
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Frequency',
                  title="Impact of Influences on Shopping Frequency",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Frequency': 'Frequency'},
-                 color_discrete_sequence=px.colors.qualitative.Safe) # Safe palette
+                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -167,7 +161,7 @@ def chart_stacked_influence_budget(df):
     fig = px.bar(df_grouped, x='Influence', y='Count', color='Budget',
                  title="Does Influence Source Affect Spending Limits?",
                  labels={'Influence': 'Influence Source', 'Count': 'Count', 'Budget': 'Budget Range'},
-                 color_discrete_sequence=px.colors.qualitative.Pastel)
+                 color_discrete_sequence=THEME_BLUE) # Guna Theme Blue
     
     fig.update_layout(barmode='stack', xaxis_title="Influence Source", yaxis_title="Count")
     return fig
@@ -178,8 +172,8 @@ def app():
     
     # --- OBJECTIVE ---
     st.markdown("""
-    <div style="background-color: #f8f9fa; padding: 15px; border-left: 5px solid #264653; margin-bottom: 20px;">
-        <h4 style="color: #264653; margin-top: 0;">Objective</h4>
+    <div style="background-color: #f0f7ff; padding: 15px; border-left: 5px solid #003366; margin-bottom: 20px;">
+        <h4 style="color: #003366; margin-top: 0;">Objective</h4>
         <p style="margin-bottom: 0; color: #333;">
             To analyze consumer interests in fashion by examining their spending habits, trend awareness, 
             and the key external drivers that influence their purchasing decisions.
@@ -210,11 +204,10 @@ def app():
 
     # --- VISUALIZATION (PLOTLY) ---
     
-    # 1. DISTRIBUTION (PIE CHART - FIXED)
+    # 1. DISTRIBUTION (PIE)
     st.header("1. Spending Preferences")
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
-        # Pie chart dengan label di dalam
         st.plotly_chart(chart_pie_budget(df_filtered), use_container_width=True)
         st.info("""
         **📝 Analysis:**
@@ -223,7 +216,7 @@ def app():
         """)
     st.markdown("---")
     
-    # 2. AWARENESS LEVEL (BAR CHART)
+    # 2. AWARENESS LEVEL (BAR)
     st.header("2. Fashion Knowledge Level")
     c1, c2, c3 = st.columns([1, 5, 1]) 
     with c2:
@@ -235,7 +228,7 @@ def app():
         """)
     st.markdown("---")
     
-    # 3. RANKING (BAR CHART)
+    # 3. RANKING (BAR)
     st.header("3. Key Interest Drivers")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
@@ -259,7 +252,7 @@ def app():
         """)
     st.markdown("---")
 
-    # 5. AWARENESS vs BUDGET (BUBBLE CHART)
+    # 5. AWARENESS vs BUDGET (BUBBLE)
     st.header("5. Awareness vs. Spending Interest")
     c1, c2, c3 = st.columns([1, 5, 1])
     with c2:
