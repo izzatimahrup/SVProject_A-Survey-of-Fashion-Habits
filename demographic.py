@@ -38,7 +38,7 @@ education_order = [
     "Lower secondary education",
     "Secondary education",
     "Post-secondary education",
-    "Bachelor’s degree",  # Use the curly apostrophe if that's in the CSV
+    "Bachelor’s degree",  
     "Master’s degree",
     "Doctoral degree"
 ]
@@ -125,19 +125,43 @@ df_filtered = df[
 ]
 
 # --- PART 2: SUNBURST VISUALIZATION ---
-st.subheader("📊 Interactive Gender & Age Hierarchy")
-st.info("💡 **Interactivity Tip:** Click on a inner sector (e.g., 'Female') to zoom into that group's specific age distribution.")
+# --- APPEALING SUNBURST VISUALIZATION ---
+st.subheader("📊 Interactive Demographic Breakdown")
 
-# Create the Sunburst
+# Using a professional color scale like 'Sunset' or 'Viridis'
+# We use 'color_continuous_scale' if using numbers, or 'color_discrete_sequence' for categories
 fig_sun = px.sunburst(
     df_filtered,
-    path=["Gender", "Age"], # Inner ring = Gender, Outer ring = Age
-    values=None,           # Plotly will count the rows automatically
+    path=["Gender", "Age"], 
     color="Gender",
-    color_discrete_map={'Female': '#FFB6C1', 'Male': '#ADD8E6'}, # Custom colors
+    # Option 1: Using a professional built-in palette
+    color_discrete_sequence=px.colors.qualitative.Pastel, 
     title="Demographic Proportions: Gender and Age"
 )
 
+# --- REFINING THE VISUAL DESIGN ---
+fig_sun.update_traces(
+    textinfo="label+percent entry",
+    # Adding a white border between slices makes it look much cleaner
+    marker=dict(line=dict(color='#FFFFFF', width=2)),
+    hovertemplate="""
+    <b>%{label}</b><br>
+    Respondents: %{value}<br>
+    Percentage: %{percentParent:.1f}%<br>
+    <extra></extra>
+    """
+)
+
+fig_sun.update_layout(
+    margin=dict(t=50, l=10, r=10, b=10),
+    height=600,
+    # This makes the background transparent to match the Streamlit UI
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(family="sans-serif", size=14)
+)
+
+st.plotly_chart(fig_sun, use_container_width=True)
 # --- PART 3: HOVER & TOOLTIP ENHANCEMENT ---
 fig_sun.update_traces(
     textinfo="label+percent entry", # Shows the name and percentage inside the slice
