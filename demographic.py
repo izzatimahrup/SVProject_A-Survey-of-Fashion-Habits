@@ -778,8 +778,8 @@ st.plotly_chart(fig12, use_container_width=True)
 # --- SECTION B: Monthly Expenses Focus ---
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 
-expenditure_colors = ['#FFF9C4', '#FFF176', '#FFD54F', '#FFB300', '#FF8F00']
-solid_gold = ["#FFC107"]
+expenditure_colors = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
+solid_color = ["#FB8C00"]
 
 # 11. Distribution by Employment
 st.subheader("11. Spending Power by Employment")
