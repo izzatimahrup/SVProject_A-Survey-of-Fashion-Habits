@@ -822,67 +822,64 @@ fig12.update_layout(yaxis={'categoryorder':'total ascending'})
 st.plotly_chart(fig12, use_container_width=True)
 
 
-# ==========================================
-# SECTION B: EXPENDITURE FOCUS
-# ==========================================
 st.subheader("📍 Section B: Expenditure & Employment Trends")
 
 exp_palette = ['#FFF3E0', '#FFCC80', '#FFB74D', '#F57C00', '#E65100']
 solid_orange = ["#F57C00"]
 
-# Set up the filter
+# Filter setup
 rm_expense_order = [f"RM {item}" if "RM" not in str(item) else item for item in expense_order]
-expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_sec_b")
+expense_choice = st.selectbox("Select Monthly Expenditure:", ["All"] + rm_expense_order, key="exp_filter_final_clean")
 
 df_expense = df.copy()
 if expense_choice != "All":
     actual_val = expense_choice.replace("RM ", "")
     df_expense = df_expense[df_expense["Average Monthly Expenses (RM)"] == actual_val]
 
-# 3. Figure 11: Treemap
+# 11.reemap - Spending Power
 st.subheader("11. Spending Power by Employment")
 fig11_data = df_expense.groupby(["Employment Status", "Average Monthly Expenses (RM)"]).size().reset_index(name="Count")
-#sort color
+
+# Sort color
 fig11_data = fig11_data.sort_values("Average Monthly Expenses (RM)")
-fig11_data["Average Monthly Expenses (RM)"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+fig11_data["Display RM"] = fig11_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
 if not fig11_data.empty:
-    path_logic = ["Employment Status", "Average Monthly Expenses (RM)"] if expense_choice == "All" else ["Employment Status"]
+    path_logic = ["Employment Status", "Display RM"] if expense_choice == "All" else ["Employment Status"]
     fig11 = px.treemap(
         fig11_data,
         path=path_logic,
         values="Count",
-        color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
+        color="Display RM" if expense_choice == "All" else None,
         color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
         title=f"Spending Power Distribution: {expense_choice}"
     )
     fig11.update_traces(hovertemplate="<b>%{label}</b><br>Count: %{value}<extra></extra>")
     st.plotly_chart(fig11, use_container_width=True)
 
-#12. Horizontal Bar Chart for Influence vs Spending Level
+# 12. Influence by Spending
 st.subheader("12. Influence by Spending Level")
-
 fig12_data = df_expense.groupby(["Average Monthly Expenses (RM)", "Influence on Shopping"]).size().reset_index(name="Count")
+
+# Sort color
 fig12_data = fig12_data.sort_values("Average Monthly Expenses (RM)")
-fig12_data["Average Monthly Expenses (RM)"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
+fig12_data["Display RM"] = fig12_data["Average Monthly Expenses (RM)"].apply(lambda x: f"RM {x}")
 
 fig12 = px.bar(
     fig12_data, 
     x="Count", 
     y="Influence on Shopping", 
-    color="Average Monthly Expenses (RM)" if expense_choice == "All" else None,
+    color="Display RM" if expense_choice == "All" else None,
     orientation='h', 
     barmode='stack',
     text_auto=True,
     color_discrete_sequence=exp_palette if expense_choice == "All" else solid_orange,
-    title=f"Influence for {expense_choice} Category"
+    title=f"Influence Factors for {expense_choice}"
 )
-
 fig12.update_layout(
     yaxis={'categoryorder':'total ascending'}, 
     legend={'traceorder': 'normal'}
 )
-
-fig12.update_traces( hovertemplate="Factor: %{y}<br>Total Count: %{x}<extra></extra>")
-
-st.plotly_chart(fig12, use_container_width=True)True)
+fig12.update_traces(hovertemplate="Factor: %{y}<br>Total Count: %{x}<extra></extra>")
+st.plotly_chart(fig12, use_container_width=True)
+st.divider()
