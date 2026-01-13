@@ -251,6 +251,7 @@ fig3 = px.bar(
 )
 
 fig3.update_traces(
+    width=0.7,
     texttemplate='<b>%{x}</b>', 
     textposition='outside',
     cliponaxis=False, 
@@ -291,7 +292,6 @@ fig4 = px.pie(
 )
 
 fig4.update_traces(
-    width=0.7,
     textinfo='percent+label', 
     marker=dict(line=dict(color='#FFFFFF', width=2)),
     hovertemplate="<b>%{label}</b><br>Total: %{value} respondents<br>Percentage: %{percent}<extra></extra>"
