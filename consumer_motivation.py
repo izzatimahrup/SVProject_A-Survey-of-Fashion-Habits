@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
-
 # ======================================================
 # PAGE CONFIG
 # ======================================================
@@ -145,7 +144,6 @@ with st.expander("📝 Detailed Interpretation: Ranking & Demographic Analysis")
     * **Gender Nuance:** The dumbbell plot reveals the "gap" in interest. For example, if markers are far apart, one gender finds that specific motivation significantly more compelling than the other.
     * **Strategic Insight:** Marketing efforts should lean heavily into high-scoring factors while adjusting messaging if a significant gender gap exists in your primary target audience.
     """)
-
 # ======================================================
 # SECTION B: CONSUMER SENTIMENT (DISTRIBUTIONS)
 # ======================================================
@@ -153,4 +151,106 @@ st.divider()
 st.header("Section B: Deep Dive into Motivations")
 st.write("Analyzing the specific trends and trust factors for each motivation.")
 
-# [Code continues with Section B and C as per your original snippet...]
+
+
+col1, col2 = st.columns(2)
+
+for i, col_name in enumerate(motivation_cols):
+    # Data Processing
+    counts = df[col_name].value_counts().sort_index().reset_index()
+    counts.columns = ['Score', 'Respondents']
+    avg_score = df[col_name].mean()
+    
+    # Create the Chart
+    fig_dist = px.bar(
+        counts, x='Score', y='Respondents', text='Respondents',
+        title=f"Distribution: {col_name}",
+        color='Score', color_continuous_scale='Plasma'
+    )
+    fig_dist.update_layout(showlegend=False, height=350, xaxis_title="1 (Disagree) to 5 (Agree)")
+    
+    target_col = col1 if i % 2 == 0 else col2
+    
+    with target_col:
+        st.plotly_chart(center_title(fig_dist), use_container_width=True)
+        
+        # 📝 DYNAMIC ANALYSIS LOGIC
+        st.write("### 📝 Analysis:")
+        
+        # 1. Determine the Driver Status
+        if avg_score >= 3.8:
+            status = f"**{col_name}** ranks as a **top driver** of interest among respondents."
+        elif avg_score >= 3.0:
+            status = f"**{col_name}** is a **moderate driver**, showing steady but not primary interest."
+        else:
+            status = f"**{col_name}** currently ranks as a **minor driver**, suggesting lower impact on this audience."
+        
+        # 2. Determine the Strategic Trend
+        if col_name in ["Online Community", "Brand Loyalty", "Express Personality"]:
+            trend = "This confirms that modern consumers trust **social proof** and peer identity more than traditional direct marketing."
+        elif col_name in ["Updates & Promotions", "Discounts & Contests"]:
+            trend = "This reflects a **transactional trend**, where consumers follow for immediate, tangible rewards and efficiency."
+        else:
+            trend = "This highlights a focus on **aesthetic alignment**, where the visual 'vibe' of the brand is the main anchor for the consumer."
+
+        st.write(status)
+        st.write(f"**Trend:** {trend}")
+        st.markdown("---")
+
+# ======================================================
+# SECTION C: RELATIONSHIPS
+# ======================================================
+st.divider()
+st.header("Section C: Engagement Relationships")
+
+tab_corr, tab_rel = st.tabs(["Correlation Heatmap", "Relationship Scatters"])
+
+with tab_corr:
+    st.write("### How motivations move together")
+    corr_matrix = df[motivation_cols].corr()
+    fig_heatmap = px.imshow(
+        corr_matrix, text_auto=".2f",
+        color_continuous_scale='RdBu_r',
+        title="Correlation Heatmap"
+    )
+    st.plotly_chart(center_title(fig_heatmap), use_container_width=True)
+    
+    with st.expander("📝 Detailed Interpretation: Heatmap Correlation"):
+        st.write("""
+        * **Positive Correlation (Blue):** When two motivations are highly correlated (e.g., > 0.60), it means users who follow for one reason are very likely to follow for the other. 
+        * **Strategic Value:** High correlations allow brands to "bundle" content. For example, if 'Entertainment' and 'Style' correlate, entertaining videos should always showcase product style.
+        """)
+
+with tab_rel:
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        x_var = st.selectbox("Select X-axis", motivation_cols, index=0)
+        y_var = st.selectbox("Select Y-axis", motivation_cols, index=min(1, len(motivation_cols)-1))
+        
+        current_corr = df[x_var].corr(df[y_var])
+        st.write(f"**Correlation Coefficient:** {current_corr:.2f}")
+        
+        if current_corr > 0.6:
+            st.success("Analysis: **Strong Relationship**. These two factors are deeply linked in the consumer's mind.")
+        elif current_corr > 0.3:
+            st.warning("Analysis: **Moderate Relationship**. There is a visible trend, but other factors are also at play.")
+        else:
+            st.error("Analysis: **Weak Relationship**. These factors operate independently of one another.")
+    
+    with c2:
+        try:
+            import statsmodels
+            t_line = "ols"
+        except ImportError:
+            t_line = None
+            
+        fig_scatter = px.scatter(
+            df, x=x_var, y=y_var, 
+            trendline=t_line, 
+            opacity=0.4,
+            title=f"Relationship: {x_var} vs {y_var}"
+        )
+        st.plotly_chart(center_title(fig_scatter), use_container_width=True)
+
+st.divider()
+st.markdown("✔ **Consumer Motivation Analysis Complete**")
