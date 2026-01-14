@@ -265,7 +265,7 @@ filtered_df = df_melted_frequency[df_melted_frequency['Activity_Type'].isin(sele
 # --- 4. MAIN BOX PLOT ---
 if not filtered_df.empty:
     sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(8, 4))
     
     sns.boxplot(
         data=filtered_df,
